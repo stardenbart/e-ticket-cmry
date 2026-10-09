@@ -1,0 +1,18 @@
+{
+  "name": "Scanner Gate — E-Ticket Gathering",
+  "short_name": "Scanner Gate",
+  "description": "Validasi QR tiket dan pencocokan identitas di gate, bisa offline.",
+  "id": "/scanner",
+  "start_url": "/scanner",
+  "scope": "/scanner",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#020617",
+  "theme_color": "#1B3A6F",
+  "lang": "id",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

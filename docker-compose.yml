@@ -1,0 +1,25 @@
+name: eticket
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: eticket
+      POSTGRES_PASSWORD: eticket
+      POSTGRES_DB: eticket
+    ports: ["5440:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    command: ["postgres", "-c", "max_connections=300", "-c", "timezone=UTC"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eticket"]
+      interval: 5s
+  redis:
+    image: redis:7-alpine
+    ports: ["6390:6379"]
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redisdata:/data]
+  mailpit:
+    image: axllent/mailpit:latest
+    ports: ["8030:8025", "1030:1025"]
+volumes:
+  pgdata:
+  redisdata:
