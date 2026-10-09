@@ -6,6 +6,8 @@ import { hashPassword } from "@/lib/crypto";
 import { issueOtp } from "@/lib/otp";
 import { isDisposableEmail } from "@/lib/disposable";
 import { rateLimit } from "@/lib/rate-limit";
+import { env } from "@/lib/env";
+import { createSession } from "@/lib/auth";
 
 const schema = z.object({
   email: emailSchema,
@@ -25,6 +27,28 @@ export const POST = route(async (req) => {
 
   const [existing] = await sql<{ id: string; email_verified_at: Date | null }[]>`
     SELECT id, email_verified_at FROM users WHERE lower(email) = ${d.email}`;
+
+  // Tanpa verifikasi email: akun langsung aktif dan login.
+  if (!env.EMAIL_VERIFICATION) {
+    if (existing?.email_verified_at) {
+      throw new ApiError(409, "EMAIL_TAKEN", "Email ini sudah terdaftar. Silakan masuk, atau pakai Lupa Password.", {
+        fields: [{ path: "email", message: "Email ini sudah terdaftar." }],
+      });
+    }
+    const hash = await hashPassword(d.password);
+    const [u] = existing
+      ? await sql<{ id: string }[]>`
+          UPDATE users SET password_hash = ${hash}, full_name = ${d.fullName}, terms_accepted_at = now(), email_verified_at = now()
+          WHERE id = ${existing.id} RETURNING id`
+      : await sql<{ id: string }[]>`
+          INSERT INTO users (email, password_hash, full_name, terms_accepted_at, email_verified_at)
+          VALUES (${d.email}, ${hash}, ${d.fullName}, now(), now())
+          ON CONFLICT ((lower(email))) DO NOTHING RETURNING id`;
+    if (!u) throw new ApiError(409, "EMAIL_TAKEN", "Email ini sudah terdaftar. Silakan masuk.");
+    await createSession(u.id, "ATTENDEE", { ip, userAgent: req.headers.get("user-agent") ?? undefined });
+    return json({ ok: true, verified: true });
+  }
+
   if (existing?.email_verified_at) return json(SAME);
 
   const hash = await hashPassword(d.password);

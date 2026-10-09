@@ -1,4 +1,4 @@
-import { MvImg } from "./ornaments";
+import { MascotLive, MvImg } from "./ornaments";
 import type { ReactNode } from "react";
 
 /** Hanya izinkan redirect ke path internal. */
@@ -14,7 +14,7 @@ export function AuthShell({ title, subtitle, children, aside }: { title: string;
       <div aria-hidden className="pointer-events-none absolute left-1/2 top-16 size-[480px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(232,28,255,0.22),transparent_65%)]" />
       <div className="relative grid items-center gap-10 lg:grid-cols-[1fr_1.05fr]">
         <div className="hidden flex-col items-center text-center lg:flex">
-          <MvImg name="mascot" alt="Maskot MOO melambai" className="mv-float h-auto w-[300px] drop-shadow-[0_0_30px_rgba(232,28,255,0.45)]" />
+          <MascotLive alt="Maskot MOO melambai" className="mv-float w-[300px] drop-shadow-[0_0_30px_rgba(232,28,255,0.45)]" />
           <p className="font-display mt-2 text-3xl font-black uppercase leading-tight text-white mv-glow">Satu akun, satu tiket, atas nama sendiri.</p>
           <p className="mt-3 max-w-md text-[#dbe4ff]">Klaim tiket gratis secara adil. Urutan ditentukan oleh server, dan tiket langsung dikirim sebagai QR ke email Anda.</p>
           {aside ?? (

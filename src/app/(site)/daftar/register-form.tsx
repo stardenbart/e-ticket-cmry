@@ -28,8 +28,14 @@ export function RegisterForm({ next }: { next: string }) {
     setBusy(true);
     setError(null);
     try {
-      await api("/api/auth/register", { json: { ...f, email: f.email.trim(), fullName: f.fullName.trim() } });
-      router.push(`/verifikasi?email=${encodeURIComponent(f.email.trim().toLowerCase())}&next=${encodeURIComponent(next)}`);
+      const r = await api<{ verified?: boolean }>("/api/auth/register", { json: { ...f, email: f.email.trim(), fullName: f.fullName.trim() } });
+      if (r.verified) {
+        // Akun langsung aktif: lanjut lengkapi profil identitas.
+        router.push(`/profil?next=${encodeURIComponent(next)}`);
+        router.refresh();
+      } else {
+        router.push(`/verifikasi?email=${encodeURIComponent(f.email.trim().toLowerCase())}&next=${encodeURIComponent(next)}`);
+      }
     } catch (err) {
       const e = err instanceof ClientApiError ? err : null;
       if (e?.data.fields) setFieldErr(Object.fromEntries(e.data.fields.map((x) => [x.path, x.message])));
@@ -40,7 +46,7 @@ export function RegisterForm({ next }: { next: string }) {
 
   return (
     <form onSubmit={submit} className="space-y-4" noValidate>
-      <Field label="Email" htmlFor="email" error={fieldErr.email} hint="Kode verifikasi dan tiket QR akan dikirim ke email ini.">
+      <Field label="Email" htmlFor="email" error={fieldErr.email} hint="Tiket QR akan dikirim ke email ini — pastikan tidak salah ketik.">
         <Input id="email" type="email" autoComplete="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} placeholder="nama@email.com" />
       </Field>
       <Field label="Nama lengkap sesuai identitas" htmlFor="fullName" error={fieldErr.fullName} hint="Nama ini akan tercetak di tiket dan dicocokkan dengan KTP/SIM/Paspor di gate.">

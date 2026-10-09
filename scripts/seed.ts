@@ -108,8 +108,8 @@ type SeedEvent = {
 const DESC = `<p>Gathering tahunan untuk keluarga besar dan komunitas. Nikmati penampilan musik, area kuliner, dan aktivitas seru sepanjang acara.</p>
 <h3>Highlight</h3><ul><li>Live music &amp; talkshow</li><li>Area kuliner dan sampling produk</li><li>Photo booth &amp; doorprize</li></ul>
 <p>Tiket gratis, terbatas, dan <strong>atas nama pemilik akun</strong>. Bawa identitas asli saat masuk.</p>`;
-const DESC_MOONIVERSE = `<p><strong>Mooniverse 2026 by Cimory</strong> — festival musik bertema neon tempat <strong>Good Food Good Mood</strong> bertemu panggung megah. MOO, maskot sapi berkacamata VR, siap menyambut kamu!</p>
-<h3>Highlight</h3><ul><li>Konser live di panggung neon MOO</li><li>Area kuliner &amp; sampling produk Cimory</li><li>Photo spot menara MOO &amp; blimp neon</li><li>Light stick untuk seluruh penonton</li></ul>
+const DESC_MOONIVERSE = `<p><strong>Mooniverse — Cimory Employee Gathering 2026</strong>: malam kebersamaan seluruh karyawan Cimory bertema neon, tempat <strong>Good Food Good Mood</strong> bertemu panggung megah. MOO, maskot sapi berkacamata VR, siap menyambut kamu!</p>
+<h3>Highlight</h3><ul><li>Konser live di panggung neon MOO</li><li>Area kuliner &amp; sampling produk Cimory</li><li>Photo spot menara MOO &amp; blimp neon</li><li>Light stick untuk seluruh karyawan</li></ul>
 <p>Moo brings us together! Tiket gratis, terbatas, dan <strong>atas nama pemilik akun</strong>. Bawa identitas asli saat masuk.</p>`;
 const TERMS = `<ol><li>Satu akun hanya bisa memegang satu tiket per event.</li><li>Tiket atas nama pemilik akun dan tidak dapat dipindahtangankan.</li>
 <li>Pengunjung wajib membawa identitas asli (KTP/SIM/Paspor) yang sama dengan data di tiket.</li><li>Panitia berhak menolak masuk jika identitas tidak cocok.</li>
@@ -128,40 +128,13 @@ async function main() {
   const now = Date.now();
   const events: SeedEvent[] = [
     {
-      slug: "mooniverse-2026", name: "Mooniverse 2026", type: "Festival", city: "Bogor",
+      slug: "mooniverse-2026", name: "Mooniverse Cimory Employee Gathering 2026", type: "Employee Gathering", city: "Bogor",
       venue: "Cimory Dairyland Puncak", address: "Jl. Raya Puncak No.KM. 77, Cisarua, Bogor", lat: -6.6976, lng: 106.9516,
       startIn: 14 * D, durationH: 8, hueA: "#05061a", hueB: "#e81cff", photo: true, description: DESC_MOONIVERSE,
       cats: [
         { name: "Festival", description: "Akses area festival, panggung utama & kuliner.", quota: 300, openIn: -30 * M, closeIn: 7 * D, color: "#22E5FF", claimed: 0 },
         { name: "VIP Moo Zone", description: "Area depan panggung + light stick & goodie bag.", quota: 50, openIn: -10 * M, closeIn: 7 * D, color: "#FF2BD6", claimed: 0 },
       ],
-    },
-    {
-      slug: "fun-run-dairy-5k", name: "Fun Run Dairy 5K", type: "Olahraga", city: "Jakarta",
-      venue: "Gelora Bung Karno", address: "Jl. Pintu Satu Senayan, Jakarta Pusat", lat: -6.2186, lng: 106.8016,
-      startIn: 21 * D, durationH: 5, hueA: "#05061a", hueB: "#2d6bff",
-      cats: [
-        { name: "Pelari 5K", description: "Race pack + medali finisher.", quota: 120, openIn: 12 * M, closeIn: 10 * D, color: "#2D6BFF" },
-        { name: "Supporter", description: "Akses area start/finish.", quota: 80, openIn: 2 * H, closeIn: 10 * D, color: "#8B5CF6" },
-      ],
-    },
-    {
-      slug: "talkshow-nutrisi-keluarga", name: "Talkshow Nutrisi Keluarga", type: "Seminar", city: "Bandung",
-      venue: "Trans Convention Centre", address: "Jl. Gatot Subroto No.289, Bandung", lat: -6.9262, lng: 107.6366,
-      startIn: 30 * D, durationH: 3, hueA: "#0a0b2e", hueB: "#8b5cf6",
-      cats: [{ name: "Peserta", description: "Kursi teater + snack.", quota: 150, openIn: 3 * D, closeIn: 25 * D, color: "#22E5FF" }],
-    },
-    {
-      slug: "konser-akhir-tahun", name: "Konser Akhir Tahun", type: "Musik", city: "Surabaya",
-      venue: "Grand City Convex", address: "Jl. Walikota Mustajab No.1, Surabaya", lat: -7.2622, lng: 112.7499,
-      startIn: 10 * D, durationH: 4, hueA: "#05061a", hueB: "#ff2bd6",
-      cats: [{ name: "Festival", description: "Berdiri, tanpa nomor kursi.", quota: 5, openIn: -2 * H, closeIn: 5 * D, color: "#FF2BD6", claimed: 5 }],
-    },
-    {
-      slug: "workshop-baking-sehat", name: "Workshop Baking Sehat", type: "Workshop", city: "Bogor",
-      venue: "Cimory Riverside", address: "Jl. Raya Puncak Km. 75, Bogor", lat: -6.6688, lng: 106.9132,
-      startIn: -10 * D, durationH: 4, hueA: "#0a0b2e", hueB: "#e81cff",
-      cats: [{ name: "Peserta", description: "Bahan & apron disediakan.", quota: 40, openIn: -30 * D, closeIn: -12 * D, color: "#E81CFF", claimed: 0 }],
     },
   ];
   // `npm run seed -- --banners-only`: hanya buat ulang gambar banner demo.

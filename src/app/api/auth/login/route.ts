@@ -8,6 +8,8 @@ import { verifyPassword } from "@/lib/crypto";
 import { createSession, isStaffRole, type Role } from "@/lib/auth";
 import { issueOtp } from "@/lib/otp";
 import { rateLimit } from "@/lib/rate-limit";
+import { env } from "@/lib/env";
+import { audit } from "@/lib/audit";
 
 const schema = z.object({ email: emailSchema, password: z.string().min(1, "Password wajib diisi.").max(128) });
 
@@ -23,7 +25,9 @@ export const POST = route(async (req) => {
   const ok = await verifyPassword(d.password, u?.password_hash ?? null);
   if (!u || !ok || u.disabled_at) throw new ApiError(401, "INVALID_CREDENTIALS", "Email atau password salah.");
 
-  if (!u.email_verified_at) {
+  if (!u.email_verified_at && !env.EMAIL_VERIFICATION) {
+    await sql`UPDATE users SET email_verified_at = now() WHERE id = ${u.id}`;
+  } else if (!u.email_verified_at) {
     try {
       await issueOtp({ userId: u.id, email: d.email, name: u.full_name, purpose: "VERIFY_EMAIL", ip });
     } catch {
@@ -32,8 +36,8 @@ export const POST = route(async (req) => {
     return json({ ok: false, needVerify: true, message: "Email belum terverifikasi. Kami kirim kode verifikasi ke email Anda." });
   }
 
-  // Admin & staf wajib 2FA lewat OTP email setiap login.
-  if (isStaffRole(u.role)) {
+  // 2FA OTP email untuk admin & staf hanya bila STAFF_2FA=true (dimatikan atas permintaan penyelenggara).
+  if (isStaffRole(u.role) && env.STAFF_2FA) {
     const challengeId = crypto.randomUUID();
     await redis.set(`2fa:${challengeId}`, u.id, "EX", 300);
     await issueOtp({ userId: u.id, email: d.email, name: u.full_name, purpose: "LOGIN_2FA", ip, enforceCooldown: false });
@@ -41,5 +45,6 @@ export const POST = route(async (req) => {
   }
 
   await createSession(u.id, u.role, { ip, userAgent: req.headers.get("user-agent") ?? undefined });
+  if (isStaffRole(u.role)) await audit({ actorId: u.id, action: "auth.login", entity: "user", entityId: u.id, ip });
   return json({ ok: true, role: u.role });
 });

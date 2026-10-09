@@ -10,7 +10,7 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
     q: "Apa yang harus disiapkan sebelum war tiket?",
     a: (
       <>
-        Daftar akun, verifikasi email dengan kode OTP, lalu lengkapi <Link href="/profil">profil identitas</Link> (nama sesuai identitas, jenis dan nomor identitas). Tanpa profil lengkap, Anda tidak bisa masuk antrean.
+        Daftar akun dengan email aktif, lalu lengkapi <Link href="/profil">profil identitas</Link> (nama sesuai identitas, jenis dan nomor identitas). Tanpa profil lengkap, Anda tidak bisa masuk antrean.
       </>
     ),
   },

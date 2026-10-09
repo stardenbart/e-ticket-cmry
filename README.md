@@ -27,7 +27,7 @@ Semua email (OTP, tiket, undangan staf) terlihat di Mailpit: http://localhost:80
 | Gate Staff | staf@eticket.local | Staf12345! |
 | Peserta | budi@example.com, sari@example.com | Peserta123! |
 
-Admin & staf wajib 2FA: kode OTP dikirim ke email (lihat Mailpit).
+Login admin & staf tanpa OTP secara default. Set `STAFF_2FA=true` di `.env` untuk mewajibkan kode OTP email (2FA).
 
 | Area | URL |
 | --- | --- |

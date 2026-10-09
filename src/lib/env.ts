@@ -15,6 +15,10 @@ export const env = {
   qrPublicKey(kid: number) { return process.env[`QR_PUBLIC_KEY_${kid}`]; },
   get TURNSTILE_SECRET_KEY() { return process.env.TURNSTILE_SECRET_KEY ?? ""; },
   get ADMIN_ALERT_EMAIL() { return process.env.ADMIN_ALERT_EMAIL ?? ""; },
+  /** OTP 2FA saat login admin/staf. Default mati; set STAFF_2FA=true untuk mengaktifkan. */
+  get STAFF_2FA() { return process.env.STAFF_2FA === "true"; },
+  /** Verifikasi email lewat kode OTP saat daftar. Default mati (daftar langsung aktif). */
+  get EMAIL_VERIFICATION() { return process.env.EMAIL_VERIFICATION === "true"; },
   get isProd() { return process.env.NODE_ENV === "production"; },
   /** Cookie Secure; default aktif di produksi. Set COOKIE_SECURE=false hanya untuk deployment HTTP internal. */
   get COOKIE_SECURE() { return process.env.COOKIE_SECURE ? process.env.COOKIE_SECURE === "true" : process.env.NODE_ENV === "production"; },

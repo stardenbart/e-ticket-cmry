@@ -7,6 +7,8 @@ const A = "/images/mooniverse";
 /** Ukuran asli aset (untuk width/height agar tidak terjadi layout shift). */
 export const ASSET = {
   mascot: { src: `${A}/mascot.webp`, w: 410, h: 392 },
+  mascotHead: { src: `${A}/mascot-head.webp`, w: 410, h: 392 },
+  mascotBody: { src: `${A}/mascot-body.webp`, w: 410, h: 392 },
   logo: { src: `${A}/logo.webp`, w: 715, h: 280 },
   blimp: { src: `${A}/blimp.webp`, w: 380, h: 210 },
   cowRock: { src: `${A}/cow-rock.webp`, w: 215, h: 172 },
@@ -46,6 +48,19 @@ export function MvImg({ name, alt = "", className, style, eager = false }: { nam
       className={cx("select-none", className)}
       style={style}
     />
+  );
+}
+
+/**
+ * Maskot MOO yang hidup: badan diam, kepala bergoyang mengikuti irama (pivot di leher), dan
+ * "headbang" saat di-hover/tap. Layer dibuat oleh scripts/split-mascot.mjs dari mascot.webp.
+ */
+export function MascotLive({ alt = "", className, eager = false }: { alt?: string; className?: string; eager?: boolean }) {
+  return (
+    <div className={cx("mv-mascot group relative", className)} role={alt ? "img" : undefined} aria-label={alt || undefined} aria-hidden={alt ? undefined : true}>
+      <MvImg name="mascotBody" eager={eager} className="block h-auto w-full" />
+      <MvImg name="mascotHead" eager={eager} className="mv-mascot-head absolute inset-0 h-auto w-full" />
+    </div>
   );
 }
 

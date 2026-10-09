@@ -5,7 +5,7 @@ import { fmtDate } from "@/lib/format";
 import { HeroCarousel, type HeroSlide } from "@/components/site/hero-carousel";
 import { EventCard } from "@/components/site/event-card";
 import { EventFilters, parseFilters } from "@/components/site/event-filters";
-import { FrameTitle, Marquee, MvImg, StickerNote } from "@/components/site/ornaments";
+import { FrameTitle, MascotLive, Marquee, MvImg, StickerNote } from "@/components/site/ornaments";
 
 export const dynamic = "force-dynamic";
 
@@ -139,7 +139,7 @@ function NoResult() {
 }
 
 const STEPS = [
-  ["Daftar & Verifikasi", "Buat akun, verifikasi email dengan kode OTP, lalu lengkapi profil identitas (KTP/SIM/Paspor)."],
+  ["Daftar & Lengkapi Profil", "Buat akun dengan email aktif, lalu lengkapi profil identitas (KTP/SIM/Paspor)."],
   ["Masuk Antrean", "Antrean dibuka 10 menit sebelum war. Urutan diacak saat dibuka agar adil bagi semua."],
   ["Klaim Tiket", "Saat giliran tiba, konfirmasi data dan klaim. Kuota dijamin tidak pernah terlampaui."],
   ["Datang ke Gate", "QR dikirim ke email dan tersedia di Tiket Saya. Bawa identitas asli untuk dicocokkan."],
@@ -155,7 +155,7 @@ function HowItWorks() {
       <div className="grid items-center gap-10 lg:grid-cols-[360px_1fr]">
         <div className="mv-reveal relative mx-auto w-full max-w-[300px] lg:max-w-none">
           <div aria-hidden className="absolute inset-[12%] rounded-full bg-[radial-gradient(circle,rgba(255,43,214,0.45),transparent_65%)] blur-2xl" />
-          <MvImg name="mascot" alt="Maskot MOO dengan kacamata VR melambai" className="mv-float relative mx-auto h-auto w-full max-w-[340px]" />
+          <MascotLive alt="Maskot MOO dengan kacamata VR melambai" className="mv-float relative mx-auto w-full max-w-[340px]" />
           <div className="mv-card relative -mt-4 px-4 py-3 text-center">
             <p className="font-hud text-lg font-bold uppercase tracking-wider text-white">&ldquo;Moo! Ikuti langkahnya, ya!&rdquo;</p>
           </div>

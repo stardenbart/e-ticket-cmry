@@ -320,6 +320,30 @@
 .mv-laser.cyan { background: linear-gradient(0deg, rgb(34 229 255 / 0.9), transparent 90%); box-shadow: 0 0 14px rgb(34 229 255 / 0.8); }
 @keyframes mv-sweep { from { transform: rotate(var(--from, -22deg)); } to { transform: rotate(var(--to, 18deg)); } }
 
+/* Maskot hidup: kepala berayun di titik leher (≈51% 75% dari gambar 410×392). */
+.mv-mascot-head {
+  transform-origin: 51% 75%;
+  animation: mv-head-groove 3.2s cubic-bezier(.45,.05,.55,.95) infinite, mv-head-glow 2.4s ease-in-out infinite;
+  will-change: transform;
+}
+.mv-mascot:hover .mv-mascot-head,
+.mv-mascot:active .mv-mascot-head { animation: mv-head-bang .45s ease-in-out 3, mv-head-glow 2.4s ease-in-out infinite; }
+@keyframes mv-head-groove {
+  0%, 100% { transform: rotate(-3deg) translateY(0); }
+  20% { transform: rotate(2.5deg) translateY(-3px); }
+  35% { transform: rotate(1deg) translateY(0); }
+  55% { transform: rotate(3.5deg) translateY(-2px); }
+  70% { transform: rotate(-1deg) translateY(1px); }
+  85% { transform: rotate(-4deg) translateY(-2px); }
+}
+@keyframes mv-head-bang {
+  0%, 100% { transform: rotate(0) translateY(0); }
+  50% { transform: rotate(-6deg) translateY(6px); }
+}
+@keyframes mv-head-glow {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(34,229,255,0)); }
+  50% { filter: drop-shadow(0 0 14px rgba(255,43,214,.55)); }
+}
 .mv-float { animation: mv-float 6s ease-in-out infinite; }
 .mv-float-slow { animation: mv-float 9s ease-in-out infinite; }
 @keyframes mv-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }

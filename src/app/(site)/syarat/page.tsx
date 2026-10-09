@@ -9,9 +9,9 @@ export default function TermsPage() {
     <ProsePage title="Syarat & Ketentuan" updated="8 Oktober 2026">
       <h2>1. Akun</h2>
       <ul>
-        <li>Pendaftaran gratis dan wajib memakai email aktif yang diverifikasi dengan kode OTP. Email dari layanan sekali pakai tidak diterima.</li>
+        <li>Pendaftaran gratis dan wajib memakai email aktif milik sendiri — tiket QR dikirim ke email tersebut. Email dari layanan sekali pakai tidak diterima.</li>
         <li>Nama di akun harus sesuai dengan kartu identitas (KTP, SIM, atau Paspor) yang Anda daftarkan di profil.</li>
-        <li>Anda bertanggung jawab menjaga kerahasiaan password dan kode OTP. Panitia tidak pernah meminta kode OTP.</li>
+        <li>Anda bertanggung jawab menjaga kerahasiaan password. Panitia tidak pernah meminta password atau kode reset Anda.</li>
       </ul>
       <h2>2. Klaim tiket</h2>
       <ul>
