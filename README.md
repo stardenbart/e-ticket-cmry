@@ -108,3 +108,21 @@ npm run keys -- 2      # menambah QR_PRIVATE_KEY_2 / QR_PUBLIC_KEY_2
 - Aktifkan PITR PostgreSQL (RPO 5 menit) dan uji restore sebelum go-live.
 - Konfigurasikan SPF, DKIM, DMARC untuk domain pengirim email.
 - Ganti `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` dengan kunci produksi.
+
+## Deploy (server internal 172.20.240.61)
+
+Server memakai podman rootless + docker-compose dan dipakai bersama aplikasi lain; deploy hanya menyentuh
+`~/eticket` dan container `eticket_*`. Aplikasi: http://172.20.240.61:3110.
+
+```bash
+git push                      # deploy selalu dari commit
+bash scripts/deploy.sh        # upload commit HEAD, build image di server, up, health check
+```
+
+- Rahasia ada di `~/eticket/.env` di server (chmod 600, tidak di-commit): secret aplikasi, kunci QR, `POSTGRES_PASSWORD`,
+  SMTP, dan `SEED_*_PASSWORD` untuk akun demo. `COOKIE_SECURE=false` karena masih HTTP; set `true` setelah ada HTTPS.
+- Email sementara ditampung Mailpit di server. Lihat dengan `ssh -L 8030:127.0.0.1:3111 usersentul01@172.20.240.61`
+  lalu buka http://localhost:8030. Untuk SMTP asli, isi `SMTP_HOST/PORT/SECURE/USER/PASS` dan `MAIL_FROM` di `.env`,
+  lalu `docker-compose -p eticket -f docker-compose.prod.yml up -d web worker`.
+- Seed sekali: `docker exec eticket_web node --import tsx scripts/seed.ts`.
+- Rollback: perintahnya dicetak di akhir `deploy.sh` (memakai tag image commit sebelumnya).
