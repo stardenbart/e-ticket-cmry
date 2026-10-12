@@ -4,49 +4,57 @@
  */
 
 .theme-mooniverse {
-  /* Palet (diambil dari visual stock Mooniverse) */
-  --mv-bg: #05061a;
-  --mv-bg-2: #0a0b2e;
-  --mv-deep: #1b0b4d;
-  --mv-pink: #ff2bd6;
-  --mv-magenta: #e81cff;
-  --mv-cyan: #22e5ff;
-  --mv-blue: #2d6bff;
+  /* Palet resmi Canva Mooniverse:
+     #000000 hitam · #FFFFFF putih · #9AFCFF cyan muda · #05A5EF cyan · #0827B5 biru royal · #EDAAF1 lavender · #F714F7 magenta */
+  --mv-black: #000000;
+  --mv-bg: #020a17;
+  --mv-bg-2: #04202e;
+  --mv-navy: #083462;
+  --mv-royal: #0827b5;
+  --mv-deep: #0827b5;
+  --mv-pink: #f714f7;
+  --mv-magenta: #f714f7;
+  --mv-cyan: #9afcff;
+  --mv-blue: #05a5ef;
+  --mv-lavender: #edaaf1;
   --mv-violet: #8b5cf6;
-  --mv-soft: #ffe3f8;
-  --mv-btn: linear-gradient(100deg, #ff2bd6 0%, #b026ff 45%, #2d6bff 100%);
-  --mv-glow-pink: 0 0 6px rgb(255 43 214 / 0.9), 0 0 18px rgb(255 43 214 / 0.55), 0 0 42px rgb(232 28 255 / 0.35);
-  --mv-glow-cyan: 0 0 6px rgb(34 229 255 / 0.9), 0 0 18px rgb(34 229 255 / 0.5), 0 0 40px rgb(45 107 255 / 0.35);
-  --mv-text-glow: 0 0 2px #fff, 0 0 10px rgb(255 43 214 / 0.85), 0 0 26px rgb(232 28 255 / 0.55);
+  --mv-soft: #fbe6fc;
+  --mv-btn: linear-gradient(100deg, #f714f7 0%, #9b2cf5 45%, #0827b5 100%);
+  --mv-glow-pink: 0 0 6px rgb(247 20 247 / 0.9), 0 0 18px rgb(247 20 247 / 0.55), 0 0 42px rgb(247 20 247 / 0.35);
+  --mv-glow-cyan: 0 0 6px rgb(154 252 255 / 0.9), 0 0 18px rgb(154 252 255 / 0.5), 0 0 40px rgb(5 165 239 / 0.35);
+  --mv-text-glow: 0 0 2px #fff, 0 0 10px rgb(247 20 247 / 0.85), 0 0 26px rgb(247 20 247 / 0.55);
+  /* Tabung neon putih (judul): inti putih + pendar putih & cyan berlapis */
+  --mv-tube-glow: 0 0 1px #fff, 0 0 4px rgb(255 255 255 / 0.95), 0 0 10px rgb(255 255 255 / 0.65), 0 0 22px rgb(154 252 255 / 0.55), 0 0 44px rgb(5 165 239 / 0.45);
+  --mv-brush-glow: 0 0 2px #fff, 0 0 8px rgb(247 20 247 / 0.95), 0 0 20px rgb(247 20 247 / 0.7), 0 0 42px rgb(247 20 247 / 0.45);
 
   /* Token desain proyek dipetakan ke tema gelap */
   --color-ink: #ffffff;
-  --color-muted: #c9d3ff;
-  --color-line: rgb(34 229 255 / 0.28);
-  --color-surface: rgb(13 14 52 / 0.82);
-  --color-cimory-blue: #22e5ff;
-  --color-cimory-blue-dark: #8ff3ff;
-  --color-cimory-red: #ff2bd6;
-  --color-cimory-red-dark: #ffb3f0;
-  --color-cimory-light: #05061a;
+  --color-muted: #d3e2f5;
+  --color-line: rgb(154 252 255 / 0.28);
+  --color-surface: rgb(4 24 48 / 0.82);
+  --color-cimory-blue: #9afcff;
+  --color-cimory-blue-dark: #c9feff;
+  --color-cimory-red: #f714f7;
+  --color-cimory-red-dark: #edaaf1;
+  --color-cimory-light: #020a17;
   --color-ok: #5dffb2;
   --color-warn: #ffe066;
 
   /* Palet Tailwind bawaan dibalik untuk permukaan gelap */
-  --color-slate-50: #0b0d33;
-  --color-slate-100: #11143f;
-  --color-slate-200: #1a1e52;
-  --color-slate-300: #2c3270;
-  --color-slate-400: #9aa6d9;
-  --color-slate-500: #b4bfe8;
-  --color-slate-600: #c9d3ff;
-  --color-slate-700: #dde4ff;
-  --color-slate-800: #eef1ff;
-  --color-slate-900: #f8f9ff;
-  --color-blue-50: rgb(34 229 255 / 0.1);
-  --color-blue-200: rgb(34 229 255 / 0.45);
-  --color-red-50: rgb(255 43 214 / 0.12);
-  --color-red-200: rgb(255 43 214 / 0.5);
+  --color-slate-50: #041a2c;
+  --color-slate-100: #072338;
+  --color-slate-200: #0c2f4c;
+  --color-slate-300: #1d4470;
+  --color-slate-400: #9fb6d6;
+  --color-slate-500: #b8cbe6;
+  --color-slate-600: #d3e2f5;
+  --color-slate-700: #e3edfa;
+  --color-slate-800: #f0f6fd;
+  --color-slate-900: #f8fbff;
+  --color-blue-50: rgb(154 252 255 / 0.1);
+  --color-blue-200: rgb(154 252 255 / 0.45);
+  --color-red-50: rgb(247 20 247 / 0.12);
+  --color-red-200: rgb(247 20 247 / 0.5);
   --color-green-50: rgb(93 255 178 / 0.1);
   --color-green-200: rgb(93 255 178 / 0.45);
   --color-amber-50: rgb(255 224 102 / 0.1);
@@ -56,35 +64,59 @@
   font-family: var(--font-jakarta), ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif;
   color: var(--color-ink);
   background-color: var(--mv-bg);
-  background-image:
-    radial-gradient(1100px 520px at 80% -8%, rgb(232 28 255 / 0.22), transparent 60%),
-    radial-gradient(900px 520px at -10% 20%, rgb(45 107 255 / 0.2), transparent 60%),
-    linear-gradient(180deg, #0a0b2e 0%, #05061a 40%, #0b0730 100%);
   color-scheme: dark;
 }
 
-.theme-mooniverse ::selection { background: rgb(255 43 214 / 0.5); color: #fff; }
+/* Latar halaman ala moodboard: navy-teal gelap di atas → navy → biru royal/ungu di bawah. Menetap saat scroll. */
+.mv-backdrop {
+  background-color: #020a17;
+  background-image:
+    radial-gradient(900px 520px at 85% 0%, rgb(247 20 247 / 0.16), transparent 62%),
+    radial-gradient(900px 600px at 0% 30%, rgb(5 165 239 / 0.18), transparent 62%),
+    radial-gradient(1100px 700px at 50% 115%, rgb(8 39 181 / 0.55), transparent 70%),
+    linear-gradient(180deg, #01030c 0%, #04202e 28%, #083462 62%, #12096a 100%);
+}
+
+.theme-mooniverse ::selection { background: rgb(247 20 247 / 0.5); color: #fff; }
 .theme-mooniverse :focus-visible { outline: 3px solid var(--mv-cyan); outline-offset: 3px; }
 
 /* ---------- Tipografi ---------- */
-.theme-mooniverse .font-display,
+/* Judul: huruf geometris membulat bergaya tabung neon putih (Quicksand). */
 .theme-mooniverse h1,
-.theme-mooniverse .mv-title {
-  font-family: var(--font-orbitron), var(--font-jakarta), sans-serif;
+.theme-mooniverse .mv-title,
+.theme-mooniverse .mv-neon {
+  font-family: var(--font-quicksand), var(--font-jakarta), sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #fff;
+  text-shadow: var(--mv-tube-glow);
+}
+/* Efek tabung ganda: garis tepi tipis di atas pendar */
+.theme-mooniverse .mv-tube { -webkit-text-stroke: 1.2px rgb(255 255 255 / 0.95); color: rgb(255 255 255 / 0.18); }
+.theme-mooniverse .font-display { font-family: var(--font-quicksand), var(--font-jakarta), sans-serif; font-weight: 700; letter-spacing: 0.06em; }
+/* Angka countdown/posisi tetap tegas */
+.theme-mooniverse .font-digits { font-family: var(--font-orbitron), var(--font-jakarta), sans-serif; letter-spacing: 0.02em; }
+/* Tagline kuas miring (Permanent Marker) berpendar magenta */
+.theme-mooniverse .mv-brush {
+  font-family: var(--font-marker), var(--font-jakarta), cursive;
+  font-weight: 400;
+  color: #ffd9fe;
+  text-shadow: var(--mv-brush-glow);
+  display: inline-block;
+  transform: skewX(-8deg);
   letter-spacing: 0.02em;
 }
-.theme-mooniverse h1 { font-weight: 800; text-transform: uppercase; text-shadow: var(--mv-text-glow); }
-.theme-mooniverse .mv-title { text-transform: uppercase; text-shadow: var(--mv-text-glow); }
 .theme-mooniverse .mv-glow { text-shadow: var(--mv-text-glow); }
-.theme-mooniverse .mv-glow-cyan { text-shadow: 0 0 2px #fff, 0 0 12px rgb(34 229 255 / 0.85), 0 0 28px rgb(45 107 255 / 0.5); }
+.theme-mooniverse .mv-glow-cyan { text-shadow: 0 0 2px #fff, 0 0 12px rgb(154 252 255 / 0.85), 0 0 28px rgb(5 165 239 / 0.5); }
 .theme-mooniverse .font-hud { font-family: var(--font-rajdhani), var(--font-jakarta), sans-serif; }
 
 /* ---------- Permukaan ---------- */
-.theme-mooniverse .bg-white { background-color: rgb(12 13 48 / 0.82); }
+.theme-mooniverse .bg-white { background-color: rgb(4 24 48 / 0.82); }
 .theme-mooniverse .bg-white\/95,
 .theme-mooniverse .bg-white\/90,
-.theme-mooniverse .bg-white\/85 { background-color: rgb(8 9 36 / 0.92); }
-.theme-mooniverse .hover\:bg-white:hover { background-color: rgb(34 229 255 / 0.1); }
+.theme-mooniverse .bg-white\/85 { background-color: rgb(2 16 34 / 0.92); }
+.theme-mooniverse .hover\:bg-white:hover { background-color: rgb(154 252 255 / 0.1); }
 .theme-mooniverse .bg-surface { background-color: var(--color-surface); }
 
 /* Sudut braket HUD (tanpa clip-path agar glow tetap terlihat) */
@@ -92,17 +124,17 @@
 .theme-mooniverse .rounded-2xl.border.bg-white,
 .theme-mooniverse .rounded-3xl.border.bg-white,
 .mv-card {
-  border: 1px solid rgb(34 229 255 / 0.3);
+  border: 1px solid rgb(154 252 255 / 0.3);
   border-radius: 6px;
-  background-color: rgb(12 13 48 / 0.82);
+  background-color: rgb(4 24 48 / 0.8);
   background-image:
     linear-gradient(var(--mv-pink), var(--mv-pink)), linear-gradient(var(--mv-pink), var(--mv-pink)),
     linear-gradient(var(--mv-cyan), var(--mv-cyan)), linear-gradient(var(--mv-cyan), var(--mv-cyan)),
-    linear-gradient(160deg, rgb(232 28 255 / 0.08), transparent 40%, rgb(34 229 255 / 0.06));
+    linear-gradient(160deg, rgb(247 20 247 / 0.08), transparent 40%, rgb(154 252 255 / 0.06));
   background-size: 22px 2px, 2px 22px, 22px 2px, 2px 22px, 100% 100%;
   background-position: top left, top left, bottom right, bottom right, center;
   background-repeat: no-repeat;
-  box-shadow: 0 0 0 1px rgb(255 43 214 / 0.08), 0 12px 34px rgb(0 0 0 / 0.45), inset 0 0 30px rgb(45 107 255 / 0.08);
+  box-shadow: 0 0 0 1px rgb(247 20 247 / 0.08), 0 12px 34px rgb(0 0 0 / 0.45), inset 0 0 30px rgb(5 165 239 / 0.08);
   backdrop-filter: blur(6px);
 }
 
@@ -129,8 +161,8 @@
   z-index: -1;
   background:
     repeating-linear-gradient(0deg, rgb(255 255 255 / 0.025) 0 1px, transparent 1px 3px),
-    linear-gradient(180deg, rgb(16 12 60 / 0.96), rgb(7 8 31 / 0.97));
-  box-shadow: inset 0 0 26px rgb(232 28 255 / 0.25), inset 0 0 60px rgb(45 107 255 / 0.12);
+    linear-gradient(180deg, rgb(6 30 60 / 0.95), rgb(2 12 28 / 0.97));
+  box-shadow: inset 0 0 26px rgb(247 20 247 / 0.25), inset 0 0 60px rgb(5 165 239 / 0.12);
 }
 .mv-frame-sm { --cut: 12px; }
 
@@ -141,7 +173,7 @@
   position: absolute;
   inset: 6px;
   z-index: -3;
-  background: linear-gradient(110deg, rgb(255 43 214 / 0.55), rgb(34 229 255 / 0.45));
+  background: linear-gradient(110deg, rgb(247 20 247 / 0.55), rgb(154 252 255 / 0.45));
   filter: blur(18px);
   opacity: 0.55;
   pointer-events: none;
@@ -149,44 +181,44 @@
 
 /* Tombol utama → pil neon gradien */
 .theme-mooniverse .bg-cimory-blue {
-  background-color: #b026ff;
+  background-color: #9b2cf5;
   background-image: var(--mv-btn);
   color: #fff;
 }
 .theme-mooniverse :is(button, a).bg-cimory-blue {
-  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.25) inset, 0 0 18px rgb(255 43 214 / 0.45), 0 0 36px rgb(45 107 255 / 0.25);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.25) inset, 0 0 18px rgb(247 20 247 / 0.45), 0 0 36px rgb(5 165 239 / 0.25);
   font-family: var(--font-rajdhani), var(--font-jakarta), sans-serif;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 .theme-mooniverse :is(button, a).bg-cimory-blue:hover { filter: brightness(1.15) saturate(1.1); }
-.theme-mooniverse .bg-cimory-red { background-color: #ff2bd6; background-image: linear-gradient(100deg, #ff2bd6, #e81cff); }
-.theme-mooniverse .bg-cimory-gradient { background-image: linear-gradient(120deg, #1b0b4d 0%, #3a0f7a 45%, #ff2bd6 140%); }
+.theme-mooniverse .bg-cimory-red { background-color: #f714f7; background-image: linear-gradient(100deg, #f714f7, #f714f7); }
+.theme-mooniverse .bg-cimory-gradient { background-image: linear-gradient(120deg, #0827b5 0%, #3a0f7a 45%, #f714f7 140%); }
 .theme-mooniverse :is(button, a).rounded-xl.font-semibold:not(input) { border-radius: 9999px; }
 .theme-mooniverse :is(button, a).border.bg-white { font-family: var(--font-rajdhani), var(--font-jakarta), sans-serif; font-weight: 700; letter-spacing: 0.05em; }
 .theme-mooniverse .border-cimory-blue { border-color: var(--mv-cyan); }
-.theme-mooniverse .ring-cimory-blue\/20 { --tw-ring-color: rgb(34 229 255 / 0.35); }
+.theme-mooniverse .ring-cimory-blue\/20 { --tw-ring-color: rgb(154 252 255 / 0.35); }
 
 /* Input gelap */
 .theme-mooniverse input:not([type="checkbox"]):not([type="radio"]),
 .theme-mooniverse select,
 .theme-mooniverse textarea {
-  background-color: rgb(5 6 26 / 0.85);
-  border-color: rgb(34 229 255 / 0.3);
+  background-color: rgb(2 10 23 / 0.85);
+  border-color: rgb(154 252 255 / 0.3);
   color: #fff;
 }
 .theme-mooniverse input:focus,
 .theme-mooniverse select:focus,
-.theme-mooniverse textarea:focus { border-color: var(--mv-cyan); box-shadow: 0 0 0 3px rgb(34 229 255 / 0.2), 0 0 18px rgb(34 229 255 / 0.25); }
-.theme-mooniverse select option { background: #0b0d33; color: #fff; }
+.theme-mooniverse textarea:focus { border-color: var(--mv-cyan); box-shadow: 0 0 0 3px rgb(154 252 255 / 0.2), 0 0 18px rgb(154 252 255 / 0.25); }
+.theme-mooniverse select option { background: #04202e; color: #fff; }
 .theme-mooniverse input[type="checkbox"], .theme-mooniverse input[type="radio"] { accent-color: var(--mv-pink); }
 .theme-mooniverse form[role="search"] :is(input, select) { border-radius: 9999px; min-height: 46px; }
 .theme-mooniverse form[role="search"] button { min-height: 46px; }
 
 /* Skeleton gelap */
 .theme-mooniverse .skeleton {
-  background: linear-gradient(90deg, rgb(255 255 255 / 0.04) 0px, rgb(34 229 255 / 0.12) 120px, rgb(255 255 255 / 0.04) 240px);
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.04) 0px, rgb(154 252 255 / 0.12) 120px, rgb(255 255 255 / 0.04) 240px);
   background-size: 800px 100%;
 }
 
@@ -207,7 +239,7 @@
   --color-ink: #0f172a;
   --color-muted: #475569;
   --color-line: #e2e8f0;
-  --color-cimory-blue: #1b0b4d;
+  --color-cimory-blue: #0827b5;
   --color-cimory-red-dark: #be123c;
   --color-slate-50: #f8fafc;
   --color-slate-100: #f1f5f9;
@@ -223,16 +255,16 @@
   background-color: #fff !important;
   backdrop-filter: none !important;
 }
-.theme-mooniverse .mv-paper .bg-cimory-blue { background-image: none; background-color: #1b0b4d; }
+.theme-mooniverse .mv-paper .bg-cimory-blue { background-image: none; background-color: #0827b5; }
 
 /* ---------- Countdown & OTP neon ---------- */
 .mv-count-box {
   position: relative;
-  background: linear-gradient(180deg, rgb(27 11 77 / 0.95), rgb(5 6 26 / 0.95));
+  background: linear-gradient(180deg, rgb(8 39 181 / 0.55), rgb(2 10 23 / 0.95));
   color: #fff;
   border: 1.5px solid var(--mv-cyan);
-  box-shadow: var(--mv-glow-cyan), inset 0 0 18px rgb(34 229 255 / 0.25);
-  text-shadow: 0 0 10px rgb(255 43 214 / 0.9), 0 0 2px #fff;
+  box-shadow: var(--mv-glow-cyan), inset 0 0 18px rgb(154 252 255 / 0.25);
+  text-shadow: 0 0 10px rgb(247 20 247 / 0.9), 0 0 2px #fff;
 }
 .mv-count-box::after {
   content: "";
@@ -244,35 +276,35 @@
   border-radius: 2px;
 }
 .theme-mooniverse input.mv-otp {
-  background: linear-gradient(180deg, rgb(27 11 77 / 0.95), rgb(5 6 26 / 0.95)) !important;
+  background: linear-gradient(180deg, rgb(8 39 181 / 0.55), rgb(2 10 23 / 0.95)) !important;
   color: #fff !important;
-  border-color: rgb(34 229 255 / 0.6) !important;
+  border-color: rgb(154 252 255 / 0.6) !important;
   font-family: var(--font-orbitron), sans-serif;
-  text-shadow: 0 0 10px rgb(255 43 214 / 0.9);
-  box-shadow: inset 0 0 14px rgb(34 229 255 / 0.18);
+  text-shadow: 0 0 10px rgb(247 20 247 / 0.9);
+  box-shadow: inset 0 0 14px rgb(154 252 255 / 0.18);
 }
-.theme-mooniverse input.mv-otp:focus { border-color: var(--mv-pink) !important; box-shadow: 0 0 0 3px rgb(255 43 214 / 0.3), 0 0 18px rgb(255 43 214 / 0.45) !important; }
-.theme-mooniverse input.mv-otp.border-cimory-red { border-color: #ff2bd6 !important; }
+.theme-mooniverse input.mv-otp:focus { border-color: var(--mv-pink) !important; box-shadow: 0 0 0 3px rgb(247 20 247 / 0.3), 0 0 18px rgb(247 20 247 / 0.45) !important; }
+.theme-mooniverse input.mv-otp.border-cimory-red { border-color: #f714f7 !important; }
 
 /* ---------- Latar: bintang, scanline, lantai grid ---------- */
 .mv-stars, .mv-stars-2 { position: absolute; inset: 0; pointer-events: none; background-repeat: repeat; }
 .mv-stars {
   background-image:
     radial-gradient(1.2px 1.2px at 20px 30px, #fff 50%, transparent 52%),
-    radial-gradient(1px 1px at 120px 80px, rgb(34 229 255 / 0.9) 50%, transparent 52%),
+    radial-gradient(1px 1px at 120px 80px, rgb(154 252 255 / 0.9) 50%, transparent 52%),
     radial-gradient(1.5px 1.5px at 200px 150px, #fff 50%, transparent 52%),
     radial-gradient(1px 1px at 60px 190px, rgb(255 255 255 / 0.7) 50%, transparent 52%),
-    radial-gradient(1.3px 1.3px at 260px 40px, rgb(255 43 214 / 0.9) 50%, transparent 52%);
+    radial-gradient(1.3px 1.3px at 260px 40px, rgb(247 20 247 / 0.9) 50%, transparent 52%);
   background-size: 320px 260px;
   animation: mv-twinkle 4.5s ease-in-out infinite alternate;
 }
 .mv-stars-2 {
   background-image:
-    radial-gradient(2px 2px at 90px 60px, rgb(255 43 214 / 0.95) 50%, transparent 55%),
-    radial-gradient(1.6px 1.6px at 340px 180px, rgb(34 229 255 / 0.95) 50%, transparent 55%),
+    radial-gradient(2px 2px at 90px 60px, rgb(247 20 247 / 0.95) 50%, transparent 55%),
+    radial-gradient(1.6px 1.6px at 340px 180px, rgb(154 252 255 / 0.95) 50%, transparent 55%),
     radial-gradient(2px 2px at 210px 300px, #fff 50%, transparent 55%);
   background-size: 480px 380px;
-  filter: drop-shadow(0 0 4px rgb(255 43 214 / 0.9));
+  filter: drop-shadow(0 0 4px rgb(247 20 247 / 0.9));
   animation: mv-twinkle 3s ease-in-out infinite alternate-reverse;
 }
 @keyframes mv-twinkle { from { opacity: 0.35; } to { opacity: 1; } }
@@ -295,8 +327,8 @@
   transform: perspective(420px) rotateX(62deg);
   transform-origin: 50% 100%;
   background-image:
-    linear-gradient(rgb(255 43 214 / 0.55) 1.5px, transparent 1.5px),
-    linear-gradient(90deg, rgb(34 229 255 / 0.45) 1.5px, transparent 1.5px);
+    linear-gradient(rgb(247 20 247 / 0.55) 1.5px, transparent 1.5px),
+    linear-gradient(90deg, rgb(154 252 255 / 0.45) 1.5px, transparent 1.5px);
   background-size: 64px 64px;
   -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 55%);
   mask-image: linear-gradient(180deg, transparent 0%, #000 55%);
@@ -316,8 +348,8 @@
   filter: blur(0.5px);
   animation: mv-sweep 6s ease-in-out infinite alternate;
 }
-.mv-laser.pink { background: linear-gradient(0deg, rgb(255 43 214 / 0.9), transparent 90%); box-shadow: 0 0 14px rgb(255 43 214 / 0.8); }
-.mv-laser.cyan { background: linear-gradient(0deg, rgb(34 229 255 / 0.9), transparent 90%); box-shadow: 0 0 14px rgb(34 229 255 / 0.8); }
+.mv-laser.pink { background: linear-gradient(0deg, rgb(247 20 247 / 0.9), transparent 90%); box-shadow: 0 0 14px rgb(247 20 247 / 0.8); }
+.mv-laser.cyan { background: linear-gradient(0deg, rgb(154 252 255 / 0.9), transparent 90%); box-shadow: 0 0 14px rgb(154 252 255 / 0.8); }
 @keyframes mv-sweep { from { transform: rotate(var(--from, -22deg)); } to { transform: rotate(var(--to, 18deg)); } }
 
 /* Maskot hidup: kepala berayun di titik leher (≈51% 75% dari gambar 410×392). */
@@ -341,8 +373,8 @@
   50% { transform: rotate(-6deg) translateY(6px); }
 }
 @keyframes mv-head-glow {
-  0%, 100% { filter: drop-shadow(0 0 0 rgba(34,229,255,0)); }
-  50% { filter: drop-shadow(0 0 14px rgba(255,43,214,.55)); }
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(154,252,255,0)); }
+  50% { filter: drop-shadow(0 0 14px rgba(247,20,247,.55)); }
 }
 .mv-float { animation: mv-float 6s ease-in-out infinite; }
 .mv-float-slow { animation: mv-float 9s ease-in-out infinite; }
@@ -367,9 +399,71 @@
 }
 .mv-divider::after { background: linear-gradient(270deg, transparent, var(--mv-cyan)); }
 
-.mv-timeline-line { background: linear-gradient(180deg, transparent, var(--mv-pink) 8%, var(--mv-cyan) 92%, transparent); box-shadow: 0 0 10px rgb(255 43 214 / 0.7); }
+.mv-timeline-line { background: linear-gradient(180deg, transparent, var(--mv-pink) 8%, var(--mv-cyan) 92%, transparent); box-shadow: 0 0 10px rgb(247 20 247 / 0.7); }
 
 /* Fade-up saat scroll (elemen hanya disembunyikan setelah skrip aktif) */
 .mv-reveal { transition: opacity 0.7s ease, transform 0.7s ease; }
 .mv-js .mv-reveal:not(.is-visible) { opacity: 0; transform: translateY(18px); }
 @media (prefers-reduced-motion: reduce) { .mv-reveal { opacity: 1; transform: none; } .mv-marquee-track { animation: none; } }
+
+/* ---------- Elemen moodboard Canva ---------- */
+/* Tekstur foto (laser / layar LED) dipakai sebagai tekstur: dibaurkan & dipudarkan di tepi */
+.mv-texture {
+  position: absolute;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center;
+  mix-blend-mode: screen;
+  -webkit-mask-image: radial-gradient(ellipse 70% 75% at 50% 45%, #000 35%, transparent 100%);
+  mask-image: radial-gradient(ellipse 70% 75% at 50% 45%, #000 35%, transparent 100%);
+}
+.mv-texture-lasers { background-image: url("/images/canva/texture-lasers.webp"); }
+.mv-texture-stage { background-image: url("/images/canva/texture-led-stage.webp"); }
+.mv-texture-top {
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 100%);
+}
+.mv-texture-bottom {
+  -webkit-mask-image: linear-gradient(0deg, #000 0%, #000 40%, transparent 100%);
+  mask-image: linear-gradient(0deg, #000 0%, #000 40%, transparent 100%);
+}
+
+/* Light stick: berayun & berpendar */
+.mv-stick { transform-origin: 15% 85%; animation: mv-stick-sway 4.5s ease-in-out infinite, mv-stick-glow 2.2s ease-in-out infinite; }
+.mv-stick-alt { animation-duration: 5.5s, 2.8s; animation-delay: -1.5s, -0.7s; }
+@keyframes mv-stick-sway { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(7deg); } }
+@keyframes mv-stick-glow { 0%, 100% { filter: brightness(1) drop-shadow(0 0 4px currentColor); } 50% { filter: brightness(1.35) drop-shadow(0 0 14px currentColor); } }
+/* Ujung light stick cyan berisi kotak sisa potongan: dipangkas */
+.mv-clip-stick-cyan { clip-path: inset(0 8% 0 0); }
+.mv-clip-stick-magenta { clip-path: inset(0 0 0 6%); }
+
+/* Sapi garis neon: melayang & berkedip lembut */
+.mv-lineart { animation: mv-float 7s ease-in-out infinite, mv-line-flicker 6s linear infinite; }
+@keyframes mv-line-flicker { 0%, 40%, 44%, 100% { opacity: 0.9; } 42% { opacity: 0.45; } }
+
+/* Petir neon berdenyut */
+.mv-bolt-pulse { animation: mv-bolt 2.6s ease-in-out infinite; }
+@keyframes mv-bolt { 0%, 100% { filter: drop-shadow(0 0 6px rgb(247 20 247 / 0.7)); transform: scale(1); } 50% { filter: drop-shadow(0 0 18px rgb(247 20 247 / 1)); transform: scale(1.06); } }
+
+/* Kepala maskot besar yang mengintip: bagian bawah dipudarkan (tepi potongan tak terlihat) */
+.mv-peek { -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent 100%); mask-image: linear-gradient(180deg, #000 70%, transparent 100%); }
+
+/* Garis gaya moodboard (tabung putih tipis dengan titik siku) */
+.mv-tube-rule { position: relative; height: 2px; background: #fff; box-shadow: 0 0 6px #fff, 0 0 16px rgb(154 252 255 / 0.6); }
+.mv-tube-rule::before, .mv-tube-rule::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #fff;
+  background: #020a17;
+  box-shadow: 0 0 8px #fff;
+  transform: translateY(-50%);
+}
+.mv-tube-rule::before { left: -6px; }
+.mv-tube-rule::after { right: -6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mv-stick, .mv-lineart, .mv-bolt-pulse, .mv-mascot-head { animation: none !important; }
+}

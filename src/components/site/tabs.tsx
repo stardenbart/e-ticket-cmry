@@ -33,11 +33,11 @@ export function HtmlTabs({ tabs }: { tabs: { label: string; html: string }[] }) 
             onClick={() => setActive(i)}
             className={cx(
               "relative -mb-px px-4 py-3 text-sm font-semibold transition",
-              i === active ? "text-[#22e5ff]" : "text-muted hover:text-ink",
+              i === active ? "text-[#9afcff]" : "text-muted hover:text-ink",
             )}
           >
             {t.label}
-            <span className={cx("absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-[#ff2bd6] transition-transform", i === active ? "scale-x-100" : "scale-x-0")} />
+            <span className={cx("absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-[#f714f7] transition-transform", i === active ? "scale-x-100" : "scale-x-0")} />
           </button>
         ))}
       </div>

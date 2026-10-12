@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { cx } from "@/components/ui";
 
 const A = "/images/mooniverse";
+const C = "/images/canva";
 
 /** Ukuran asli aset (untuk width/height agar tidak terjadi layout shift). */
 export const ASSET = {
@@ -27,6 +28,15 @@ export const ASSET = {
   bannerLogo: { src: `${A}/banner-logo.webp`, w: 352, h: 122 },
   crowd: { src: `${A}/crowd.webp`, w: 548, h: 178 },
   beams: { src: `${A}/beams.webp`, w: 590, h: 182 },
+  // Elemen moodboard Canva (scripts/extract-canva.mjs)
+  headBig: { src: `${C}/mascot-head-big.webp`, w: 455, h: 360 },
+  cowLineLeft: { src: `${C}/cow-line-left.webp`, w: 314, h: 232 },
+  cowLineRight: { src: `${C}/cow-line-right.webp`, w: 378, h: 316 },
+  stickCyan: { src: `${C}/stick-cyan.webp`, w: 282, h: 154 },
+  stickMagenta: { src: `${C}/stick-magenta.webp`, w: 270, h: 154 },
+  crownNeon: { src: `${C}/crown-neon.webp`, w: 160, h: 128 },
+  boltNeon: { src: `${C}/bolt-neon.webp`, w: 236, h: 240 },
+  ledPanels: { src: `${C}/led-panels.webp`, w: 246, h: 308 },
 } as const;
 
 export type AssetKey = keyof typeof ASSET;
@@ -114,29 +124,39 @@ export function Lasers({ className }: { className?: string }) {
 export function NeonBand({ className }: { className?: string }) {
   return (
     <div aria-hidden className={cx("relative flex h-10 items-center justify-center", className)}>
-      <span className="absolute inset-x-0 top-1/2 h-px bg-gradient-to-r from-transparent via-[#ff2bd6] to-transparent shadow-[0_0_10px_#ff2bd6]" />
-      <span className="absolute inset-x-[20%] top-[calc(50%+4px)] h-px bg-gradient-to-r from-transparent via-[#22e5ff] to-transparent opacity-80" />
+      <span className="absolute inset-x-0 top-1/2 h-px bg-gradient-to-r from-transparent via-[#f714f7] to-transparent shadow-[0_0_10px_#f714f7]" />
+      <span className="absolute inset-x-[20%] top-[calc(50%+4px)] h-px bg-gradient-to-r from-transparent via-[#9afcff] to-transparent opacity-80" />
       <MvImg name="crown" className="relative h-8 w-auto drop-shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
     </div>
   );
 }
 
-/** Pita teks berjalan "GOOD FOOD GOOD MOOD · MOO BRINGS US TOGETHER". */
+/** Pita teks berjalan: tagline kuas berpendar magenta + judul tabung neon. */
 export function Marquee({ className }: { className?: string }) {
-  const items = ["GOOD FOOD GOOD MOOD", "MOO BRINGS US TOGETHER", "MOONIVERSE 2026", "1 AKUN · 1 TIKET"];
+  const items: { t: string; brush: boolean }[] = [
+    { t: "Good Food Good Mood", brush: true },
+    { t: "MOONIVERSE 2026", brush: false },
+    { t: "Moo Brings Us Together", brush: true },
+    { t: "1 AKUN · 1 TIKET", brush: false },
+  ];
   const row = (
     <div className="flex shrink-0 items-center">
-      {items.map((t, i) => (
-        <span key={t} className="flex items-center">
-          <span className={cx("font-display px-6 text-lg font-black tracking-[0.12em] sm:text-2xl", i % 2 ? "text-[#22e5ff] mv-glow-cyan" : "text-[#ff2bd6] mv-glow")}>{t}</span>
-          <MvImg name={i % 2 ? "heart" : "bolt"} className="h-7 w-auto sm:h-8" />
+      {items.map((it, i) => (
+        <span key={it.t} className="flex items-center">
+          {it.brush ? (
+            <span className="mv-brush px-6 text-xl sm:text-3xl">{it.t}</span>
+          ) : (
+            <span className="mv-neon px-6 text-base font-semibold sm:text-xl">{it.t}</span>
+          )}
+          <MvImg name={i % 2 ? "crownNeon" : "boltNeon"} className="h-8 w-auto sm:h-10" />
         </span>
       ))}
     </div>
   );
   return (
-    <div className={cx("relative overflow-hidden border-y border-[#ff2bd6]/50 bg-[#07081f]/90 py-3 shadow-[0_0_24px_rgba(255,43,214,0.25)]", className)} aria-label="Good Food Good Mood — Moo Brings Us Together">
-      <div className="mv-marquee-track" aria-hidden>
+    <div className={cx("relative overflow-hidden border-y border-[#9afcff]/35 bg-[#01030c]/85 py-3 shadow-[0_0_28px_rgba(5,165,239,0.25)]", className)} aria-label="Good Food Good Mood — Moo Brings Us Together">
+      <div aria-hidden className="mv-texture mv-texture-lasers inset-0 opacity-45 [mask-image:none]" />
+      <div className="mv-marquee-track relative" aria-hidden>
         {row}
         {row}
       </div>
@@ -144,29 +164,27 @@ export function Marquee({ className }: { className?: string }) {
   );
 }
 
-/** Judul section di dalam bingkai HUD bersudut potong. */
-export function FrameTitle({ children, sub, as: Tag = "h2", className, icon = "crown" }: { children: ReactNode; sub?: ReactNode; as?: "h1" | "h2"; className?: string; icon?: AssetKey | null }) {
+/** Judul section: tulisan tabung neon putih (gaya moodboard) dengan garis siku & aksen. */
+export function FrameTitle({ children, sub, as: Tag = "h2", className, icon = "crownNeon" }: { children: ReactNode; sub?: ReactNode; as?: "h1" | "h2"; className?: string; icon?: AssetKey | null }) {
   return (
-    <div className={cx("mv-reveal mv-halo relative mx-auto w-fit max-w-full", className)}>
-      <div className="mv-frame px-8 py-4 text-center sm:px-14 sm:py-5">
-        {icon && <MvImg name={icon} className="pointer-events-none absolute -top-5 left-1/2 h-9 w-auto -translate-x-1/2 drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]" />}
-        <Tag className="mv-title text-xl font-extrabold leading-tight text-white sm:text-3xl">{children}</Tag>
-        {sub && <p className="font-hud mt-1 text-base font-semibold tracking-wide text-[#dbe4ff] sm:text-lg">{sub}</p>}
-        <span aria-hidden className="absolute bottom-1.5 left-6 flex gap-1">
-          {[0, 1, 2].map((k) => <span key={k} className="h-1 w-3 -skew-x-[30deg] bg-[#22e5ff]/80" />)}
-        </span>
-      </div>
+    <div className={cx("mv-reveal relative mx-auto w-fit max-w-full px-2 text-center", className)}>
+      {icon && <MvImg name={icon} className="pointer-events-none mx-auto mb-1 h-10 w-auto drop-shadow-[0_0_10px_rgba(255,255,255,0.55)]" />}
+      <Tag className="mv-title text-2xl leading-tight sm:text-4xl">{children}</Tag>
+      <div aria-hidden className="mx-auto mt-3 w-[min(280px,70vw)] mv-tube-rule" />
+      {sub && <p className="font-hud mt-3 text-base font-semibold tracking-wide text-[#e3edfa] sm:text-lg">{sub}</p>}
     </div>
   );
 }
 
-/** Judul halaman (untuk halaman selain beranda). */
+/** Judul halaman (untuk halaman selain beranda): judul tabung neon di atas tekstur laser. */
 export function PageHero({ title, subtitle, children }: { title: ReactNode; subtitle?: ReactNode; children?: ReactNode }) {
   return (
-    <div className="relative px-4 pb-6 pt-8 text-center sm:pt-10">
-      <p className="mv-divider mb-3 text-xs"><Sparkle className="size-3.5" /></p>
-      <h1 className="text-2xl leading-tight sm:text-4xl">{title}</h1>
-      {subtitle && <div className="font-hud mx-auto mt-3 max-w-2xl text-lg font-medium text-[#dbe4ff]">{subtitle}</div>}
+    <div className="relative px-4 pb-6 pt-10 text-center sm:pt-12">
+      <div aria-hidden className="mv-texture mv-texture-lasers mv-texture-top -top-24 left-1/2 h-64 w-[min(900px,120vw)] -translate-x-1/2 opacity-70" />
+      <MvImg name="crownNeon" className="relative mx-auto mb-2 h-9 w-auto drop-shadow-[0_0_10px_rgba(255,255,255,0.55)]" />
+      <h1 className="relative text-2xl leading-tight sm:text-4xl">{title}</h1>
+      <div aria-hidden className="relative mx-auto mt-3 w-[min(240px,60vw)] mv-tube-rule" />
+      {subtitle && <div className="font-hud relative mx-auto mt-3 max-w-2xl text-lg font-medium text-[#e3edfa]">{subtitle}</div>}
       {children}
     </div>
   );
@@ -175,11 +193,37 @@ export function PageHero({ title, subtitle, children }: { title: ReactNode; subt
 /** Stiker maskot + pesan (untuk empty state, ruang tunggu, hasil klaim). */
 export function StickerNote({ sticker = "cowChill", title, children, action, className }: { sticker?: AssetKey; title: ReactNode; children?: ReactNode; action?: ReactNode; className?: string }) {
   return (
-    <div className={cx("mv-card flex flex-col items-center gap-3 px-6 py-10 text-center", className)}>
-      <MvImg name={sticker} className="mv-float h-32 w-auto drop-shadow-[0_0_18px_rgba(232,28,255,0.45)]" />
-      <p className="font-display text-lg font-bold uppercase tracking-wider text-white">{title}</p>
-      {children && <div className="max-w-md text-[#c9d3ff]">{children}</div>}
-      {action}
+    <div className={cx("mv-card relative flex flex-col items-center gap-3 overflow-hidden px-6 py-10 text-center", className)}>
+      <MvImg name="cowLineLeft" className="mv-lineart pointer-events-none absolute -left-10 -top-6 h-24 w-auto opacity-50 sm:h-28" />
+      <MvImg name="cowLineRight" className="mv-lineart pointer-events-none absolute -bottom-8 -right-10 h-24 w-auto opacity-50 [animation-delay:-3s] sm:h-28" />
+      <MvImg name={sticker} className="mv-float relative h-32 w-auto drop-shadow-[0_0_18px_rgba(247,20,247,0.45)]" />
+      <p className="mv-neon relative text-lg">{title}</p>
+      {children && <div className="relative max-w-md text-[#d3e2f5]">{children}</div>}
+      {action && <div className="relative">{action}</div>}
     </div>
   );
+}
+
+/** Light stick berayun (dekorasi). */
+export function LightStick({ color, className }: { color: "cyan" | "magenta"; className?: string }) {
+  return (
+    <MvImg
+      name={color === "cyan" ? "stickCyan" : "stickMagenta"}
+      className={cx(
+        "mv-stick pointer-events-none h-auto",
+        color === "cyan" ? "mv-clip-stick-cyan text-[#9afcff]" : "mv-clip-stick-magenta mv-stick-alt text-[#f714f7]",
+        className,
+      )}
+    />
+  );
+}
+
+/** Sapi garis neon (dekorasi melayang). */
+export function LineCow({ side, className }: { side: "left" | "right"; className?: string }) {
+  return <MvImg name={side === "left" ? "cowLineLeft" : "cowLineRight"} className={cx("mv-lineart pointer-events-none h-auto", className)} />;
+}
+
+/** Tagline kuas "MOO BRINGS US TOGETHER". */
+export function BrushTagline({ children = "Moo Brings Us Together", className }: { children?: ReactNode; className?: string }) {
+  return <p className={cx("mv-brush text-2xl sm:text-4xl", className)}>{children}</p>;
 }

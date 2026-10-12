@@ -14,7 +14,7 @@ function FlipUnit({ value, label, size }: { value: string; label: string; size: 
           <span
             key={`${i}-${ch}`}
             className={cx(
-              "flip-digit mv-count-box font-display grid place-items-center rounded-lg font-extrabold tabular-nums",
+              "flip-digit mv-count-box font-digits grid place-items-center rounded-lg font-extrabold tabular-nums",
               size === "lg" ? "h-12 w-9 text-2xl sm:h-14 sm:w-10 sm:text-3xl" : "h-8 w-6 text-base",
             )}
           >
@@ -81,9 +81,9 @@ export function BoxCountdown({ target, className }: { target: string | number; c
       {units.map(([v, label]) => (
         <div key={label} className="flex flex-col items-center gap-2">
           <div className="mv-count-box grid size-[68px] place-items-center rounded-2xl sm:size-[84px]">
-            <span key={v} className="flip-digit font-display text-3xl font-extrabold tabular-nums sm:text-4xl">{pad(v)}</span>
+            <span key={v} className="flip-digit font-digits text-3xl font-extrabold tabular-nums sm:text-4xl">{pad(v)}</span>
           </div>
-          <span className="font-hud text-[11px] font-bold uppercase tracking-[0.18em] text-[#22e5ff]">{label}</span>
+          <span className="font-hud text-[11px] font-bold uppercase tracking-[0.18em] text-[#9afcff]">{label}</span>
         </div>
       ))}
     </div>

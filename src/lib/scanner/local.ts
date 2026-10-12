@@ -5,6 +5,7 @@
 //   history — riwayat scan perangkat ini
 import type { Manifest, ManifestTicket } from "./validate";
 import { uuidv4 } from "@/lib/uuid";
+import { gcm } from "@noble/ciphers/aes.js";
 
 const DB_NAME = "eticket-scanner";
 const DB_VERSION = 1;
@@ -67,7 +68,9 @@ export const getCachedUser = () => kvGet<CachedUser>("user");
 export const setCachedUser = (u: CachedUser) => kvSet("user", u);
 
 // ---------------------------------------------------------------------------
-// Manifest terenkripsi (AES-GCM, kunci non-extractable dari server per staf+event)
+// Manifest terenkripsi (AES-256-GCM, kunci dari server per staf+event).
+// Memakai @noble/ciphers (JavaScript murni) — bukan WebCrypto — karena crypto.subtle hanya ada di
+// HTTPS, sedangkan scanner harus tetap jalan lewat http:// di jaringan internal.
 // ---------------------------------------------------------------------------
 function b64urlToBytes(s: string) {
   const b = s.replace(/-/g, "+").replace(/_/g, "/");
@@ -76,26 +79,30 @@ function b64urlToBytes(s: string) {
 }
 
 export async function storeKey(eventId: string, rawB64url: string) {
-  const key = await crypto.subtle.importKey("raw", b64urlToBytes(rawB64url), { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
+  const key = b64urlToBytes(rawB64url);
   await kvSet(`key:${eventId}`, key);
   return key;
 }
 
-export const getKey = (eventId: string) => kvGet<CryptoKey>(`key:${eventId}`);
+/** Kunci lama (CryptoKey dari versi WebCrypto) dianggap tidak ada → diunduh ulang saat online. */
+export async function getKey(eventId: string): Promise<Uint8Array | null> {
+  const k = await kvGet<unknown>(`key:${eventId}`);
+  return k instanceof Uint8Array ? k : null;
+}
 
 export async function saveManifest(m: Manifest) {
   const key = await getKey(m.event.id);
   if (!key) throw new Error("Kunci enkripsi manifest tidak ada.");
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const data = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(JSON.stringify(m)));
-  await kvSet(`manifest:${m.event.id}`, { iv, data, validUntil: m.event.valid_until, endAt: m.event.end_at });
+  const data = gcm(key, iv).encrypt(new TextEncoder().encode(JSON.stringify(m)));
+  await kvSet(`manifest:${m.event.id}`, { v: 2, iv, data, validUntil: m.event.valid_until, endAt: m.event.end_at });
 }
 
 export async function loadManifest(eventId: string): Promise<Manifest | null> {
-  const [key, blob] = await Promise.all([getKey(eventId), kvGet<{ iv: Uint8Array; data: ArrayBuffer }>(`manifest:${eventId}`)]);
-  if (!key || !blob) return null;
+  const [key, blob] = await Promise.all([getKey(eventId), kvGet<{ v?: number; iv: Uint8Array; data: Uint8Array }>(`manifest:${eventId}`)]);
+  if (!key || !blob || blob.v !== 2) return null;
   try {
-    const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: blob.iv as BufferSource }, key, blob.data);
+    const plain = gcm(key, blob.iv).decrypt(blob.data);
     return JSON.parse(new TextDecoder().decode(plain)) as Manifest;
   } catch {
     return null;

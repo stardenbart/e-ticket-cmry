@@ -37,7 +37,7 @@ export default function FaqPage() {
           <details key={i} className="group rounded-2xl border border-line bg-white p-5 open:shadow-sm" open={i === 0}>
             <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-[17px] font-bold text-white">
               {f.q}
-              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#22e5ff] to-[#ff2bd6] font-bold text-[#0d0f3a] transition group-open:rotate-45" aria-hidden>
+              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#9afcff] to-[#f714f7] font-bold text-[#062a52] transition group-open:rotate-45" aria-hidden>
                 +
               </span>
             </summary>

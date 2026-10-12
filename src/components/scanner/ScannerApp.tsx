@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CameraScanner } from "./CameraScanner";
+import { PhotoScanner } from "./PhotoScanner";
+import { HandheldInput } from "./HandheldInput";
 import { ResultScreen, type Overlay } from "./ResultScreen";
 import { feedbackAdmitted, feedbackError, feedbackOk, unlockAudio } from "./feedback";
 import { validateScan, verdictForTicket, idTypeLabel, type Manifest, type ManifestTicket, type ManifestEvent } from "@/lib/scanner/validate";
@@ -508,12 +510,75 @@ export default function ScannerApp() {
 }
 
 // ==========================================================================
+type ScanMode = "live" | "photo" | "handheld";
+
+/** Kamera live hanya bisa di HTTPS/localhost; Foto QR & scanner genggam jalan juga di http://. */
+function liveCameraAvailable() {
+  return typeof window !== "undefined" && window.isSecureContext && !!navigator.mediaDevices?.getUserMedia;
+}
+
 function ScanView({ paused, onDetect }: { paused: boolean; onDetect: (t: string) => void }) {
   const [manual, setManual] = useState("");
+  const [live, setLive] = useState(false);
+  const [mode, setModeState] = useState<ScanMode>("photo");
+
+  useEffect(() => {
+    const canLive = liveCameraAvailable();
+    setLive(canLive);
+    let saved: ScanMode | null = null;
+    try {
+      saved = localStorage.getItem("scanner:mode") as ScanMode | null;
+    } catch {}
+    setModeState(saved && (saved !== "live" || canLive) ? saved : canLive ? "live" : "photo");
+  }, []);
+
+  const setMode = (m: ScanMode) => {
+    setModeState(m);
+    try {
+      localStorage.setItem("scanner:mode", m);
+    } catch {}
+  };
+
+  const modes: { key: ScanMode; label: string; hidden?: boolean }[] = [
+    { key: "live", label: "Kamera live", hidden: !live },
+    { key: "photo", label: "Foto QR" },
+    { key: "handheld", label: "Scanner genggam" },
+  ];
+
   return (
     <div>
-      <CameraScanner paused={paused} onDetect={onDetect} />
-      <p className="mt-3 text-center text-sm text-white/70">Arahkan kamera ke QR tiket. Validasi berjalan offline di perangkat.</p>
+      <div role="tablist" aria-label="Cara scan" className="mb-4 grid auto-cols-fr grid-flow-col gap-1 rounded-2xl bg-white/5 p-1">
+        {modes
+          .filter((m) => !m.hidden)
+          .map((m) => (
+            <button
+              key={m.key}
+              role="tab"
+              aria-selected={mode === m.key}
+              onClick={() => setMode(m.key)}
+              className={`min-h-11 rounded-xl px-2 text-sm font-semibold ${mode === m.key ? "bg-white text-slate-950" : "text-white/80"}`}
+            >
+              {m.label}
+            </button>
+          ))}
+      </div>
+
+      {mode === "live" && live && (
+        <>
+          <CameraScanner paused={paused} onDetect={onDetect} />
+          <p className="mt-3 text-center text-sm text-white/70">Arahkan kamera ke QR tiket. Validasi berjalan offline di perangkat.</p>
+        </>
+      )}
+      {mode === "photo" && <PhotoScanner onDetect={onDetect} disabled={paused} />}
+      {mode === "handheld" && (
+        <HandheldInput active paused={paused} onDetect={onDetect} />
+      )}
+      {!live && (
+        <p className="mt-3 text-center text-xs text-white/60">
+          Kamera live tidak tersedia di alamat http://. Gunakan Foto QR atau scanner genggam — validasi tetap sama dan bisa offline.
+        </p>
+      )}
+
       <details className="mt-5 rounded-2xl bg-white/5 p-4 text-white">
         <summary className="cursor-pointer font-semibold">Input kode QR manual</summary>
         <form

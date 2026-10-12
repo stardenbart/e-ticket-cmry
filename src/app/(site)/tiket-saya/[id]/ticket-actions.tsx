@@ -77,7 +77,7 @@ export function TicketActions(props: {
           <button
             type="button"
             onClick={() => setBright(true)}
-            className="mv-paper group relative rounded-2xl bg-white p-4 ring-2 ring-[#ff2bd6] transition hover:shadow-[0_0_30px_rgba(34,229,255,0.35)]"
+            className="mv-paper group relative rounded-2xl bg-white p-4 ring-2 ring-[#f714f7] transition hover:shadow-[0_0_30px_rgba(154,252,255,0.35)]"
             aria-label="Tampilkan QR layar penuh (mode terang)"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -137,7 +137,7 @@ export function TicketActions(props: {
 
       {confirmCancel && (
         <div className="fixed inset-0 z-50 grid place-items-end bg-black/45 sm:place-items-center sm:p-4" onClick={() => setConfirmCancel(false)}>
-          <div role="alertdialog" aria-modal="true" aria-labelledby="cancel-title" className="w-full max-w-md animate-pop rounded-t-3xl border border-[#22e5ff]/40 bg-[#0a0b2e] p-6 shadow-2xl sm:rounded-[18px_48px_18px_48px]" onClick={(e) => e.stopPropagation()}>
+          <div role="alertdialog" aria-modal="true" aria-labelledby="cancel-title" className="w-full max-w-md animate-pop rounded-t-3xl border border-[#9afcff]/40 bg-[#04202e] p-6 shadow-2xl sm:rounded-[18px_48px_18px_48px]" onClick={(e) => e.stopPropagation()}>
             <h2 id="cancel-title" className="text-xl font-bold">Batalkan tiket ini?</h2>
             <p className="mt-2 text-muted">
               Tiket {props.eventName} atas nama {props.holderName} akan dibatalkan dan QR langsung tidak berlaku. Slot dikembalikan ke kuota dan tidak bisa dikembalikan ke Anda.

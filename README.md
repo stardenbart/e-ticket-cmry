@@ -112,7 +112,18 @@ npm run keys -- 2      # menambah QR_PRIVATE_KEY_2 / QR_PUBLIC_KEY_2
 ## Deploy (server internal 172.20.240.61)
 
 Server memakai podman rootless + docker-compose dan dipakai bersama aplikasi lain; deploy hanya menyentuh
-`~/eticket` dan container `eticket_*`. Aplikasi: http://172.20.240.61:3110.
+`~/eticket` dan container `eticket_*`.
+
+| Alamat | Keterangan |
+| --- | --- |
+| http://172.20.240.61:3110 | Situs (HTTP), dipakai sementara |
+| https://172.20.240.61:3443 | Situs (HTTPS, sertifikat CA lokal Caddy) — wajib untuk kamera & mode offline scanner |
+| http://172.20.240.61:3110/mooniverse-ca.crt | Root CA untuk dipasang di HP staf gate agar HTTPS dipercaya |
+
+Proxy `eticket_proxy` (Caddy, `deploy/Caddyfile`) melayani kedua port. Saat ini FortiGate kantor memblokir HTTPS ke IP
+server (kategori "Newly Observed"), jadi port 3110 tetap melayani HTTP. Setelah IT membuka blokir
+`https://172.20.240.61:3443`: ubah blok HTTP di `deploy/Caddyfile` menjadi redirect (komentar di file), set
+`APP_URL=https://172.20.240.61:3443` dan `COOKIE_SECURE=true` di `.env` server, lalu deploy.
 
 ```bash
 git push                      # deploy selalu dari commit

@@ -19,7 +19,7 @@ export function QuotaBar({ remaining, quota, compact = false }: { remaining: num
         )}
       </div>
       <div
-        className={cx("overflow-hidden rounded-full bg-white/10 ring-1 ring-[#22e5ff]/20", compact ? "h-1.5" : "h-2.5")}
+        className={cx("overflow-hidden rounded-full bg-white/10 ring-1 ring-[#9afcff]/20", compact ? "h-1.5" : "h-2.5")}
         role="progressbar"
         aria-label="Sisa kuota"
         aria-valuemin={0}
@@ -27,7 +27,7 @@ export function QuotaBar({ remaining, quota, compact = false }: { remaining: num
         aria-valuenow={remaining}
       >
         <div
-          className={cx("h-full rounded-full transition-[width,background-color] duration-700 ease-out", low || empty ? "bg-gradient-to-r from-[#f472b6] to-[#ff2bd6]" : "bg-gradient-to-r from-[#ff2bd6] via-[#22e5ff] to-[#ff2bd6]")}
+          className={cx("h-full rounded-full transition-[width,background-color] duration-700 ease-out", low || empty ? "bg-gradient-to-r from-[#f472b6] to-[#f714f7]" : "bg-gradient-to-r from-[#f714f7] via-[#9afcff] to-[#f714f7]")}
           style={{ width: `${pct}%` }}
         />
       </div>

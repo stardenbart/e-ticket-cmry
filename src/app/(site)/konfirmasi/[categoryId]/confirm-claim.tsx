@@ -169,7 +169,7 @@ export function ConfirmClaim({ categoryId, slug, heldTicketId, summary, alternat
         )}
         <div className="space-y-4 p-5 sm:p-6">
           <div>
-            <p className="font-hud text-xs font-bold uppercase tracking-[0.2em] text-[#22e5ff]">✦ Konfirmasi data</p>
+            <p className="font-hud text-xs font-bold uppercase tracking-[0.2em] text-[#9afcff]">✦ Konfirmasi data</p>
             <h1 className="mt-1 text-2xl leading-tight sm:text-3xl">{summary.eventName}</h1>
             <p className="text-sm text-muted">
               {summary.date} · {summary.venue}
@@ -223,7 +223,7 @@ export function ConfirmClaim({ categoryId, slug, heldTicketId, summary, alternat
               type="button"
               onClick={claim}
               disabled={!agree || busy}
-              className="font-display inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(to_right_top,#ff2bd6,#7c3aed_55%,#312e81)] px-5 py-4 text-xl font-extrabold text-white shadow-[0_10px_30px_rgba(255,43,214,0.35)] ring-1 ring-[#22e5ff]/40 transition hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
+              className="font-display inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(to_right_top,#f714f7,#7c3aed_55%,#312e81)] px-5 py-4 text-xl font-extrabold text-white shadow-[0_10px_30px_rgba(247,20,247,0.35)] ring-1 ring-[#9afcff]/40 transition hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
             >
               {busy ? <Spinner /> : <span aria-hidden>✦</span>}
               {busy ? "Memproses klaim…" : "Klaim Tiket"}
@@ -247,18 +247,19 @@ function Success({ ticketId, summary }: { ticketId: string; summary: Summary }) 
   return (
     <div className="space-y-5 text-center">
       <div>
-        <MvImg name="cowLove" alt="Maskot MOO bahagia" className="mv-float mx-auto mb-2 h-32 w-auto drop-shadow-[0_0_20px_rgba(255,43,214,0.5)]" />
+        <MvImg name="headBig" alt="Maskot MOO bahagia" className="mv-float mv-peek mx-auto mb-1 w-40 drop-shadow-[0_0_20px_rgba(247,20,247,0.5)] sm:w-48" />
+        <p className="mv-brush text-xl sm:text-2xl">Moo Brings Us Together!</p>
         <h1 className="text-2xl leading-tight sm:text-4xl">Tiket berhasil diklaim!</h1>
         <p className="text-muted">Selamat, {summary.holderName.split(" ")[0]}. Sampai jumpa di acara!</p>
       </div>
 
       {/* Mesin cetak tiket */}
       <div className="relative mx-auto max-w-sm">
-        <div className="relative z-10 mx-auto h-7 rounded-t-2xl border border-[#22e5ff]/60 bg-[linear-gradient(180deg,#513661,#0d0f3a)] shadow-[0_0_24px_rgba(232,28,255,0.35)]">
+        <div className="relative z-10 mx-auto h-7 rounded-t-2xl border border-[#9afcff]/60 bg-[linear-gradient(180deg,#513661,#062a52)] shadow-[0_0_24px_rgba(247,20,247,0.35)]">
           <div className="absolute inset-x-6 bottom-1 h-1.5 rounded-full bg-black/40" aria-hidden />
         </div>
         <div className="relative overflow-hidden px-4 pb-2">
-          <div className="mv-paper animate-print rounded-b-2xl border border-t-0 border-[#ff2bd6] bg-white shadow-xl" aria-live="polite">
+          <div className="mv-paper animate-print rounded-b-2xl border border-t-0 border-[#f714f7] bg-white shadow-xl" aria-live="polite">
             <div className="bg-cimory-gradient px-5 py-3 text-left text-white">
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/80">E-Ticket</p>
               <p className="truncate font-bold">{summary.eventName}</p>
@@ -280,7 +281,7 @@ function Success({ ticketId, summary }: { ticketId: string; summary: Summary }) 
           </div>
         </div>
         {printed &&
-          ["#22e5ff", "#ff2bd6", "#DDA6F2", "#A78BFA", "#F472B6", "#22e5ff"].map((c, i) => (
+          ["#9afcff", "#f714f7", "#DDA6F2", "#A78BFA", "#F472B6", "#9afcff"].map((c, i) => (
             <span key={i} className="confetti absolute top-4 size-2.5 rounded-sm" style={{ left: `${10 + i * 15}%`, background: c, animationDelay: `${i * 80}ms` }} aria-hidden />
           ))}
       </div>
@@ -293,7 +294,7 @@ function Success({ ticketId, summary }: { ticketId: string; summary: Summary }) 
         <a
           href={`/api/tickets/${ticketId}?format=pdf`}
           download
-          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#22e5ff]/50 px-5 py-3 font-semibold text-[#22e5ff] transition hover:bg-white/10 active:scale-[0.98]"
+          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#9afcff]/50 px-5 py-3 font-semibold text-[#9afcff] transition hover:bg-white/10 active:scale-[0.98]"
         >
           Unduh PDF
         </a>

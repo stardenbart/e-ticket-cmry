@@ -11,9 +11,9 @@ export function Logo({ size = "md" }: { size?: "md" | "lg" }) {
       <MvImg
         name="logo"
         eager
-        className={`${size === "lg" ? "h-20" : "h-11 sm:h-12"} w-auto drop-shadow-[0_0_12px_rgba(255,43,214,0.45)] transition group-hover:drop-shadow-[0_0_18px_rgba(34,229,255,0.7)]`}
+        className={`${size === "lg" ? "h-20" : "h-11 sm:h-12"} w-auto drop-shadow-[0_0_12px_rgba(247,20,247,0.45)] transition group-hover:drop-shadow-[0_0_18px_rgba(154,252,255,0.7)]`}
       />
-      <span className="font-hud hidden whitespace-nowrap rounded-sm border border-[#22e5ff]/50 px-1.5 py-0.5 text-[11px] font-bold uppercase leading-none tracking-[0.18em] text-[#22e5ff] sm:inline-block">
+      <span className="font-hud hidden whitespace-nowrap rounded-sm border border-[#9afcff]/50 px-1.5 py-0.5 text-[11px] font-bold uppercase leading-none tracking-[0.18em] text-[#9afcff] sm:inline-block">
         by Cimory
       </span>
     </Link>
@@ -26,7 +26,7 @@ export async function SiteHeader() {
     ? { name: u.full_name, email: u.email, isAdmin: isAdminRole(u.role), isStaff: u.role === "GATE_STAFF" }
     : null;
   return (
-    <header className="sticky top-0 z-40 border-b border-transparent transition-colors [.mv-scrolled_&]:border-[#ff2bd6]/30 [.mv-scrolled_&]:bg-[#05061a]/85 [.mv-scrolled_&]:shadow-[0_0_30px_rgba(255,43,214,0.18)] [.mv-scrolled_&]:backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-transparent transition-colors [.mv-scrolled_&]:border-[#f714f7]/30 [.mv-scrolled_&]:bg-[#020a17]/85 [.mv-scrolled_&]:shadow-[0_0_30px_rgba(247,20,247,0.18)] [.mv-scrolled_&]:backdrop-blur-md">
       <ScrollFlag />
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
         <Logo />

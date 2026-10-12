@@ -7,6 +7,7 @@ import { ButtonLink } from "@/components/ui";
 import { PageHero, StickerNote } from "@/components/site/ornaments";
 import { TicketStatusBadge } from "@/components/site/ticket-status";
 import { CalIcon, PinIcon } from "@/components/site/event-card";
+import { FEATURED_PATH } from "@/components/site/config";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Tiket Saya" };
@@ -23,13 +24,13 @@ export default async function MyTicketsPage() {
     <div className="mx-auto max-w-4xl px-4 pb-8 pt-12 sm:pt-16">
       <PageHero title="Tiket Saya" subtitle="QR tiket selalu tersedia di sini, meskipun email belum masuk." />
       {tickets.length === 0 ? (
-        <StickerNote sticker="cowChill" title="Belum ada tiket" action={<ButtonLink href="/event">Jelajah event</ButtonLink>}>
+        <StickerNote sticker="cowChill" title="Belum ada tiket" action={<ButtonLink href={FEATURED_PATH}>Lihat event</ButtonLink>}>
           Tiket yang Anda klaim akan muncul di sini.
         </StickerNote>
       ) : (
         <div className="space-y-10">
           <section className="space-y-4">
-            <h2 className="mv-title flex items-center gap-2 text-2xl font-extrabold text-white"><span className="text-base text-[#ff2bd6]">✦</span> Tiket Aktif ({active.length})</h2>
+            <h2 className="mv-title flex items-center gap-2 text-2xl font-extrabold text-white"><span className="text-base text-[#f714f7]">✦</span> Tiket Aktif ({active.length})</h2>
             {active.length ? (
               <div className="grid gap-4">
                 {active.map((t, i) => (
@@ -42,7 +43,7 @@ export default async function MyTicketsPage() {
           </section>
           {history.length > 0 && (
             <section className="space-y-4">
-              <h2 className="mv-title flex items-center gap-2 text-2xl font-extrabold text-white"><span className="text-base text-[#ff2bd6]">✦</span> Riwayat ({history.length})</h2>
+              <h2 className="mv-title flex items-center gap-2 text-2xl font-extrabold text-white"><span className="text-base text-[#f714f7]">✦</span> Riwayat ({history.length})</h2>
               <div className="grid gap-4 opacity-90">
                 {history.map((t, i) => (
                   <TicketRow key={t.id} t={t} index={i} muted />
@@ -89,14 +90,14 @@ function TicketRow({ t, index, muted }: { t: TicketView; index: number; muted?: 
           {t.city ? `, ${t.city}` : ""}
         </p>
       </div>
-      <div className="flex w-28 shrink-0 flex-col items-center justify-center gap-1 border-l-2 border-dashed border-[#22e5ff]/40 bg-[#0d0f3a]/80 p-3 text-center">
-        <svg viewBox="0 0 24 24" className="size-8 text-[#22e5ff]" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <div className="flex w-28 shrink-0 flex-col items-center justify-center gap-1 border-l-2 border-dashed border-[#9afcff]/40 bg-[#062a52]/80 p-3 text-center">
+        <svg viewBox="0 0 24 24" className="size-8 text-[#9afcff]" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
           <rect x="3" y="3" width="7" height="7" rx="1" />
           <rect x="14" y="3" width="7" height="7" rx="1" />
           <rect x="3" y="14" width="7" height="7" rx="1" />
           <path d="M14 14h3v3h-3zM18 18h3v3h-3zM14 20h2M20 14v2" />
         </svg>
-        <span className="text-xs font-semibold text-[#22e5ff]">{t.status === "ACTIVE" && !finished ? "Lihat QR" : "Detail"}</span>
+        <span className="text-xs font-semibold text-[#9afcff]">{t.status === "ACTIVE" && !finished ? "Lihat QR" : "Detail"}</span>
       </div>
     </Link>
   );

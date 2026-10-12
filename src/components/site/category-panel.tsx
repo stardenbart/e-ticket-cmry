@@ -152,7 +152,7 @@ export function CategoryPanel(props: {
 
       {/* Mobile: bottom sheet menempel di bawah layar */}
       <div className="lg:hidden">
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#22e5ff]/30 bg-[#07081f]/92 px-4 py-3 shadow-[0_-10px_30px_rgba(5,3,20,0.5)] backdrop-blur-md">
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#9afcff]/30 bg-[#031726]/92 px-4 py-3 shadow-[0_-10px_30px_rgba(5,3,20,0.5)] backdrop-blur-md">
           <div className="mx-auto flex max-w-xl items-center gap-3">
             <div className="min-w-0 flex-1">
               {user.ticketId ? (
@@ -181,7 +181,7 @@ export function CategoryPanel(props: {
               role="dialog"
               aria-modal="true"
               aria-label="Pilih kategori tiket"
-              className="max-h-[85dvh] w-full animate-fade-up overflow-y-auto rounded-t-[32px] border-t border-[#22e5ff]/40 bg-[#07081f] p-4 pb-8"
+              className="max-h-[85dvh] w-full animate-fade-up overflow-y-auto rounded-t-[32px] border-t border-[#9afcff]/40 bg-[#031726] p-4 pb-8"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-300" aria-hidden />
@@ -230,7 +230,7 @@ function CategoryAction({ c, queueCategoryId, onJoin }: { c: PanelCategory & { s
     <button
       type="button"
       onClick={onJoin}
-      className="pulse-ring font-hud inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(100deg,#ff2bd6,#b026ff_50%,#2d6bff)] px-5 py-3 text-lg font-bold uppercase tracking-[0.12em] text-white shadow-[0_8px_24px_rgba(255,43,214,0.35)] ring-1 ring-[#22e5ff]/40 transition hover:brightness-110 active:scale-[0.98]"
+      className="pulse-ring font-hud inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(100deg,#f714f7,#9b2cf5_50%,#05a5ef)] px-5 py-3 text-lg font-bold uppercase tracking-[0.12em] text-white shadow-[0_8px_24px_rgba(247,20,247,0.35)] ring-1 ring-[#9afcff]/40 transition hover:brightness-110 active:scale-[0.98]"
     >
       <span aria-hidden>✦</span> Masuk Antrean
     </button>
@@ -275,7 +275,7 @@ function JoinDialog({ category, onClose }: { category: PanelCategory; onClose: (
         role="dialog"
         aria-modal="true"
         aria-labelledby="join-title"
-        className="w-full max-w-md animate-pop rounded-t-3xl border border-[#22e5ff]/40 bg-[#0a0b2e] p-6 shadow-2xl sm:rounded-[18px_48px_18px_48px]"
+        className="w-full max-w-md animate-pop rounded-t-3xl border border-[#9afcff]/40 bg-[#04202e] p-6 shadow-2xl sm:rounded-[18px_48px_18px_48px]"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id="join-title" className="text-xl font-bold">

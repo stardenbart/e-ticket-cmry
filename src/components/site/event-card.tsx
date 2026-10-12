@@ -35,10 +35,10 @@ export function EventCard({ e, index = 0 }: { e: PublicEventCard; index?: number
   return (
     <Link
       href={`/event/${e.slug}`}
-      className="mv-card group flex animate-fade-up flex-col p-2.5 transition duration-300 hover:-translate-y-1.5 hover:border-[#ff2bd6] hover:shadow-[0_0_0_1px_rgba(255,43,214,0.8),0_0_28px_rgba(255,43,214,0.45),0_0_60px_rgba(34,229,255,0.2)] focus-visible:-translate-y-1"
+      className="mv-card group flex animate-fade-up flex-col p-2.5 transition duration-300 hover:-translate-y-1.5 hover:border-[#f714f7] hover:shadow-[0_0_0_1px_rgba(247,20,247,0.8),0_0_28px_rgba(247,20,247,0.45),0_0_60px_rgba(154,252,255,0.2)] focus-visible:-translate-y-1"
       style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
     >
-      <div className="relative aspect-[2/1] overflow-hidden rounded-[3px] bg-slate-100 ring-1 ring-[#22e5ff]/40 [clip-path:polygon(0_0,calc(100%-18px)_0,100%_18px,100%_100%,18px_100%,0_calc(100%-18px))]">
+      <div className="relative aspect-[2/1] overflow-hidden rounded-[3px] bg-slate-100 ring-1 ring-[#9afcff]/40 [clip-path:polygon(0_0,calc(100%-18px)_0,100%_18px,100%_100%,18px_100%,0_calc(100%-18px))]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {e.banner_url ? (
           <img src={e.banner_url} alt="" loading="lazy" className="size-full object-cover transition duration-500 group-hover:scale-105" />
@@ -50,12 +50,12 @@ export function EventCard({ e, index = 0 }: { e: PublicEventCard; index?: number
         <div className="absolute left-3 top-3">
           <EventBadge badge={e.badge} />
         </div>
-        <span className="font-hud absolute bottom-3 right-3 rounded-full bg-[#0d0f3a]/85 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#22e5ff] ring-1 ring-[#22e5ff]/40 backdrop-blur">
+        <span className="font-hud absolute bottom-3 right-3 rounded-full bg-[#062a52]/85 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#9afcff] ring-1 ring-[#9afcff]/40 backdrop-blur">
           {e.event_type}
         </span>
       </div>
       <div className="flex flex-1 flex-col gap-2 px-2.5 pb-2 pt-4">
-        <h3 className="font-display line-clamp-2 text-lg font-extrabold uppercase leading-snug tracking-wide text-white transition group-hover:text-[#ff7be5]">{e.name}</h3>
+        <h3 className="font-display line-clamp-2 text-lg font-extrabold uppercase leading-snug tracking-wide text-white transition group-hover:text-[#edaaf1]">{e.name}</h3>
         <p className="flex items-center gap-2 text-sm text-muted">
           <CalIcon />
           {fmtDate(e.start_at, e.timezone)} · {fmtTime(e.start_at, e.timezone)}
@@ -67,9 +67,9 @@ export function EventCard({ e, index = 0 }: { e: PublicEventCard; index?: number
             {e.city ? `, ${e.city}` : ""}
           </span>
         </p>
-        <div className="mt-auto flex items-center justify-between border-t border-dashed border-[#22e5ff]/30 pt-3 text-sm">
-          <span className="font-hud text-base font-bold uppercase tracking-[0.14em] text-[#22e5ff]">✦ Gratis</span>
-          <span className="font-hud rounded-full px-3.5 py-1.5 text-sm font-bold uppercase tracking-[0.1em] text-white ring-1 ring-[#ff2bd6]/70 transition group-hover:bg-[#ff2bd6] group-hover:shadow-[0_0_16px_rgba(255,43,214,0.7)]">Lihat detail →</span>
+        <div className="mt-auto flex items-center justify-between border-t border-dashed border-[#9afcff]/30 pt-3 text-sm">
+          <span className="font-hud text-base font-bold uppercase tracking-[0.14em] text-[#9afcff]">✦ Gratis</span>
+          <span className="font-hud rounded-full px-3.5 py-1.5 text-sm font-bold uppercase tracking-[0.1em] text-white ring-1 ring-[#f714f7]/70 transition group-hover:bg-[#f714f7] group-hover:shadow-[0_0_16px_rgba(247,20,247,0.7)]">Lihat detail →</span>
         </div>
       </div>
     </Link>

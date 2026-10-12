@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { sql } from "@/lib/db";
-import { currentUser, profileComplete } from "@/lib/auth";
-import { eventStatus, getCategories, getEventBySlug } from "@/lib/events";
-import { activeQueueCategory } from "@/lib/queue";
+import { getEventBySlug } from "@/lib/events";
 import { fmtDate, fmtTime, TZ_LABEL } from "@/lib/format";
 import { safeRichText } from "@/lib/site/sanitize";
 import { HtmlTabs } from "@/components/site/tabs";
 import { CategoryPanel } from "@/components/site/category-panel";
 import { CalIcon, PinIcon } from "@/components/site/event-card";
+import { loadCategoryPanel } from "@/components/site/event-panel-data";
+import { BrushTagline, LightStick, LineCow, MvImg } from "@/components/site/ornaments";
 
 export const dynamic = "force-dynamic";
 
@@ -24,19 +23,7 @@ export default async function EventDetailPage({ params }: Props) {
   const { slug } = await params;
   const e = await getEventBySlug(slug);
   if (!e) notFound();
-  const [cats, user] = await Promise.all([getCategories(e.id), currentUser()]);
-
-  let ticketId: string | null = null;
-  let queueCategoryId: string | null = null;
-  if (user) {
-    const [t] = await sql<{ id: string }[]>`
-      SELECT id FROM tickets WHERE event_id = ${e.id} AND user_id = ${user.id} AND status IN ('ACTIVE','CHECKED_IN')`;
-    ticketId = t?.id ?? null;
-    queueCategoryId = await activeQueueCategory(e.id, user.id).catch(() => null);
-  }
-
-  const st = eventStatus(e, cats);
-  const eventState = st === "CANCELLED" ? "CANCELLED" : st === "FINISHED" ? "FINISHED" : "ACTIVE";
+  const { panel } = await loadCategoryPanel(e);
   const mapSrc =
     e.lat != null && e.lng != null
       ? `https://www.openstreetmap.org/export/embed.html?bbox=${e.lng - 0.008},${e.lat - 0.005},${e.lng + 0.008},${e.lat + 0.005}&layer=mapnik&marker=${e.lat},${e.lng}`
@@ -45,8 +32,15 @@ export default async function EventDetailPage({ params }: Props) {
 
   return (
     <div className="pb-28 lg:pb-0">
-      <div className="pt-16 sm:pt-20">
-        <div className="mx-auto max-w-6xl px-4">
+      <div className="relative pt-16 sm:pt-20">
+        {/* Tekstur panggung LED & laser di belakang banner */}
+        <div aria-hidden className="mv-texture mv-texture-stage left-1/2 top-4 h-[120%] w-[min(1400px,140vw)] -translate-x-1/2 opacity-60" />
+        <div aria-hidden className="mv-texture mv-texture-lasers mv-texture-top left-1/2 -top-20 h-80 w-[min(1400px,140vw)] -translate-x-1/2 opacity-70" />
+        <LineCow side="left" className="absolute -left-4 top-24 hidden w-48 opacity-80 xl:block" />
+        <LineCow side="right" className="absolute -right-6 top-56 hidden w-52 opacity-80 [animation-delay:-3s] xl:block" />
+        <div className="relative mx-auto max-w-6xl px-4">
+          <LightStick color="magenta" className="absolute -left-10 -top-6 z-10 hidden w-36 md:block" />
+          <LightStick color="cyan" className="absolute -right-10 -bottom-6 z-10 hidden w-40 md:block" />
           <div className="mv-halo">
           <div className="mv-frame relative aspect-[2/1] p-[3px] [--cut:28px]">
             {e.banner_url ? (
@@ -63,12 +57,13 @@ export default async function EventDetailPage({ params }: Props) {
       <div className="mx-auto grid max-w-6xl gap-8 px-4 pt-6 lg:grid-cols-[1fr_380px]">
         <div className="min-w-0 space-y-6">
           <nav aria-label="Breadcrumb" className="text-sm text-muted">
-            <Link href="/" className="hover:text-cimory-blue">Beranda</Link> / <Link href="/event" className="hover:text-cimory-blue">Event</Link> /{" "}
+            <Link href="/" className="hover:text-cimory-blue">Beranda</Link> /{" "}
             <span className="text-ink">{e.name}</span>
           </nav>
           <div className="space-y-3">
-            <span className="font-hud inline-flex items-center gap-1.5 rounded-full border border-[#22e5ff]/40 bg-[#0d0f3a]/70 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#22e5ff]">✦ {e.event_type}</span>
-            <h1 className="text-4xl leading-[1.05] sm:text-6xl">{e.name}</h1>
+            <span className="font-hud inline-flex items-center gap-1.5 rounded-full border border-[#9afcff]/40 bg-[#062a52]/70 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#9afcff]">✦ {e.event_type}</span>
+            <h1 className="text-3xl leading-[1.15] sm:text-5xl">{e.name}</h1>
+            <BrushTagline className="text-xl sm:text-3xl">Good Food Good Mood</BrushTagline>
             {e.organizer && <p className="text-sm text-muted">Diselenggarakan oleh <span className="font-semibold text-ink">{e.organizer}</span></p>}
           </div>
 
@@ -97,7 +92,7 @@ export default async function EventDetailPage({ params }: Props) {
               title={`Peta lokasi ${e.venue}`}
               src={mapSrc}
               loading="lazy"
-              className="h-56 w-full rounded-md border border-[#22e5ff]/50 bg-slate-100 shadow-[0_0_20px_rgba(34,229,255,0.2)] sm:h-72"
+              className="h-56 w-full rounded-md border border-[#9afcff]/50 bg-slate-100 shadow-[0_0_20px_rgba(154,252,255,0.2)] sm:h-72"
               referrerPolicy="no-referrer"
             />
           )}
@@ -119,26 +114,12 @@ export default async function EventDetailPage({ params }: Props) {
           </div>
         </div>
 
-        <aside aria-label="Kategori tiket" className="lg:sticky lg:top-24 lg:self-start">
-          <h2 className="mv-title mb-4 hidden text-2xl font-extrabold text-white lg:block">Pilih Kategori Tiket</h2>
-          <CategoryPanel
-            eventId={e.id}
-            slug={e.slug}
-            timezone={e.timezone}
-            eventState={eventState}
-            categories={cats.map((c) => ({
-              id: c.id,
-              name: c.name,
-              description: c.description,
-              quota: c.quota,
-              remaining: c.remaining,
-              openAt: c.open_at.toISOString(),
-              closeAt: c.close_at.toISOString(),
-              isClosed: c.is_closed,
-              color: c.color,
-            }))}
-            user={{ loggedIn: !!user, profileComplete: !!user && profileComplete(user), ticketId, queueCategoryId }}
-          />
+        <aside id="tiket" aria-label="Kategori tiket" className="scroll-mt-24 lg:sticky lg:top-24 lg:self-start">
+          <h2 className="mv-title mb-4 hidden text-xl lg:block">Pilih Kategori Tiket</h2>
+          <div className="relative">
+            <MvImg name="headBig" className="mv-peek pointer-events-none absolute -right-3 -top-16 hidden w-28 lg:block" />
+            <CategoryPanel {...panel} />
+          </div>
         </aside>
       </div>
     </div>
@@ -148,9 +129,9 @@ export default async function EventDetailPage({ params }: Props) {
 function InfoCard({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
     <div className="flex gap-3 rounded-2xl border border-line bg-white p-4">
-      <span className="grid size-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#22e5ff] to-[#ff2bd6] text-[#0d0f3a]">{icon}</span>
+      <span className="grid size-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#9afcff] to-[#f714f7] text-[#062a52]">{icon}</span>
       <div className="min-w-0">
-        <p className="font-hud text-xs font-bold uppercase tracking-[0.16em] text-[#22e5ff]">{title}</p>
+        <p className="font-hud text-xs font-bold uppercase tracking-[0.16em] text-[#9afcff]">{title}</p>
         {children}
       </div>
     </div>

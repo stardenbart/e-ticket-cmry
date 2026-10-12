@@ -11,7 +11,7 @@ import type { AltCategory } from "@/lib/site/category-context";
 import { FlipCountdown } from "@/components/site/countdown";
 import { AltCategories } from "@/components/site/alt-categories";
 import { humanDuration } from "@/components/site/use-server-now";
-import { MvImg } from "@/components/site/ornaments";
+import { LightStick, MascotLive, MvImg } from "@/components/site/ornaments";
 
 type QS =
   | { state: "NOT_IN_QUEUE" }
@@ -140,8 +140,8 @@ export function WaitingRoom(props: { categoryId: string; categoryName: string; s
       {qs.state === "WAITING_PRE" && (
         <Card className="overflow-hidden">
           <div className="bg-cimory-gradient relative p-6 text-center text-white">
-            <MvImg name="cowChill" alt="" className="mv-float mx-auto mb-2 h-24 w-auto" />
-            <p className="font-hud text-sm font-bold uppercase tracking-[0.2em] text-[#22e5ff]">Anda sudah di antrean</p>
+            <MascotLive alt="Maskot MOO menunggu bersama Anda" className="mx-auto mb-1 w-40 sm:w-44" />
+            <p className="font-hud text-sm font-bold uppercase tracking-[0.2em] text-[#9afcff]">Anda sudah di antrean</p>
             <p className="mv-title mt-1 text-2xl font-extrabold">Penjualan Dibuka Dalam</p>
           </div>
           <div className="space-y-4 p-6 text-center">
@@ -158,9 +158,11 @@ export function WaitingRoom(props: { categoryId: string; categoryName: string; s
         <Card className="overflow-hidden">
           <div className="bg-cimory-gradient relative overflow-hidden p-6 text-center text-white">
             <MvImg name="cowRock" alt="" className="mv-float pointer-events-none absolute -left-3 bottom-0 hidden h-24 w-auto opacity-90 sm:block" />
+            <LightStick color="cyan" className="absolute left-16 top-3 hidden w-24 sm:block" />
+            <LightStick color="magenta" className="absolute right-16 top-3 hidden w-24 sm:block" />
             <MvImg name="cowChill" alt="" className="mv-float-slow pointer-events-none absolute -right-3 bottom-0 hidden h-24 w-auto opacity-90 sm:block" />
-            <p className="font-hud text-sm font-bold uppercase tracking-[0.2em] text-[#22e5ff]">Posisi Anda di antrean</p>
-            <p key={qs.position} className="font-display mv-glow mt-2 animate-pop text-7xl font-black tabular-nums" aria-live="polite">
+            <p className="font-hud text-sm font-bold uppercase tracking-[0.2em] text-[#9afcff]">Posisi Anda di antrean</p>
+            <p key={qs.position} className="font-digits mv-glow mt-2 animate-pop text-7xl font-black tabular-nums" aria-live="polite">
               {fmtNumber(qs.position)}
             </p>
             <p className="mt-1 text-white/85">dari {fmtNumber(qs.total)} orang yang mengantre</p>
@@ -171,8 +173,8 @@ export function WaitingRoom(props: { categoryId: string; categoryName: string; s
                 <span className="font-semibold">Progres antrean</span>
                 <span className="text-muted">± {humanDuration(qs.etaSec * 1000)} lagi</span>
               </div>
-              <div className="h-3 overflow-hidden rounded-full bg-white/10 ring-1 ring-[#22e5ff]/25" role="progressbar" aria-label="Progres antrean" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress(qs.position, maxPos)}>
-                <div className="progress-stripes h-full rounded-full bg-[#ff2bd6] bg-blend-overlay transition-[width] duration-700" style={{ width: `${progress(qs.position, maxPos)}%` }} />
+              <div className="h-3 overflow-hidden rounded-full bg-white/10 ring-1 ring-[#9afcff]/25" role="progressbar" aria-label="Progres antrean" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress(qs.position, maxPos)}>
+                <div className="progress-stripes h-full rounded-full bg-[#f714f7] bg-blend-overlay transition-[width] duration-700" style={{ width: `${progress(qs.position, maxPos)}%` }} />
               </div>
               <p className="mt-2 text-xs text-muted">
                 Sistem meloloskan {props.batch} orang setiap {props.intervalSec} detik.

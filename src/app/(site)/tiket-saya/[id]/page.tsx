@@ -46,7 +46,7 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/80">E-Ticket</p>
               <h1 className="text-2xl leading-snug">{t.event_name}</h1>
             </div>
-            <span className="rounded-full bg-[#07081f]/70 px-1 py-0.5">
+            <span className="rounded-full bg-[#031726]/70 px-1 py-0.5">
               <TicketStatusBadge status={t.status} finished={finished} />
             </span>
           </div>

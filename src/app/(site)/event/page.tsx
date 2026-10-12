@@ -17,7 +17,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
   return (
     <div className="mx-auto max-w-6xl px-4 pt-16 sm:pt-20">
       <PageHero title="Jelajah Event" subtitle={`${events.length} event ditemukan`}>
-        <Link href={showPast ? "/event" : "/event?selesai=1"} className="mt-4 inline-flex h-11 items-center rounded-full px-4 text-sm font-semibold text-[#22e5ff] ring-1 ring-[#22e5ff]/40 hover:bg-white/10">
+        <Link href={showPast ? "/event" : "/event?selesai=1"} className="mt-4 inline-flex h-11 items-center rounded-full px-4 text-sm font-semibold text-[#9afcff] ring-1 ring-[#9afcff]/40 hover:bg-white/10">
           {showPast ? "Sembunyikan event yang sudah selesai" : "Tampilkan juga event yang sudah selesai"}
         </Link>
       </PageHero>

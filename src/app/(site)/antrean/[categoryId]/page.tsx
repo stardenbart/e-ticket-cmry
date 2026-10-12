@@ -17,7 +17,7 @@ export default async function QueuePage({ params }: { params: Promise<{ category
   return (
     <div className="mx-auto max-w-xl px-4 pb-8 pt-20 sm:pt-24">
       <div className="mb-5 text-center">
-        <p className="font-hud text-xs font-bold uppercase tracking-[0.22em] text-[#22e5ff]">✦ Ruang tunggu ✦</p>
+        <p className="font-hud text-xs font-bold uppercase tracking-[0.22em] text-[#9afcff]">✦ Ruang tunggu ✦</p>
         <h1 className="mt-2 text-3xl leading-tight sm:text-4xl">{event.name}</h1>
         <p className="text-muted">
           {cat.name} · {fmtDate(event.start_at, event.timezone)}, {fmtTime(event.start_at, event.timezone)}

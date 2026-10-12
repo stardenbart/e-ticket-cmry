@@ -16,6 +16,7 @@
     "qa": "node --env-file=.env --import tsx scripts/qa-concurrency.ts"
   },
   "dependencies": {
+    "@noble/ciphers": "^2.4.0",
     "@noble/curves": "^2.4.0",
     "@noble/hashes": "^2.4.0",
     "ioredis": "^6.0.0",

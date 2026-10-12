@@ -10,6 +10,9 @@ import { HelpBubble, RevealOnScroll } from "@/components/site/site-chrome";
 // Font di-host sendiri (next/font/local): build tidak bergantung pada akses ke Google Fonts.
 const jakarta = localFont({ src: "../../fonts/plus-jakarta-sans-400-800.woff2", weight: "400 800", variable: "--font-jakarta", display: "swap" });
 const orbitron = localFont({ src: "../../fonts/orbitron-500-900.woff2", weight: "500 900", variable: "--font-orbitron", display: "swap" });
+// Judul bergaya tabung neon (moodboard) & tagline kuas.
+const quicksand = localFont({ src: "../../fonts/quicksand-400-700.woff2", weight: "400 700", variable: "--font-quicksand", display: "swap" });
+const marker = localFont({ src: "../../fonts/permanent-marker-400.woff2", weight: "400", variable: "--font-marker", display: "swap" });
 const rajdhani = localFont({
   src: [
     { path: "../../fonts/rajdhani-500.woff2", weight: "500" },
@@ -25,16 +28,16 @@ export const metadata: Metadata = {
   description: "Mooniverse by Cimory — Good Food Good Mood. Klaim tiket gratis: satu akun, satu tiket, atas nama sendiri.",
 };
 
-export const viewport: Viewport = { themeColor: "#05061A" };
+export const viewport: Viewport = { themeColor: "#020A17" };
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`theme-mooniverse relative flex min-h-dvh flex-col overflow-x-clip ${jakarta.variable} ${orbitron.variable} ${rajdhani.variable}`}>
-      <a href="#konten" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-[#22e5ff] focus:px-4 focus:py-2 focus:text-[#05061a]">
+    <div className={`theme-mooniverse relative flex min-h-dvh flex-col overflow-x-clip ${jakarta.variable} ${orbitron.variable} ${rajdhani.variable} ${quicksand.variable} ${marker.variable}`}>
+      <a href="#konten" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-[#9afcff] focus:px-4 focus:py-2 focus:text-[#020a17]">
         Lewati ke konten
       </a>
       {/* Langit berbintang + scanline menetap di belakang seluruh halaman */}
-      <div aria-hidden className="pointer-events-none fixed inset-0">
+      <div aria-hidden className="mv-backdrop pointer-events-none fixed inset-0">
         <StarSky />
       </div>
       <SiteHeader />

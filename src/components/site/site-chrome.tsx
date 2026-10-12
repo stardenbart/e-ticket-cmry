@@ -4,10 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { cx } from "@/components/ui";
+import { FEATURED_PATH } from "./config";
 
 const NAV = [
   { href: "/", label: "Beranda", match: (p: string) => p === "/" },
-  { href: "/event", label: "Jelajah Event", match: (p: string) => p.startsWith("/event") },
+  { href: FEATURED_PATH, label: "Event", match: (p: string) => p.startsWith("/event") },
   { href: "/tiket-saya", label: "Tiket Saya", match: (p: string) => p.startsWith("/tiket-saya") },
   { href: "/faq", label: "FAQ", match: (p: string) => p.startsWith("/faq") },
 ];
@@ -16,7 +17,7 @@ const NAV = [
 export function PillNav() {
   const pathname = usePathname();
   return (
-    <nav aria-label="Navigasi utama" className="hidden items-center gap-1 rounded-full border border-[#22e5ff]/40 bg-white/[0.07] p-1 shadow-[0_0_24px_rgba(34,229,255,0.18),inset_0_0_12px_rgba(255,43,214,0.12)] backdrop-blur-md md:flex">
+    <nav aria-label="Navigasi utama" className="hidden items-center gap-1 rounded-full border border-[#9afcff]/40 bg-white/[0.07] p-1 shadow-[0_0_24px_rgba(154,252,255,0.18),inset_0_0_12px_rgba(247,20,247,0.12)] backdrop-blur-md md:flex">
       {NAV.map((n) => {
         const active = n.match(pathname);
         return (
@@ -26,7 +27,7 @@ export function PillNav() {
             aria-current={active ? "page" : undefined}
             className={cx(
               "font-hud rounded-full px-4 py-1.5 text-[15px] font-bold uppercase tracking-[0.08em] transition",
-              active ? "bg-[#ffffff] text-[#1b0b4d] shadow-[0_0_14px_rgba(255,255,255,0.55)]" : "text-white hover:bg-white/10 hover:text-[#22e5ff]",
+              active ? "bg-[#ffffff] text-[#0827b5] shadow-[0_0_14px_rgba(255,255,255,0.55)]" : "text-white hover:bg-white/10 hover:text-[#9afcff]",
             )}
           >
             {n.label}
@@ -96,12 +97,12 @@ export function HelpBubble() {
     <Link
       href="/faq"
       aria-label="Bantuan & FAQ"
-      className={`fixed bottom-5 right-5 z-30 grid size-14 place-items-center rounded-full bg-gradient-to-br from-[#ff2bd6] to-[#2d6bff] text-white shadow-[0_0_24px_rgba(255,43,214,0.6)] ring-2 ring-white/40 transition hover:scale-105 ${pathname.startsWith("/event/") ? "max-lg:bottom-24" : ""}`}
+      className={`fixed bottom-5 right-5 z-30 grid size-14 place-items-center rounded-full bg-gradient-to-br from-[#f714f7] to-[#05a5ef] text-white shadow-[0_0_24px_rgba(247,20,247,0.6)] ring-2 ring-white/40 transition hover:scale-105 ${pathname === "/" || pathname.startsWith("/event/") ? "max-lg:bottom-24" : ""}`}
     >
       <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M21 12a8 8 0 0 1-8 8H7l-4 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z" />
       </svg>
-      <span className="absolute right-1 top-1 size-3 rounded-full border-2 border-[#2d6bff] bg-[#22e5ff]" />
+      <span className="absolute right-1 top-1 size-3 rounded-full border-2 border-[#05a5ef] bg-[#9afcff]" />
     </Link>
   );
 }
