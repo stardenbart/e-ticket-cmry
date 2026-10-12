@@ -60,8 +60,8 @@ export function About({ e, panel }: { e: EventRow; panel: PanelProps }) {
           </div>
 
           <aside id="tiket" aria-label="Kategori tiket" className="mv-reveal relative scroll-mt-24">
-            <MvImg name="headBig" className="mv-peek pointer-events-none absolute -right-2 -top-[72px] w-28 sm:w-32" />
-            <h3 className="mv-title mb-4 text-lg sm:text-xl">Pilih Kategori Tiket</h3>
+            <MvImg name="headBig" className="mv-peek pointer-events-none absolute -right-2 -top-[72px] w-28 max-lg:hidden sm:w-32" />
+            <h3 className="mv-title mb-4 hidden text-xl lg:block">Pilih Kategori Tiket</h3>
             <CategoryPanel {...panel} />
           </aside>
         </div>

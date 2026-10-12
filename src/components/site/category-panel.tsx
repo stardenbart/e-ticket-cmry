@@ -43,6 +43,20 @@ export function CategoryPanel(props: {
   const [joining, setJoining] = useState<PanelCategory | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
+  // Di mobile panel berupa bottom sheet: tautan "#tiket" (mis. tombol Klaim Tiket di hero) membukanya.
+  useEffect(() => {
+    const open = () => {
+      if (window.location.hash === "#tiket" && window.matchMedia("(max-width: 1023px)").matches) {
+        setSheetOpen(true);
+        // Hapus hash agar klik berikutnya memicu hashchange lagi.
+        history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
+    };
+    open();
+    window.addEventListener("hashchange", open);
+    return () => window.removeEventListener("hashchange", open);
+  }, []);
+
   // Sisa kuota realtime lewat SSE (hanya informasi).
   useEffect(() => {
     if (props.eventState !== "ACTIVE") return;

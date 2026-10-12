@@ -225,5 +225,6 @@ export function LineCow({ side, className }: { side: "left" | "right"; className
 
 /** Tagline kuas "MOO BRINGS US TOGETHER". */
 export function BrushTagline({ children = "Moo Brings Us Together", className }: { children?: ReactNode; className?: string }) {
-  return <p className={cx("mv-brush text-2xl sm:text-4xl", className)}>{children}</p>;
+  // span (bukan p): sering dipakai di dalam <p> subjudul FrameTitle — p di dalam p merusak hydration.
+  return <span className={cx("mv-brush block text-2xl sm:text-4xl", className)}>{children}</span>;
 }

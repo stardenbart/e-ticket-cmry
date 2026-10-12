@@ -97,7 +97,7 @@ export function HelpBubble() {
     <Link
       href="/faq"
       aria-label="Bantuan & FAQ"
-      className={`fixed bottom-5 right-5 z-30 grid size-14 place-items-center rounded-full bg-gradient-to-br from-[#f714f7] to-[#05a5ef] text-white shadow-[0_0_24px_rgba(247,20,247,0.6)] ring-2 ring-white/40 transition hover:scale-105 ${pathname === "/" || pathname.startsWith("/event/") ? "max-lg:bottom-24" : ""}`}
+      className={`fixed bottom-5 right-5 z-30 hidden size-14 sm:grid place-items-center rounded-full bg-gradient-to-br from-[#f714f7] to-[#05a5ef] text-white shadow-[0_0_24px_rgba(247,20,247,0.6)] ring-2 ring-white/40 transition hover:scale-105 ${pathname === "/" || pathname.startsWith("/event/") ? "max-lg:bottom-24" : ""}`}
     >
       <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M21 12a8 8 0 0 1-8 8H7l-4 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z" />
