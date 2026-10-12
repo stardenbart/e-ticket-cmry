@@ -1,0 +1,30 @@
+# Reverse proxy HTTPS untuk server internal (sertifikat dari CA lokal Caddy, "tls internal").
+# PUBLIC_HOST & HTTPS_PORT dari .env server (lihat docker-compose.prod.yml).
+{
+	admin off
+	auto_https disable_redirects
+	# Akses lewat IP tidak mengirim SNI; pakai sertifikat untuk PUBLIC_HOST.
+	default_sni {$PUBLIC_HOST}
+}
+
+https://{$PUBLIC_HOST}:{$HTTPS_PORT}, https://localhost:{$HTTPS_PORT} {
+	tls internal
+	encode gzip
+	reverse_proxy eticket_web:3000 {
+		# SSE sisa kuota: kirim tiap event tanpa buffer.
+		flush_interval -1
+	}
+}
+
+# Port HTTP lama: unduh root CA (untuk dipasang di HP staf), selain itu arahkan ke HTTPS.
+http://:{$HTTP_PORT} {
+	handle /mooniverse-ca.crt {
+		root * /data/caddy/pki/authorities/local
+		rewrite * /root.crt
+		header Content-Type application/x-x509-ca-cert
+		file_server
+	}
+	handle {
+		redir https://{$PUBLIC_HOST}:{$HTTPS_PORT}{uri} permanent
+	}
+}

@@ -32,6 +32,7 @@ test -f .env || { echo ".env belum ada di ~/$DIR" >&2; exit 1; }
 rm -rf "src-$SHA" && mkdir "src-$SHA"
 tar -xzf "releases/$SHA.tar.gz" -C "src-$SHA"
 cp "src-$SHA/docker-compose.prod.yml" docker-compose.prod.yml
+cp "src-$SHA/deploy/Caddyfile" Caddyfile
 
 SITE_KEY="$(grep -E '^NEXT_PUBLIC_TURNSTILE_SITE_KEY=' .env | cut -d= -f2- || true)"
 echo "→ build image eticket-app:$SHA"
@@ -44,7 +45,8 @@ APP_IMAGE_TAG="$SHA" docker-compose -p eticket -f docker-compose.prod.yml up -d 
 echo "$SHA" > CURRENT
 
 for i in $(seq 1 30); do
-  if curl -fs -o /dev/null "http://127.0.0.1:$(grep -E '^APP_PORT=' .env | cut -d= -f2- || echo 3110)/api/time"; then
+  HTTPS_PORT="$(grep -E '^HTTPS_PORT=' .env | cut -d= -f2- || true)"
+  if curl -fsk -o /dev/null "https://127.0.0.1:${HTTPS_PORT:-3443}/api/time"; then
     echo "✓ eticket $SHA sehat"
     ls -dt src-* | tail -n +4 | xargs -r rm -rf
     ls -t releases/*.tar.gz | tail -n +6 | xargs -r rm -f

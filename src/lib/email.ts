@@ -50,6 +50,9 @@ export function otpEmail(name: string, purpose: string, code: string) {
   return { subject, html, text: `Kode verifikasi Anda: ${code} (berlaku 5 menit).` };
 }
 
+/** Content-ID unik berformat nama@domain — paling konsisten dirender Gmail & Outlook. */
+export const qrCid = (ticketId: string) => `qr-${ticketId}@mooniverse.cimory`;
+
 export function ticketEmail(t: TicketView, kind: "ISSUED" | "RESEND" | "REISSUED" | "REMINDER") {
   const when = `${fmtDate(t.start_at, t.timezone)}, ${fmtTime(t.start_at, t.timezone)}`;
   const intro = {
@@ -69,7 +72,8 @@ export function ticketEmail(t: TicketView, kind: "ISSUED" | "RESEND" | "REISSUED
 <p>Halo ${esc(t.holder_name)},</p>
 <p>${esc(intro)}</p>
 ${t.email_text ? `<p style="color:#334155">${esc(t.email_text)}</p>` : ""}
-<div style="text-align:center;margin:20px 0"><img src="cid:qr" width="240" height="240" alt="QR tiket" style="border:1px solid #E2E8F0;border-radius:12px"/></div>
+<div style="text-align:center;margin:20px 0"><img src="cid:${qrCid(t.id)}" width="240" height="240" alt="QR tiket" style="display:block;margin:0 auto;border:1px solid #E2E8F0;border-radius:12px;background:#fff"/></div>
+<p style="text-align:center;font-size:12px;color:#64748B;margin-top:-8px">QR tidak tampil? Klik "Tampilkan gambar" di email ini, buka lampiran PDF, atau lihat di menu Tiket Saya.</p>
 <table role="presentation" width="100%" style="font-size:14px;border-collapse:collapse">
 <tr><td style="color:#64748B;padding:6px 0;width:38%">Nama pemegang</td><td style="font-weight:600">${esc(t.holder_name)}</td></tr>
 <tr><td style="color:#64748B;padding:6px 0">Kategori</td><td style="font-weight:600">${esc(t.category_name)}</td></tr>

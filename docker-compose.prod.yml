@@ -18,7 +18,7 @@ services:
   web:
     <<: *app
     container_name: eticket_web
-    ports: ["${APP_PORT:-3110}:3000"]
+    # Tidak dipublikasikan langsung: semua akses lewat proxy HTTPS.
     environment:
       DATABASE_URL: postgres://eticket:${POSTGRES_PASSWORD}@eticket_postgres:5432/eticket
       REDIS_URL: redis://eticket_redis:6379
@@ -36,6 +36,24 @@ services:
     volumes: [uploads:/app/storage/uploads]
     mem_limit: 512m
     cpus: 0.5
+
+  proxy:
+    image: docker.io/library/caddy:2-alpine
+    container_name: eticket_proxy
+    restart: always
+    environment:
+      PUBLIC_HOST: ${PUBLIC_HOST:-172.20.240.61}
+      HTTPS_PORT: ${HTTPS_PORT:-3443}
+      HTTP_PORT: ${APP_PORT:-3110}
+    ports: ["${APP_PORT:-3110}:${APP_PORT:-3110}", "${HTTPS_PORT:-3443}:${HTTPS_PORT:-3443}"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+      - caddyconfig:/config
+    depends_on: [web]
+    logging: *default-logging
+    mem_limit: 128m
+    networks: [eticket]
 
   postgres:
     image: docker.io/library/postgres:16-alpine
@@ -78,6 +96,8 @@ services:
     networks: [eticket]
 
 volumes:
+  caddydata:
+  caddyconfig:
   pgdata:
   redisdata:
   uploads:

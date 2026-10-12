@@ -8,7 +8,7 @@ import { sql } from "@/lib/db";
 import { redis } from "@/lib/redis";
 import { decrypt } from "@/lib/crypto";
 import { enqueue } from "@/lib/outbox";
-import { MAIL_FROM, mailer, otpEmail, simpleEmail, ticketEmail } from "@/lib/email";
+import { MAIL_FROM, mailer, otpEmail, qrCid, simpleEmail, ticketEmail } from "@/lib/email";
 import { getTicket, ticketPdf, qrTokenFor } from "@/lib/tickets";
 import { qrPng } from "@/lib/qr";
 import { env } from "@/lib/env";
@@ -52,7 +52,7 @@ async function deliver(row: OutboxRow) {
       const qr = await qrPng(qrTokenFor(t), 480);
       const pdf = Buffer.from(await ticketPdf(t));
       await send(t.email, ticketEmail(t, kind), [
-        { filename: "qr.png", content: qr, cid: "qr" },
+        { filename: "qr-tiket.png", content: qr, cid: qrCid(t.id), contentType: "image/png", contentDisposition: "inline" },
         { filename: `tiket-${t.id.slice(0, 8)}.pdf`, content: pdf, contentType: "application/pdf" },
       ]);
       await sql`UPDATE tickets SET email_status = 'SENT' WHERE id = ${t.id}`;
