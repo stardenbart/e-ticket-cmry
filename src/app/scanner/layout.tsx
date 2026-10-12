@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { SwRegister } from "@/components/scanner/SwRegister";
+import { SecureContextNotice } from "@/components/scanner/SecureContextNotice";
 
 export const metadata: Metadata = {
   title: "Scanner Gate",
@@ -15,6 +16,7 @@ export default function ScannerLayout({ children }: { children: React.ReactNode 
   return (
     <div className="min-h-dvh bg-slate-950 text-white">
       <SwRegister />
+      <SecureContextNotice />
       {children}
     </div>
   );

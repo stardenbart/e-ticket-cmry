@@ -7,6 +7,7 @@ import type { AltCategory } from "@/lib/site/category-context";
 import { AltCategories } from "@/components/site/alt-categories";
 import { useServerNow } from "@/components/site/use-server-now";
 import { MvImg } from "@/components/site/ornaments";
+import { uuidv4 } from "@/lib/uuid";
 
 type Summary = {
   eventName: string;
@@ -55,13 +56,13 @@ export function ConfirmClaim({ categoryId, slug, heldTicketId, summary, alternat
       const k = `idem:${categoryId}`;
       let key = sessionStorage.getItem(k);
       if (!key) {
-        key = crypto.randomUUID();
+        key = uuidv4();
         sessionStorage.setItem(k, key);
       }
       idemKey.current = key;
     } catch {
       setAdm(null);
-      idemKey.current = crypto.randomUUID();
+      idemKey.current = uuidv4();
     }
   }, [categoryId]);
 

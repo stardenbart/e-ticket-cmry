@@ -4,6 +4,7 @@
 //   queue   — keputusan check-in yang belum tersinkron (offline)
 //   history — riwayat scan perangkat ini
 import type { Manifest, ManifestTicket } from "./validate";
+import { uuidv4 } from "@/lib/uuid";
 
 const DB_NAME = "eticket-scanner";
 const DB_VERSION = 1;
@@ -50,7 +51,7 @@ const kvKeys = () => tx<IDBValidKey[]>("kv", "readonly", (s) => s.getAllKeys());
 export async function deviceId(): Promise<string> {
   let id = await kvGet<string>("deviceId");
   if (!id) {
-    id = crypto.randomUUID();
+    id = uuidv4();
     await kvSet("deviceId", id);
   }
   return id;

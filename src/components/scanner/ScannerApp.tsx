@@ -8,6 +8,7 @@ import { feedbackAdmitted, feedbackError, feedbackOk, unlockAudio } from "./feed
 import { validateScan, verdictForTicket, idTypeLabel, type Manifest, type ManifestTicket, type ManifestEvent } from "@/lib/scanner/validate";
 import * as local from "@/lib/scanner/local";
 import { fmtDateTime, TZ_LABEL } from "@/lib/format";
+import { uuidv4 } from "@/lib/uuid";
 
 type ScannerEventInfo = { id: string; name: string; venue: string; gates: string[]; timezone: string; start_at: string; end_at: string; valid_until: string };
 type View = "scan" | "search" | "history" | "sync";
@@ -261,7 +262,7 @@ export default function ScannerApp() {
       feedbackError();
       setOverlay({ kind: "red", title: "Ditolak", reason: v.reason, ticket: v.ticket, method: "QR" });
       void local.historyAdd({
-        clientId: crypto.randomUUID(),
+        clientId: uuidv4(),
         at: scannedAt,
         eventId: m.event.id,
         gate: selection?.gate ?? "",
@@ -295,7 +296,7 @@ export default function ScannerApp() {
     if (!overlay || overlay.kind !== "verify" || !selection) return;
     const m = manifestRef.current!;
     const payload: local.CheckinPayload = {
-      clientId: crypto.randomUUID(),
+      clientId: uuidv4(),
       eventId: m.event.id,
       ticketId: overlay.ticket.id,
       version: overlay.version,
