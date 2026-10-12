@@ -42,6 +42,8 @@ podman build -q --build-arg NEXT_PUBLIC_TURNSTILE_SITE_KEY="${SITE_KEY:-1x000000
 PREV="$(cat CURRENT 2>/dev/null || true)"
 echo "→ up (sebelumnya: ${PREV:-none})"
 APP_IMAGE_TAG="$SHA" docker-compose -p eticket -f docker-compose.prod.yml up -d --remove-orphans
+# Caddyfile di-bind mount: muat ulang proxy agar perubahan konfigurasi terpakai.
+docker-compose -p eticket -f docker-compose.prod.yml restart proxy >/dev/null
 echo "$SHA" > CURRENT
 
 for i in $(seq 1 30); do
