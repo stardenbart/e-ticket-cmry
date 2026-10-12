@@ -16,7 +16,10 @@ https://{$PUBLIC_HOST}:{$HTTPS_PORT}, https://localhost:{$HTTPS_PORT} {
 	}
 }
 
-# Port HTTP lama: unduh root CA (untuk dipasang di HP staf), selain itu arahkan ke HTTPS.
+# Port HTTP: unduh root CA (untuk dipasang di HP staf) dan, sementara, tetap melayani situs lewat HTTP
+# karena FortiGate kantor memblokir HTTPS ke IP server ini (kategori "Newly Observed").
+# Setelah IT membuka blokir: ganti blok `handle { reverse_proxy ... }` dengan
+#   handle { redir https://{$PUBLIC_HOST}:{$HTTPS_PORT}{uri} permanent }
 http://:{$HTTP_PORT} {
 	handle /mooniverse-ca.crt {
 		root * /data/caddy/pki/authorities/local
@@ -25,6 +28,8 @@ http://:{$HTTP_PORT} {
 		file_server
 	}
 	handle {
-		redir https://{$PUBLIC_HOST}:{$HTTPS_PORT}{uri} permanent
+		reverse_proxy eticket_web:3000 {
+			flush_interval -1
+		}
 	}
 }
