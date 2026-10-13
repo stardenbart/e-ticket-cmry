@@ -37,11 +37,16 @@ export async function createSession(userId: string, role: Role, meta?: { ip?: st
   const jar = await cookies();
   jar.set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: env.COOKIE_SECURE,
+    secure: await cookieSecure(),
     sameSite: "lax",
     path: "/",
     maxAge: ttl,
   });
+}
+
+async function cookieSecure() {
+  if (env.COOKIE_SECURE !== "auto") return env.COOKIE_SECURE;
+  return (await headers()).get("x-forwarded-proto")?.split(",")[0].trim() === "https";
 }
 
 export async function destroySession() {

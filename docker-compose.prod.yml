@@ -55,6 +55,22 @@ services:
     mem_limit: 128m
     networks: [eticket]
 
+  # Akses internet lewat Cloudflare Tunnel (koneksi keluar saja; tanpa IP publik / port terbuka).
+  # Aktif bila TUNNEL_TOKEN ada di .env (deploy.sh menyalakan profile "tunnel").
+  # Public hostname di dashboard Cloudflare → service HTTP eticket_web:3000.
+  tunnel:
+    image: docker.io/cloudflare/cloudflared:latest
+    container_name: eticket_tunnel
+    profiles: [tunnel]
+    restart: always
+    command: ["tunnel", "--no-autoupdate", "run"]
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    depends_on: [web]
+    logging: *default-logging
+    mem_limit: 128m
+    networks: [eticket]
+
   postgres:
     image: docker.io/library/postgres:16-alpine
     container_name: eticket_postgres

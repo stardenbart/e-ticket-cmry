@@ -20,6 +20,13 @@ export const env = {
   /** Verifikasi email lewat kode OTP saat daftar. Default mati (daftar langsung aktif). */
   get EMAIL_VERIFICATION() { return process.env.EMAIL_VERIFICATION === "true"; },
   get isProd() { return process.env.NODE_ENV === "production"; },
-  /** Cookie Secure; default aktif di produksi. Set COOKIE_SECURE=false hanya untuk deployment HTTP internal. */
-  get COOKIE_SECURE() { return process.env.COOKIE_SECURE ? process.env.COOKIE_SECURE === "true" : process.env.NODE_ENV === "production"; },
+  /**
+   * Cookie Secure; default aktif di produksi. "false" hanya untuk deployment HTTP internal.
+   * "auto" mengikuti X-Forwarded-Proto tiap request (domain HTTPS via tunnel + IP internal HTTP sekaligus).
+   */
+  get COOKIE_SECURE(): boolean | "auto" {
+    const v = process.env.COOKIE_SECURE;
+    if (v === "auto") return "auto";
+    return v ? v === "true" : process.env.NODE_ENV === "production";
+  },
 };

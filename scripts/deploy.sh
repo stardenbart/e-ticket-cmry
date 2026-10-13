@@ -39,6 +39,9 @@ echo "→ build image eticket-app:$SHA"
 podman build -q --build-arg NEXT_PUBLIC_TURNSTILE_SITE_KEY="${SITE_KEY:-1x00000000000000000000AA}" \
   -t "eticket-app:$SHA" -t eticket-app:latest "src-$SHA" >/dev/null
 
+# Cloudflare Tunnel hanya bila token sudah diisi.
+grep -qE '^TUNNEL_TOKEN=.+' .env && export COMPOSE_PROFILES=tunnel
+
 PREV="$(cat CURRENT 2>/dev/null || true)"
 echo "→ up (sebelumnya: ${PREV:-none})"
 APP_IMAGE_TAG="$SHA" docker-compose -p eticket -f docker-compose.prod.yml up -d --remove-orphans
