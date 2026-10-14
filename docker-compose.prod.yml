@@ -45,7 +45,8 @@ services:
       PUBLIC_HOST: ${PUBLIC_HOST:-172.20.240.61}
       HTTPS_PORT: ${HTTPS_PORT:-3443}
       HTTP_PORT: ${APP_PORT:-3110}
-    ports: ["${APP_PORT:-3110}:${APP_PORT:-3110}", "${HTTPS_PORT:-3443}:${HTTPS_PORT:-3443}"]
+    # Port HTTP (APP_PORT, 3110) tidak lagi dipublikasikan: akses publik lewat domain (Cloudflare Tunnel).
+    ports: ["${HTTPS_PORT:-3443}:${HTTPS_PORT:-3443}"]
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddydata:/data

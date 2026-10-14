@@ -117,20 +117,15 @@ Server memakai podman rootless + docker-compose dan dipakai bersama aplikasi lai
 | Alamat | Keterangan |
 | --- | --- |
 | https://gathering2026.cmdevent.site | Situs publik (internet) lewat Cloudflare Tunnel `eticket_tunnel` |
-| http://172.20.240.61:3110 | Situs (HTTP), dipakai sementara |
-| https://172.20.240.61:3443 | Situs (HTTPS, sertifikat CA lokal Caddy) — wajib untuk kamera & mode offline scanner |
-| http://172.20.240.61:3110/mooniverse-ca.crt | Root CA untuk dipasang di HP staf gate agar HTTPS dipercaya |
+| https://172.20.240.61:3443 | Akses internal (HTTPS, sertifikat CA lokal Caddy); diblokir FortiGate kantor (kategori "Newly Observed") |
 
-Proxy `eticket_proxy` (Caddy, `deploy/Caddyfile`) melayani kedua port. Saat ini FortiGate kantor memblokir HTTPS ke IP
-server (kategori "Newly Observed"), jadi port 3110 tetap melayani HTTP. Setelah IT membuka blokir
-`https://172.20.240.61:3443`: ubah blok HTTP di `deploy/Caddyfile` menjadi redirect (komentar di file), set
-`APP_URL=https://172.20.240.61:3443` dan `COOKIE_SECURE=true` di `.env` server, lalu deploy.
+Port HTTP 3110 sudah ditutup (tidak dipublikasikan lagi) sejak situs dipindah ke domain. Proxy `eticket_proxy`
+(Caddy, `deploy/Caddyfile`) tinggal melayani HTTPS 3443; blok HTTP di Caddyfile hanya aktif di dalam container.
 
 Akses internet: container `eticket_tunnel` (cloudflared) membuka koneksi keluar ke Cloudflare, jadi server tidak
 butuh IP publik atau port terbuka. Di dashboard Cloudflare (Zero Trust → Networks → Tunnels) public hostname
 `gathering2026.cmdevent.site` diarahkan ke service HTTP `eticket_web:3000`. Di `.env` server: `TUNNEL_TOKEN=<token>`,
-`APP_URL=https://gathering2026.cmdevent.site`, `COOKIE_SECURE=auto` (Secure mengikuti protokol request, jadi akses IP
-internal lewat HTTP tetap bisa login).
+`APP_URL=https://gathering2026.cmdevent.site`, `COOKIE_SECURE=auto` (Secure mengikuti protokol request).
 
 ```bash
 git push                      # deploy selalu dari commit

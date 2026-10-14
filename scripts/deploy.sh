@@ -51,7 +51,7 @@ echo "$SHA" > CURRENT
 
 for i in $(seq 1 30); do
   HTTPS_PORT="$(grep -E '^HTTPS_PORT=' .env | cut -d= -f2- || true)"
-  if curl -fsk -o /dev/null "https://127.0.0.1:${HTTPS_PORT:-3443}/api/time" && curl -fs -o /dev/null "http://127.0.0.1:$(grep -E '^APP_PORT=' .env | cut -d= -f2- || echo 3110)/api/time"; then
+  if curl -fsk -o /dev/null "https://127.0.0.1:${HTTPS_PORT:-3443}/api/time"; then
     echo "✓ eticket $SHA sehat"
     ls -dt src-* | tail -n +4 | xargs -r rm -rf
     ls -t releases/*.tar.gz | tail -n +6 | xargs -r rm -f
