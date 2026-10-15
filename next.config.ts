@@ -19,7 +19,7 @@ const csp = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["sharp", "postgres", "ioredis", "nodemailer", "pdf-lib"],
+  serverExternalPackages: ["sharp", "postgres", "ioredis", "nodemailer", "pdf-lib", "exceljs"],
   async headers() {
     return [
       {

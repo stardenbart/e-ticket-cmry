@@ -1,22 +1,24 @@
 import { z } from "zod";
-import { sql } from "@/lib/db";
 import { body, clientIp, json, route } from "@/lib/http";
-import { emailSchema } from "@/lib/validation";
 import { issueOtp } from "@/lib/otp";
 import { cooldown, rateLimit } from "@/lib/rate-limit";
+import { findAccount, maskEmail } from "@/lib/account";
 
-const schema = z.object({ email: emailSchema });
+// `identifier` = NIK karyawan atau email; `email` diterima dari form lama.
+const schema = z
+  .object({ identifier: z.string().trim().max(254).optional(), email: z.string().trim().max(254).optional() })
+  .refine((d) => !!(d.identifier || d.email), { message: "NIK atau email wajib diisi.", path: ["identifier"] });
 
 export const POST = route(async (req) => {
   const ip = clientIp(req);
   const d = await body(req, schema);
-  const [u] = await sql<{ id: string; full_name: string }[]>`
-    SELECT id, full_name FROM users WHERE lower(email) = ${d.email} AND disabled_at IS NULL`;
-  if (u) await issueOtp({ userId: u.id, email: d.email, name: u.full_name, purpose: "RESET_PASSWORD", ip });
-  else {
-    // Perlakuan sama untuk email yang tidak terdaftar.
-    await cooldown(`otp:RESET_PASSWORD:${d.email}`, 60, "Tunggu 60 detik sebelum meminta kode baru.");
-    await rateLimit(`otp:email:${d.email}`, 5, 3600, "Batas permintaan kode untuk email ini tercapai. Coba lagi dalam 1 jam.");
+  const { key, user } = await findAccount(d.identifier || d.email || "");
+  if (user) {
+    await issueOtp({ userId: user.id, email: user.email, name: user.full_name, purpose: "RESET_PASSWORD", ip });
+    return json({ ok: true, message: `Kode untuk mengatur ulang password sudah dikirim ke ${maskEmail(user.email)}.` });
   }
-  return json({ ok: true, message: "Jika email terdaftar, kode untuk mengatur ulang password sudah dikirim." });
+  // Perlakuan sama untuk akun yang tidak ada (batas permintaan tetap berlaku).
+  await cooldown(`otp:RESET_PASSWORD:${key}`, 60, "Tunggu 60 detik sebelum meminta kode baru.");
+  await rateLimit(`otp:email:${key}`, 5, 3600, "Batas permintaan kode tercapai. Coba lagi dalam 1 jam.");
+  return json({ ok: true, message: "Jika akun terdaftar, kode untuk mengatur ulang password sudah dikirim ke emailnya." });
 });

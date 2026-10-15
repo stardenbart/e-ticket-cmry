@@ -22,6 +22,7 @@ export function AdminSidebar({ superAdmin, name, email }: { superAdmin: boolean;
   const items: Item[] = [
     { href: "/admin", label: "Dashboard", icon: "dash", exact: true },
     { href: "/admin/events", label: "Daftar Event", icon: "event" },
+    { href: "/admin/karyawan", label: "Data Karyawan", icon: "users" },
     { href: "/admin/audit", label: "Audit Log", icon: "audit" },
     ...(superAdmin
       ? [

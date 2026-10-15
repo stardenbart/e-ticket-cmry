@@ -19,6 +19,10 @@ export const env = {
   get STAFF_2FA() { return process.env.STAFF_2FA === "true"; },
   /** Verifikasi email lewat kode OTP saat daftar. Default mati (daftar langsung aktif). */
   get EMAIL_VERIFICATION() { return process.env.EMAIL_VERIFICATION === "true"; },
+  /** Login Google aktif bila client ID & secret OAuth diisi. */
+  get GOOGLE_CLIENT_ID() { return process.env.GOOGLE_CLIENT_ID ?? ""; },
+  get GOOGLE_CLIENT_SECRET() { return process.env.GOOGLE_CLIENT_SECRET ?? ""; },
+  get GOOGLE_ENABLED() { return !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET); },
   get isProd() { return process.env.NODE_ENV === "production"; },
   /**
    * Cookie Secure; default aktif di produksi. "false" hanya untuk deployment HTTP internal.

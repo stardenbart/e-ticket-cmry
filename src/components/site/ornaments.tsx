@@ -1,12 +1,22 @@
-// Ornamen tema MOONIVERSE: lantai grid, laser, marquee, bingkai HUD, aset visual stock.
+// Ornamen tema MOONIVERSE. Sengaja ringan: dekorasi statis, animasi hanya kepala maskot (transform).
 import type { CSSProperties, ReactNode } from "react";
 import { cx } from "@/components/ui";
 
 const A = "/images/mooniverse";
 const C = "/images/canva";
+const B = "/images/brand";
 
 /** Ukuran asli aset (untuk width/height agar tidak terjadi layout shift). */
 export const ASSET = {
+  // Aset brand terbaru (public/images/*.png → brand/*.webp)
+  title: { src: `${B}/mooniverse-title-1200.webp`, w: 819, h: 338 },
+  titleSm: { src: `${B}/mooniverse-title-640.webp`, w: 640, h: 264 },
+  cowHead: { src: `${B}/kepala-sapi-320.webp`, w: 320, h: 241 },
+  cowHeadSm: { src: `${B}/kepala-sapi-96.webp`, w: 96, h: 72 },
+  cimory: { src: `${B}/cimory-320.webp`, w: 320, h: 171 },
+  cimorySm: { src: `${B}/cimory-160.webp`, w: 160, h: 85 },
+  gridFloor: { src: `${B}/grid-floor.webp`, w: 875, h: 197 },
+  neonWave: { src: `${B}/neon-wave.webp`, w: 192, h: 153 },
   mascot: { src: `${A}/mascot.webp`, w: 410, h: 392 },
   mascotHead: { src: `${A}/mascot-head.webp`, w: 410, h: 392 },
   mascotBody: { src: `${A}/mascot-body.webp`, w: 410, h: 392 },
@@ -42,12 +52,14 @@ export const ASSET = {
 export type AssetKey = keyof typeof ASSET;
 
 /** Gambar dari visual stock dengan dimensi asli. Dekoratif bila alt kosong. */
-export function MvImg({ name, alt = "", className, style, eager = false }: { name: AssetKey; alt?: string; className?: string; style?: CSSProperties; eager?: boolean }) {
+export function MvImg({ name, alt = "", className, style, eager = false, srcSet, sizes }: { name: AssetKey; alt?: string; className?: string; style?: CSSProperties; eager?: boolean; srcSet?: string; sizes?: string }) {
   const a = ASSET[name];
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={a.src}
+      srcSet={srcSet}
+      sizes={sizes}
       width={a.w}
       height={a.h}
       alt={alt}
@@ -83,41 +95,27 @@ export function Sparkle({ className, filled = true }: { className?: string; fill
   );
 }
 
-/** Latar bintang berkedip + scanline. */
+/** Latar bintang statis (tanpa animasi, demi ringan di HP). */
 export function StarSky({ className }: { className?: string }) {
   return (
     <div aria-hidden className={cx("pointer-events-none absolute inset-0 overflow-hidden", className)}>
       <div className="mv-stars" />
-      <div className="mv-stars-2" />
-      <div className="mv-scanlines" />
     </div>
   );
 }
 
-/** Lantai grid neon perspektif. */
+/** Lantai grid neon perspektif (gambar statis vistock1). */
 export function GridFloor({ className }: { className?: string }) {
   return (
-    <div aria-hidden className={cx("pointer-events-none absolute inset-0 overflow-hidden", className)}>
-      <div className="mv-grid-floor" />
+    <div aria-hidden className={cx("pointer-events-none absolute inset-x-0 bottom-0 flex justify-center overflow-hidden", className)}>
+      <MvImg name="gridFloor" className="h-full w-full max-w-none object-cover object-top opacity-80" />
     </div>
   );
 }
 
-/** Beberapa sinar laser yang menyapu dari bawah. */
-export function Lasers({ className }: { className?: string }) {
-  const beams: { left: string; c: "pink" | "cyan"; from: string; to: string; delay: string }[] = [
-    { left: "8%", c: "cyan", from: "-30deg", to: "-8deg", delay: "0s" },
-    { left: "22%", c: "pink", from: "-18deg", to: "12deg", delay: "-2s" },
-    { left: "78%", c: "pink", from: "10deg", to: "-16deg", delay: "-1s" },
-    { left: "92%", c: "cyan", from: "28deg", to: "6deg", delay: "-3s" },
-  ];
-  return (
-    <div aria-hidden className={cx("pointer-events-none absolute inset-0 overflow-hidden opacity-70", className)}>
-      {beams.map((b, i) => (
-        <span key={i} className={cx("mv-laser", b.c)} style={{ left: b.left, "--from": b.from, "--to": b.to, animationDelay: b.delay } as CSSProperties} />
-      ))}
-    </div>
-  );
+/** Sinar laser — dinonaktifkan agar halaman ringan (ekspor dipertahankan untuk kompatibilitas). */
+export function Lasers(_props: { className?: string }) {
+  return null;
 }
 
 /** Pembatas section: garis neon dengan ikon di tengah. */
@@ -131,35 +129,11 @@ export function NeonBand({ className }: { className?: string }) {
   );
 }
 
-/** Pita teks berjalan: tagline kuas berpendar magenta + judul tabung neon. */
+/** Pita tagline statis (tanpa animasi berjalan). */
 export function Marquee({ className }: { className?: string }) {
-  const items: { t: string; brush: boolean }[] = [
-    { t: "Good Food Good Mood", brush: true },
-    { t: "MOONIVERSE 2026", brush: false },
-    { t: "Moo Brings Us Together", brush: true },
-    { t: "1 AKUN · 1 TIKET", brush: false },
-  ];
-  const row = (
-    <div className="flex shrink-0 items-center">
-      {items.map((it, i) => (
-        <span key={it.t} className="flex items-center">
-          {it.brush ? (
-            <span className="mv-brush px-6 text-xl sm:text-3xl">{it.t}</span>
-          ) : (
-            <span className="mv-neon px-6 text-base font-semibold sm:text-xl">{it.t}</span>
-          )}
-          <MvImg name={i % 2 ? "crownNeon" : "boltNeon"} className="h-8 w-auto sm:h-10" />
-        </span>
-      ))}
-    </div>
-  );
   return (
-    <div className={cx("relative overflow-hidden border-y border-[#9afcff]/35 bg-[#01030c]/85 py-3 shadow-[0_0_28px_rgba(5,165,239,0.25)]", className)} aria-label="Good Food Good Mood — Moo Brings Us Together">
-      <div aria-hidden className="mv-texture mv-texture-lasers inset-0 opacity-45 [mask-image:none]" />
-      <div className="mv-marquee-track relative" aria-hidden>
-        {row}
-        {row}
-      </div>
+    <div className={cx("relative border-y border-[#9afcff]/25 bg-[#01030c]/80 py-3 text-center", className)}>
+      <p className="mv-neon px-4 text-sm font-semibold sm:text-base">Good Food Good Mood · 1 NIK · 1 Tiket</p>
     </div>
   );
 }
@@ -180,11 +154,10 @@ export function FrameTitle({ children, sub, as: Tag = "h2", className, icon = "c
 export function PageHero({ title, subtitle, children }: { title: ReactNode; subtitle?: ReactNode; children?: ReactNode }) {
   return (
     <div className="relative px-4 pb-6 pt-10 text-center sm:pt-12">
-      <div aria-hidden className="mv-texture mv-texture-lasers mv-texture-top -top-24 left-1/2 h-64 w-[min(900px,120vw)] -translate-x-1/2 opacity-70" />
       <MvImg name="crownNeon" className="relative mx-auto mb-2 h-9 w-auto drop-shadow-[0_0_10px_rgba(255,255,255,0.55)]" />
       <h1 className="relative text-2xl leading-tight sm:text-4xl">{title}</h1>
       <div aria-hidden className="relative mx-auto mt-3 w-[min(240px,60vw)] mv-tube-rule" />
-      {subtitle && <div className="font-hud relative mx-auto mt-3 max-w-2xl text-lg font-medium text-[#e3edfa]">{subtitle}</div>}
+      {subtitle && <div className="font-hud relative mx-auto mt-3 max-w-2xl text-lg font-semibold text-[#e3edfa]">{subtitle}</div>}
       {children}
     </div>
   );
@@ -194,9 +167,7 @@ export function PageHero({ title, subtitle, children }: { title: ReactNode; subt
 export function StickerNote({ sticker = "cowChill", title, children, action, className }: { sticker?: AssetKey; title: ReactNode; children?: ReactNode; action?: ReactNode; className?: string }) {
   return (
     <div className={cx("mv-card relative flex flex-col items-center gap-3 overflow-hidden px-6 py-10 text-center", className)}>
-      <MvImg name="cowLineLeft" className="mv-lineart pointer-events-none absolute -left-10 -top-6 h-24 w-auto opacity-50 sm:h-28" />
-      <MvImg name="cowLineRight" className="mv-lineart pointer-events-none absolute -bottom-8 -right-10 h-24 w-auto opacity-50 [animation-delay:-3s] sm:h-28" />
-      <MvImg name={sticker} className="mv-float relative h-32 w-auto drop-shadow-[0_0_18px_rgba(247,20,247,0.45)]" />
+      <MvImg name={sticker} className="relative h-32 w-auto" />
       <p className="mv-neon relative text-lg">{title}</p>
       {children && <div className="relative max-w-md text-[#d3e2f5]">{children}</div>}
       {action && <div className="relative">{action}</div>}
@@ -204,23 +175,14 @@ export function StickerNote({ sticker = "cowChill", title, children, action, cla
   );
 }
 
-/** Light stick berayun (dekorasi). */
-export function LightStick({ color, className }: { color: "cyan" | "magenta"; className?: string }) {
-  return (
-    <MvImg
-      name={color === "cyan" ? "stickCyan" : "stickMagenta"}
-      className={cx(
-        "mv-stick pointer-events-none h-auto",
-        color === "cyan" ? "mv-clip-stick-cyan text-[#9afcff]" : "mv-clip-stick-magenta mv-stick-alt text-[#f714f7]",
-        className,
-      )}
-    />
-  );
+/** Light stick — dinonaktifkan agar halaman ringan (ekspor dipertahankan). */
+export function LightStick(_props: { color: "cyan" | "magenta"; className?: string }) {
+  return null;
 }
 
-/** Sapi garis neon (dekorasi melayang). */
+/** Sapi garis neon (dekorasi statis). */
 export function LineCow({ side, className }: { side: "left" | "right"; className?: string }) {
-  return <MvImg name={side === "left" ? "cowLineLeft" : "cowLineRight"} className={cx("mv-lineart pointer-events-none h-auto", className)} />;
+  return <MvImg name={side === "left" ? "cowLineLeft" : "cowLineRight"} className={cx("pointer-events-none h-auto", className)} />;
 }
 
 /** Tagline kuas "MOO BRINGS US TOGETHER". */

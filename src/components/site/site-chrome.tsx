@@ -17,7 +17,7 @@ const NAV = [
 export function PillNav() {
   const pathname = usePathname();
   return (
-    <nav aria-label="Navigasi utama" className="hidden items-center gap-1 rounded-full border border-[#9afcff]/40 bg-white/[0.07] p-1 shadow-[0_0_24px_rgba(154,252,255,0.18),inset_0_0_12px_rgba(247,20,247,0.12)] backdrop-blur-md md:flex">
+    <nav aria-label="Navigasi utama" className="hidden items-center gap-1 rounded-full border border-[#9afcff]/40 bg-[#031726]/80 p-1 md:flex">
       {NAV.map((n) => {
         const active = n.match(pathname);
         return (

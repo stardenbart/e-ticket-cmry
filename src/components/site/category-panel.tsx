@@ -166,7 +166,7 @@ export function CategoryPanel(props: {
 
       {/* Mobile: bottom sheet menempel di bawah layar */}
       <div className="lg:hidden">
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#9afcff]/30 bg-[#031726]/92 px-4 py-3 shadow-[0_-10px_30px_rgba(5,3,20,0.5)] backdrop-blur-md">
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#9afcff]/30 bg-[#031726] px-4 py-3 shadow-[0_-10px_30px_rgba(5,3,20,0.5)]">
           <div className="mx-auto flex max-w-xl items-center gap-3">
             <div className="min-w-0 flex-1">
               {user.ticketId ? (

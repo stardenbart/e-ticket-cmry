@@ -18,6 +18,9 @@ type Row = {
   version: number;
   id_type: string;
   id_last4: string | null;
+  nik: string | null;
+  dept: string | null;
+  shirt_size: string | null;
   email_status: string;
   issued_at: string;
   checked_in_at: string | null;
@@ -129,7 +132,7 @@ export function Participants({ id }: { id: string }) {
                 <Th>Pemegang</Th>
                 <Th>Kategori</Th>
                 <Th>Status</Th>
-                <Th>Identitas</Th>
+                <Th>NIK · Dept · Baju</Th>
                 <Th>Diterbitkan</Th>
                 <Th>Check-in</Th>
                 <Th className="text-right">Aksi</Th>
@@ -155,7 +158,10 @@ export function Participants({ id }: { id: string }) {
                     {r.version > 1 && <p className="mt-1 text-xs text-muted">QR v{r.version}</p>}
                   </Td>
                   <Td>
-                    {r.id_type} ·••{r.id_last4 ?? "—"}
+                    <p className="font-mono">{r.nik ?? "—"}</p>
+                    <p className="text-xs text-muted">
+                      {r.dept || "—"} · Baju {r.shirt_size ?? "—"}
+                    </p>
                   </Td>
                   <Td className="whitespace-nowrap">{fmtDateTime(r.issued_at)}</Td>
                   <Td className="whitespace-nowrap">{r.checked_in_at ? `${fmtDateTime(r.checked_in_at)} · ${r.checked_in_gate ?? ""}` : "—"}</Td>
@@ -175,7 +181,7 @@ export function Participants({ id }: { id: string }) {
                         </>
                       )}
                       <button className="text-cimory-blue hover:underline" onClick={() => setAction({ kind: "identity", row: r })}>
-                        Koreksi identitas
+                        Koreksi NIK
                       </button>
                     </div>
                   </Td>
@@ -217,9 +223,7 @@ export function Participants({ id }: { id: string }) {
 function ActionModal({ action, onClose, onDone }: { action: NonNullable<Action>; onClose: () => void; onDone: (msg: string) => void }) {
   const r = action.row;
   const [reason, setReason] = useState("");
-  const [fullName, setFullName] = useState(r.holder_name);
-  const [idType, setIdType] = useState(r.id_type);
-  const [idNumber, setIdNumber] = useState("");
+  const [nik, setNik] = useState(r.nik ?? "");
   const [apply, setApply] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -229,10 +233,10 @@ function ActionModal({ action, onClose, onDone }: { action: NonNullable<Action>;
     setErr(null);
     try {
       if (action.kind === "identity") {
-        const res = await api<{ ticketsUpdated: number }>(`/api/admin/users/${r.user_id}/identity`, {
-          json: { fullName, idType, idNumber: idNumber || undefined, reason, applyToTickets: apply },
+        const res = await api<{ ticketsUpdated: number; name: string }>(`/api/admin/users/${r.user_id}/identity`, {
+          json: { nik, reason, applyToTickets: apply },
         });
-        onDone(`Identitas dikoreksi${apply ? `, ${res.ticketsUpdated} tiket aktif diperbarui` : ""}.`);
+        onDone(`NIK dikoreksi (${res.name})${apply ? `, ${res.ticketsUpdated} tiket aktif diperbarui` : ""}.`);
       } else {
         const res = await api<{ message: string }>(`/api/admin/tickets/${r.id}`, { json: { action: action.kind, reason } });
         onDone(res.message);
@@ -244,7 +248,7 @@ function ActionModal({ action, onClose, onDone }: { action: NonNullable<Action>;
     }
   }
 
-  const title = action.kind === "reissue" ? "Reissue QR tiket" : action.kind === "cancel" ? "Batalkan tiket" : "Koreksi identitas pemegang";
+  const title = action.kind === "reissue" ? "Reissue QR tiket" : action.kind === "cancel" ? "Batalkan tiket" : "Koreksi NIK pemegang";
   const valid = reason.trim().length >= (action.kind === "reissue" ? 0 : action.kind === "identity" ? 5 : 3);
 
   return (
@@ -273,28 +277,15 @@ function ActionModal({ action, onClose, onDone }: { action: NonNullable<Action>;
         {action.kind === "identity" && (
           <>
             <Alert tone="blue">
-              Dipakai untuk permintaan koreksi dari peserta yang profilnya terkunci. Nomor identitas lengkap tidak disimpan — hanya hash & 4 digit terakhir. Perubahan
-              tercatat di audit log.
+              Tautkan akun pemegang ke NIK lain dari Data Karyawan. Nama akun mengikuti data karyawan. Perubahan tercatat di audit log.
             </Alert>
-            <Field label="Nama lengkap sesuai identitas" htmlFor="i-name">
-              <Input id="i-name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            <Field label="NIK karyawan" htmlFor="i-nik" hint="Format 04.XXXXX (CMD) atau A1.XX.XXXX (OS).">
+              <Input id="i-nik" value={nik} onChange={(e) => setNik(e.target.value.toUpperCase().replace(/\s+/g, ""))} autoComplete="off" className="font-mono" />
             </Field>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Jenis identitas" htmlFor="i-type">
-                <Select id="i-type" value={idType} onChange={(e) => setIdType(e.target.value)}>
-                  <option value="KTP">KTP</option>
-                  <option value="SIM">SIM</option>
-                  <option value="PASPOR">Paspor</option>
-                </Select>
-              </Field>
-              <Field label="Nomor identitas baru" htmlFor="i-num" hint="Kosongkan bila nomor tidak berubah.">
-                <Input id="i-num" value={idNumber} onChange={(e) => setIdNumber(e.target.value)} autoComplete="off" />
-              </Field>
-            </div>
             <label className="flex items-start gap-2 rounded-xl border border-line p-3">
               <input type="checkbox" className="mt-1" checked={apply} onChange={(e) => setApply(e.target.checked)} />
               <span>
-                <b>Terapkan ke tiket aktif</b> — nama & identitas di tiket yang sudah terbit ikut diperbarui. Tanpa ini, tiket lama tetap memakai data saat klaim.
+                <b>Terapkan ke tiket aktif</b> — nama, NIK & dept di tiket yang sudah terbit ikut diperbarui. Tanpa ini, tiket lama tetap memakai data saat klaim.
               </span>
             </label>
           </>

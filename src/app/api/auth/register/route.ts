@@ -1,75 +1,85 @@
 import { z } from "zod";
-import { sql } from "@/lib/db";
+import { sql, pgConstraint } from "@/lib/db";
 import { body, clientIp, json, route, ApiError } from "@/lib/http";
-import { emailSchema, nameSchema, passwordSchema } from "@/lib/validation";
+import { emailSchema, passwordSchema } from "@/lib/validation";
 import { hashPassword } from "@/lib/crypto";
 import { issueOtp } from "@/lib/otp";
 import { isDisposableEmail } from "@/lib/disposable";
 import { rateLimit } from "@/lib/rate-limit";
 import { env } from "@/lib/env";
 import { createSession } from "@/lib/auth";
+import { checkEligibility, nikIdentityHash } from "@/lib/employees";
 
 const schema = z.object({
+  nik: z.string().trim().min(1, "NIK wajib diisi.").max(20),
+  fullName: z.string().trim().min(1, "Nama wajib diisi sesuai KTP.").max(150),
   email: emailSchema,
   password: passwordSchema,
-  fullName: nameSchema,
   agree: z.literal(true, { message: "Anda harus menyetujui S&K dan kebijakan privasi." }),
 });
 
-// Respons sama untuk email baru maupun yang sudah terdaftar, agar daftar akun tidak bisa ditebak.
-const SAME = { ok: true, message: "Jika email valid, kode verifikasi sudah dikirim. Cek inbox (dan folder spam)." };
+const fieldError = (status: number, code: string, field: string, message: string) =>
+  new ApiError(status, code, message, { fields: [{ path: field, message }] });
 
+/**
+ * Daftar akun dengan NIK karyawan. NIK + nama dicek ke daftar karyawan eligible; satu NIK = satu akun.
+ * Nama di akun selalu diambil dari daftar karyawan (sumber resmi), bukan dari ketikan pengguna.
+ */
 export const POST = route(async (req) => {
   const ip = clientIp(req);
   await rateLimit(`register:ip:${ip}`, 20, 3600);
   const d = await body(req, schema);
-  if (await isDisposableEmail(d.email)) throw new ApiError(400, "DISPOSABLE_EMAIL", "Email dari layanan sekali pakai tidak diterima. Gunakan email pribadi atau kantor.");
 
-  const [existing] = await sql<{ id: string; email_verified_at: Date | null }[]>`
-    SELECT id, email_verified_at FROM users WHERE lower(email) = ${d.email}`;
+  const elig = await checkEligibility(d.nik, d.fullName);
+  if (!elig.ok) throw fieldError(elig.code === "NOT_ELIGIBLE" ? 403 : 400, elig.code, elig.field, elig.message);
+  const emp = elig.employee;
 
-  // Tanpa verifikasi email: akun langsung aktif dan login.
-  if (!env.EMAIL_VERIFICATION) {
-    if (existing?.email_verified_at) {
-      throw new ApiError(409, "EMAIL_TAKEN", "Email ini sudah terdaftar. Silakan masuk, atau pakai Lupa Password.", {
-        fields: [{ path: "email", message: "Email ini sudah terdaftar." }],
-      });
-    }
-    const hash = await hashPassword(d.password);
-    const [u] = existing
-      ? await sql<{ id: string }[]>`
-          UPDATE users SET password_hash = ${hash}, full_name = ${d.fullName}, terms_accepted_at = now(), email_verified_at = now()
-          WHERE id = ${existing.id} RETURNING id`
-      : await sql<{ id: string }[]>`
-          INSERT INTO users (email, password_hash, full_name, terms_accepted_at, email_verified_at)
-          VALUES (${d.email}, ${hash}, ${d.fullName}, now(), now())
-          ON CONFLICT ((lower(email))) DO NOTHING RETURNING id`;
-    if (!u) throw new ApiError(409, "EMAIL_TAKEN", "Email ini sudah terdaftar. Silakan masuk.");
-    await createSession(u.id, "ATTENDEE", { ip, userAgent: req.headers.get("user-agent") ?? undefined });
-    return json({ ok: true, verified: true });
+  if (await isDisposableEmail(d.email)) {
+    throw fieldError(400, "DISPOSABLE_EMAIL", "email", "Email dari layanan sekali pakai tidak diterima. Gunakan email pribadi atau kantor.");
   }
 
-  if (existing?.email_verified_at) return json(SAME);
+  const [byNik] = await sql<{ id: string; email_verified_at: Date | null }[]>`SELECT id, email_verified_at FROM users WHERE nik = ${emp.nik}`;
+  if (byNik?.email_verified_at) {
+    throw fieldError(409, "NIK_TAKEN", "nik", "NIK ini sudah punya akun. Silakan masuk dengan NIK, atau pakai Lupa Password.");
+  }
+  const [byEmail] = await sql<{ id: string; nik: string | null; email_verified_at: Date | null }[]>`
+    SELECT id, nik, email_verified_at FROM users WHERE lower(email) = ${d.email}`;
+  if (byEmail && byEmail.id !== byNik?.id && (byEmail.email_verified_at || byEmail.nik)) {
+    throw fieldError(409, "EMAIL_TAKEN", "email", "Email ini sudah dipakai akun lain. Gunakan email lain.");
+  }
 
   const hash = await hashPassword(d.password);
+  const verifiedNow = !env.EMAIL_VERIFICATION;
+  const existingId = byNik?.id ?? byEmail?.id ?? null;
   let userId: string;
-  if (existing) {
-    // Akun belum terverifikasi: perbarui data & kirim ulang kode.
-    await sql`UPDATE users SET password_hash = ${hash}, full_name = ${d.fullName}, terms_accepted_at = now() WHERE id = ${existing.id}`;
-    userId = existing.id;
-  } else {
-    const [u] = await sql<{ id: string }[]>`
-      INSERT INTO users (email, password_hash, full_name, terms_accepted_at)
-      VALUES (${d.email}, ${hash}, ${d.fullName}, now())
-      ON CONFLICT ((lower(email))) DO NOTHING RETURNING id`;
-    if (!u) return json(SAME);
-    userId = u.id;
-  }
   try {
-    await issueOtp({ userId, email: d.email, name: d.fullName, purpose: "VERIFY_EMAIL", ip });
+    const [u] = existingId
+      ? await sql<{ id: string }[]>`
+          UPDATE users SET email = ${d.email}, password_hash = ${hash}, full_name = ${emp.name}, nik = ${emp.nik},
+            id_type = 'NIK', identity_hash = ${nikIdentityHash(emp.nik)}, id_last4 = ${emp.nik.slice(-4)},
+            terms_accepted_at = now(), email_verified_at = ${verifiedNow ? sql`now()` : sql`email_verified_at`}
+          WHERE id = ${existingId} RETURNING id`
+      : await sql<{ id: string }[]>`
+          INSERT INTO users (email, password_hash, full_name, nik, id_type, identity_hash, id_last4, terms_accepted_at, email_verified_at)
+          VALUES (${d.email}, ${hash}, ${emp.name}, ${emp.nik}, 'NIK', ${nikIdentityHash(emp.nik)}, ${emp.nik.slice(-4)}, now(),
+                  ${verifiedNow ? sql`now()` : null})
+          RETURNING id`;
+    userId = u.id;
   } catch (e) {
-    if (e instanceof ApiError && (e.code === "COOLDOWN" || e.code === "RATE_LIMITED")) return json(SAME);
+    const c = pgConstraint(e);
+    if (c === "users_nik_uq") throw fieldError(409, "NIK_TAKEN", "nik", "NIK ini sudah punya akun. Silakan masuk dengan NIK.");
+    if (c === "users_email_uq") throw fieldError(409, "EMAIL_TAKEN", "email", "Email ini sudah dipakai akun lain. Gunakan email lain.");
     throw e;
   }
-  return json(SAME);
+
+  if (verifiedNow) {
+    await createSession(userId, "ATTENDEE", { ip, userAgent: req.headers.get("user-agent") ?? undefined });
+    return json({ ok: true, verified: true, name: emp.name });
+  }
+  try {
+    await issueOtp({ userId, email: d.email, name: emp.name, purpose: "VERIFY_EMAIL", ip });
+  } catch (e) {
+    if (!(e instanceof ApiError && (e.code === "COOLDOWN" || e.code === "RATE_LIMITED"))) throw e;
+  }
+  return json({ ok: true, verified: false, message: "Kode verifikasi sudah dikirim ke email Anda." });
 });

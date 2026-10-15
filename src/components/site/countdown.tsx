@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { cx } from "@/components/ui";
 import { splitDuration, useServerNow } from "./use-server-now";
 
@@ -72,7 +73,17 @@ export function TextCountdown({ target, prefix = "Buka dalam" }: { target: strin
 /** Countdown kotak krem besar (hero): hari, jam, menit, detik. */
 export function BoxCountdown({ target, className }: { target: string | number; className?: string }) {
   const now = useServerNow(1000);
+  const router = useRouter();
+  const refreshed = useRef(false);
   const t = typeof target === "number" ? target : new Date(target).getTime();
+  // Saat mencapai 0 (mis. pemesanan baru dibuka), muat ulang data server sekali agar fase countdown berganti.
+  useEffect(() => {
+    if (now != null && t - now <= 0 && !refreshed.current) {
+      refreshed.current = true;
+      // Tanpa cleanup: `now` berubah tiap detik dan akan membatalkan timer bila dibersihkan.
+      setTimeout(() => router.refresh(), 1500);
+    }
+  }, [now, t, router]);
   if (now == null) return <div className={cx("flex gap-3", className)} aria-hidden>{[0, 1, 2, 3].map((k) => <div key={k} className="skeleton size-16 sm:size-20" />)}</div>;
   const { d, h, m, s } = splitDuration(Math.max(t - now, 0));
   const units: [number, string][] = [[d, "Hari"], [h, "Jam"], [m, "Menit"], [s, "Detik"]];

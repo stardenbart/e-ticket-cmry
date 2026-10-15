@@ -9,13 +9,14 @@ import { HelpBubble, RevealOnScroll } from "@/components/site/site-chrome";
 
 // Font di-host sendiri (next/font/local): build tidak bergantung pada akses ke Google Fonts.
 const jakarta = localFont({ src: "../../fonts/plus-jakarta-sans-400-800.woff2", weight: "400 800", variable: "--font-jakarta", display: "swap" });
-const orbitron = localFont({ src: "../../fonts/orbitron-500-900.woff2", weight: "500 900", variable: "--font-orbitron", display: "swap" });
+// Orbitron (angka countdown) & Permanent Marker (aksen kuas) jarang dipakai: tidak di-preload,
+// hanya diunduh browser bila ada teks yang memakainya.
+const orbitron = localFont({ src: "../../fonts/orbitron-500-900.woff2", weight: "500 900", variable: "--font-orbitron", display: "swap", preload: false });
 // Judul bergaya tabung neon (moodboard) & tagline kuas.
 const quicksand = localFont({ src: "../../fonts/quicksand-400-700.woff2", weight: "400 700", variable: "--font-quicksand", display: "swap" });
-const marker = localFont({ src: "../../fonts/permanent-marker-400.woff2", weight: "400", variable: "--font-marker", display: "swap" });
+const marker = localFont({ src: "../../fonts/permanent-marker-400.woff2", weight: "400", variable: "--font-marker", display: "swap", preload: false });
 const rajdhani = localFont({
   src: [
-    { path: "../../fonts/rajdhani-500.woff2", weight: "500" },
     { path: "../../fonts/rajdhani-600.woff2", weight: "600" },
     { path: "../../fonts/rajdhani-700.woff2", weight: "700" },
   ],
@@ -24,8 +25,8 @@ const rajdhani = localFont({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Mooniverse 2026 · by Cimory", template: "%s · Mooniverse" },
-  description: "Mooniverse by Cimory — Good Food Good Mood. Klaim tiket gratis: satu akun, satu tiket, atas nama sendiri.",
+  title: { default: "CMD Employee Gathering 2026", template: "%s · CMD Employee Gathering 2026" },
+  description: "Mooniverse — CMD Employee Gathering 2026 by Cimory. Klaim tiket gratis khusus karyawan: satu NIK, satu tiket.",
 };
 
 export const viewport: Viewport = { themeColor: "#020A17" };
@@ -36,7 +37,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <a href="#konten" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-[#9afcff] focus:px-4 focus:py-2 focus:text-[#020a17]">
         Lewati ke konten
       </a>
-      {/* Langit berbintang + scanline menetap di belakang seluruh halaman */}
+      {/* Latar gradien + bintang statis di belakang seluruh halaman (tanpa animasi) */}
       <div aria-hidden className="mv-backdrop pointer-events-none fixed inset-0">
         <StarSky />
       </div>

@@ -4,7 +4,7 @@ import { sql } from "@/lib/db";
 import { profileComplete, requirePageUser } from "@/lib/auth";
 import { loadCategoryContext } from "@/lib/site/category-context";
 import { fmtDate, fmtTime } from "@/lib/format";
-import { ID_TYPE_LABEL, type IdType } from "@/lib/validation";
+import { findEmployee } from "@/lib/employees";
 import { safeRichText } from "@/lib/site/sanitize";
 import { ConfirmClaim } from "./confirm-claim";
 
@@ -18,6 +18,7 @@ export default async function ConfirmPage({ params }: { params: Promise<{ catego
   if (!ctx) notFound();
   const { event, cat, alternatives } = ctx;
   if (!profileComplete(u)) redirect(`/profil?next=${encodeURIComponent(`/event/${event.slug}`)}`);
+  const emp = u.nik ? await findEmployee(u.nik) : null;
   const [held] = await sql<{ id: string }[]>`
     SELECT id FROM tickets WHERE event_id = ${event.id} AND user_id = ${u.id} AND status IN ('ACTIVE','CHECKED_IN')`;
 
@@ -36,8 +37,8 @@ export default async function ConfirmPage({ params }: { params: Promise<{ catego
           venue: [event.venue, event.city].filter(Boolean).join(", "),
           banner: event.banner_url,
           holderName: u.full_name,
-          idType: ID_TYPE_LABEL[(u.id_type ?? "KTP") as IdType] ?? u.id_type ?? "-",
-          idLast4: u.id_last4 ?? "-",
+          nik: u.nik ?? "-",
+          dept: emp?.dept ?? "",
           email: u.email,
           termsHtml: safeRichText(event.terms),
         }}

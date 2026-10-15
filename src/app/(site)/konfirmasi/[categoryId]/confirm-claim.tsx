@@ -8,6 +8,7 @@ import { AltCategories } from "@/components/site/alt-categories";
 import { useServerNow } from "@/components/site/use-server-now";
 import { MvImg } from "@/components/site/ornaments";
 import { uuidv4 } from "@/lib/uuid";
+import { NameField, NikField, ShirtSizeField, checkBiodata } from "@/components/site/nik-fields";
 
 type Summary = {
   eventName: string;
@@ -18,8 +19,8 @@ type Summary = {
   venue: string;
   banner: string | null;
   holderName: string;
-  idType: string;
-  idLast4: string;
+  nik: string;
+  dept: string;
   email: string;
   termsHtml: string;
 };
@@ -31,8 +32,8 @@ const FAIL_TITLE: Record<string, string> = {
   SOLD_OUT: "Kuota habis",
   CLOSED: "Pemesanan ditutup",
   ALREADY_HAS_TICKET: "Anda sudah punya tiket",
-  IDENTITY_ALREADY_USED: "Identitas sudah dipakai",
-  PROFILE_INCOMPLETE: "Profil belum lengkap",
+  IDENTITY_ALREADY_USED: "NIK sudah dipakai",
+  PROFILE_INCOMPLETE: "Akun belum tertaut NIK",
   ADMISSION_EXPIRED: "Waktu klaim habis",
   ADMISSION_USED: "Token antrean sudah dipakai",
   INVALID_ADMISSION: "Token antrean tidak valid",
@@ -45,6 +46,10 @@ export function ConfirmClaim({ categoryId, slug, heldTicketId, summary, alternat
   const [result, setResult] = useState<Result | null>(null);
   const [netError, setNetError] = useState<string | null>(null);
   const [showTerms, setShowTerms] = useState(false);
+  // Biodata diisi ulang saat pemesanan dan dicek ke daftar karyawan eligible.
+  // Terisi otomatis dari data akun; peserta cukup memilih ukuran baju (nama/NIK tetap bisa dikoreksi).
+  const [bio, setBio] = useState({ fullName: summary.holderName, nik: summary.nik === "-" ? "" : summary.nik, shirtSize: "" });
+  const [fieldErr, setFieldErr] = useState<Record<string, string>>({});
   const idemKey = useRef<string | null>(null);
   const now = useServerNow(1000);
 
@@ -68,15 +73,26 @@ export function ConfirmClaim({ categoryId, slug, heldTicketId, summary, alternat
 
   async function claim() {
     if (!adm || !agree || busy) return;
+    const fe = checkBiodata(bio.nik, bio.fullName);
+    if (!bio.shirtSize) fe.shirtSize = "Pilih ukuran baju.";
+    setFieldErr(fe);
+    if (Object.keys(fe).length) return;
     setBusy(true);
     setNetError(null);
     try {
       const res = await fetch("/api/claim", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ categoryId, admissionToken: adm.token, idempotencyKey: idemKey.current, agree: true }),
+        body: JSON.stringify({ categoryId, admissionToken: adm.token, idempotencyKey: idemKey.current, agree: true, nik: bio.nik, fullName: bio.fullName.trim(), shirtSize: bio.shirtSize }),
       });
       const data = await res.json().catch(() => ({}));
+      // Biodata tidak cocok: perbaiki di form. Token antrean belum dipakai, giliran tetap aman.
+      if (data.error?.fields?.length) {
+        setFieldErr(Object.fromEntries((data.error.fields as { path: string; message: string }[]).map((x) => [x.path, x.message])));
+        setNetError(data.error.message);
+        setBusy(false);
+        return;
+      }
       const r: Result = data.error ? { code: data.error.code, message: data.error.message } : data;
       if (res.status >= 500) {
         setNetError(r.message ?? "Server sedang sibuk. Coba tekan Klaim Tiket lagi — permintaan Anda aman diulang.");
@@ -189,17 +205,26 @@ export function ConfirmClaim({ categoryId, slug, heldTicketId, summary, alternat
               <dd className="text-base font-bold">{summary.holderName}</dd>
             </div>
             <div>
-              <dt className="text-muted">Identitas</dt>
+              <dt className="text-muted">NIK · Departemen</dt>
               <dd className="font-semibold">
-                {summary.idType} •••• {summary.idLast4}
+                <span className="font-mono">{summary.nik}</span>
+                {summary.dept ? ` · ${summary.dept}` : ""}
               </dd>
             </div>
             <div>
               <dt className="text-muted">Dikirim ke</dt>
               <dd className="truncate font-semibold">{summary.email}</dd>
             </div>
-            <p className="text-xs text-muted sm:col-span-2">Nama diambil dari profil dan tidak bisa diubah di sini. Bawa identitas asli yang sama ke gate.</p>
+            <p className="text-xs text-muted sm:col-span-2">Nama di tiket mengikuti data karyawan. Bawa ID card karyawan ke gate.</p>
           </dl>
+
+          <fieldset className="space-y-4 rounded-xl border border-line p-4">
+            <legend className="px-1 text-sm font-bold">Biodata pemesan</legend>
+            <p className="text-sm text-muted">Nama dan NIK sudah terisi dari akun Anda — periksa, lalu pilih ukuran baju. Data dicek ke daftar karyawan sebelum tiket diterbitkan; salah isi tidak menghanguskan giliran Anda.</p>
+            <ShirtSizeField value={bio.shirtSize} onChange={(shirtSize) => setBio({ ...bio, shirtSize })} error={fieldErr.shirtSize} />
+            <NameField value={bio.fullName} onChange={(fullName) => setBio({ ...bio, fullName })} error={fieldErr.fullName} />
+            <NikField value={bio.nik} onChange={(nik) => setBio({ ...bio, nik })} error={fieldErr.nik} />
+          </fieldset>
 
           <div>
             <label className="flex items-start gap-3 text-sm">
@@ -247,8 +272,7 @@ function Success({ ticketId, summary }: { ticketId: string; summary: Summary }) 
   return (
     <div className="space-y-5 text-center">
       <div>
-        <MvImg name="headBig" alt="Maskot MOO bahagia" className="mv-float mv-peek mx-auto mb-1 w-40 drop-shadow-[0_0_20px_rgba(247,20,247,0.5)] sm:w-48" />
-        <p className="mv-brush text-xl sm:text-2xl">Moo Brings Us Together!</p>
+        <MvImg name="cowHead" alt="Maskot MOO bahagia" className="mx-auto mb-2 h-auto w-28 sm:w-32" />
         <h1 className="text-2xl leading-tight sm:text-4xl">Tiket berhasil diklaim!</h1>
         <p className="text-muted">Selamat, {summary.holderName.split(" ")[0]}. Sampai jumpa di acara!</p>
       </div>
@@ -300,7 +324,7 @@ function Success({ ticketId, summary }: { ticketId: string; summary: Summary }) 
         </a>
       </div>
       <p className="text-sm text-muted">
-        Bawa <b>{summary.idType} asli</b> (akhiran {summary.idLast4}) ke gate. <Link href="/faq" className="underline">Info masuk gate</Link>
+        Bawa <b>ID card karyawan</b> (NIK {summary.nik}) ke gate. <Link href="/faq" className="underline">Info masuk gate</Link>
       </p>
     </div>
   );

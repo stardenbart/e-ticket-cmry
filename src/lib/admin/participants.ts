@@ -11,6 +11,9 @@ export type ParticipantRow = {
   version: number;
   id_type: string;
   id_last4: string | null;
+  nik: string | null;
+  dept: string | null;
+  shirt_size: string | null;
   email_status: string;
   issued_at: Date;
   cancelled_at: Date | null;
@@ -32,9 +35,9 @@ export async function queryParticipants(eventId: string, f: { q?: string; status
     WHERE t.event_id = ${eventId}
       ${statuses ? sql`AND t.status IN ${sql(statuses)}` : sql``}
       ${f.categoryId ? sql`AND t.category_id = ${f.categoryId}` : sql``}
-      ${like ? sql`AND (t.holder_name ILIKE ${like} OR u.email ILIKE ${like} OR t.id::text ILIKE ${like})` : sql``}`;
+      ${like ? sql`AND (t.holder_name ILIKE ${like} OR u.email ILIKE ${like} OR t.nik ILIKE ${like} OR t.dept ILIKE ${like} OR t.id::text ILIKE ${like})` : sql``}`;
   const rows = await sql<ParticipantRow[]>`
-    SELECT t.id, t.holder_name, u.email, t.user_id, t.category_id, c.name AS category_name, t.status, t.version, t.id_type, t.id_last4,
+    SELECT t.id, t.holder_name, u.email, t.user_id, t.category_id, c.name AS category_name, t.status, t.version, t.id_type, t.id_last4, t.nik, t.dept, t.shirt_size,
            t.email_status, t.issued_at, t.cancelled_at, t.checked_in_at, t.checked_in_gate
     FROM tickets t JOIN users u ON u.id = t.user_id JOIN ticket_categories c ON c.id = t.category_id
     ${where()}

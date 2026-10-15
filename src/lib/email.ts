@@ -77,12 +77,14 @@ ${t.email_text ? `<p style="color:#334155">${esc(t.email_text)}</p>` : ""}
 <table role="presentation" width="100%" style="font-size:14px;border-collapse:collapse">
 <tr><td style="color:#64748B;padding:6px 0;width:38%">Nama pemegang</td><td style="font-weight:600">${esc(t.holder_name)}</td></tr>
 <tr><td style="color:#64748B;padding:6px 0">Kategori</td><td style="font-weight:600">${esc(t.category_name)}</td></tr>
+<tr><td style="color:#64748B;padding:6px 0">NIK / Dept</td><td style="font-weight:600">${esc([t.nik, t.dept].filter(Boolean).join(" / ") || "-")}</td></tr>
+<tr><td style="color:#64748B;padding:6px 0">Ukuran baju</td><td style="font-weight:600">${esc(t.shirt_size ?? "-")}</td></tr>
 <tr><td style="color:#64748B;padding:6px 0">Tanggal</td><td style="font-weight:600">${esc(when)}</td></tr>
 <tr><td style="color:#64748B;padding:6px 0">Lokasi</td><td style="font-weight:600">${esc(t.venue)}${t.address ? `<br><span style="font-weight:400;color:#475569">${esc(t.address)}</span>` : ""}</td></tr>
 <tr><td style="color:#64748B;padding:6px 0">ID tiket</td><td style="font-family:monospace;font-size:12px">${t.id}</td></tr>
 </table>
 <div style="background:#FEF2F2;border-left:4px solid #E63946;padding:12px 14px;margin:20px 0;border-radius:8px;font-size:14px">
-<b>Bawa ${esc(t.id_type)} asli</b> (akhiran ${esc(t.id_last4 ?? "-")}). Nama di tiket dicocokkan dengan identitas fisik di gate. Jangan bagikan foto QR ini.</div>
+<b>Bawa ID card karyawan</b> (NIK ${esc(t.nik ?? "-")}). Nama dan NIK di tiket dicocokkan di gate. Jangan bagikan foto QR ini.</div>
 <p style="text-align:center"><a href="${ticketUrl}" style="display:inline-block;background:#1B3A6F;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600">Buka di Tiket Saya</a></p>`);
   return { subject, html, text: `${intro}\n${t.event_name} — ${when}\n${t.venue}\nKategori: ${t.category_name}\nLihat tiket: ${ticketUrl}` };
 }

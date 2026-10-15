@@ -8,7 +8,7 @@ import { api, ClientApiError } from "@/lib/client-api";
 import { PasswordInput } from "@/components/site/password-input";
 import { OtpInput } from "@/components/site/otp-input";
 
-type LoginRes = { ok: boolean; role?: string; needVerify?: boolean; needOtp?: boolean; challengeId?: string; message?: string };
+type LoginRes = { ok: boolean; role?: string; needVerify?: boolean; needOtp?: boolean; challengeId?: string; email?: string; message?: string };
 
 function destination(role: string | undefined, next: string) {
   if (role === "EVENT_ADMIN" || role === "SUPER_ADMIN") return next.startsWith("/admin") || next.startsWith("/scanner") ? next : "/admin";
@@ -18,7 +18,7 @@ function destination(role: string | undefined, next: string) {
 
 export function LoginForm({ next }: { next: string }) {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,9 +31,9 @@ export function LoginForm({ next }: { next: string }) {
     setBusy(true);
     setError(null);
     try {
-      const r = await api<LoginRes>("/api/auth/login", { json: { email, password } });
+      const r = await api<LoginRes>("/api/auth/login", { json: { identifier: identifier.trim(), password } });
       if (r.needVerify) {
-        router.push(`/verifikasi?email=${encodeURIComponent(email)}&next=${encodeURIComponent(next)}`);
+        router.push(`/verifikasi?email=${encodeURIComponent(r.email ?? identifier)}&next=${encodeURIComponent(next)}`);
         return;
       }
       if (r.needOtp && r.challengeId) {
@@ -87,8 +87,17 @@ export function LoginForm({ next }: { next: string }) {
 
   return (
     <form onSubmit={submit} className="space-y-4" noValidate>
-      <Field label="Email" htmlFor="email">
-        <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nama@email.com" />
+      <Field label="NIK atau Email" htmlFor="identifier" hint="Peserta: pakai NIK karyawan (04.XXXXX / A1.XX.XXXX). Admin & staf: pakai email.">
+        <Input
+          id="identifier"
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
+          required
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value.includes("@") ? e.target.value : e.target.value.toUpperCase().replace(/\s+/g, ""))}
+          placeholder="04.12345 atau nama@email.com"
+        />
       </Field>
       <Field label="Password" htmlFor="password">
         <PasswordInput id="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
@@ -99,7 +108,7 @@ export function LoginForm({ next }: { next: string }) {
         </Link>
       </div>
       {error && <Alert tone="red">{error}</Alert>}
-      <Button type="submit" disabled={busy || !email || !password} className="w-full">
+      <Button type="submit" disabled={busy || !identifier || !password} className="w-full">
         {busy && <Spinner />} Masuk
       </Button>
     </form>

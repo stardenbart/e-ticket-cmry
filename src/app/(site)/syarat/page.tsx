@@ -6,24 +6,25 @@ export const metadata: Metadata = { title: "Syarat & Ketentuan" };
 
 export default function TermsPage() {
   return (
-    <ProsePage title="Syarat & Ketentuan" updated="8 Oktober 2026">
+    <ProsePage title="Syarat & Ketentuan" updated="15 Oktober 2026">
       <h2>1. Akun</h2>
       <ul>
-        <li>Pendaftaran gratis dan wajib memakai email aktif milik sendiri — tiket QR dikirim ke email tersebut. Email dari layanan sekali pakai tidak diterima.</li>
-        <li>Nama di akun harus sesuai dengan kartu identitas (KTP, SIM, atau Paspor) yang Anda daftarkan di profil.</li>
+        <li>Pendaftaran khusus karyawan yang ada di daftar karyawan, memakai NIK sendiri (CMD: 04.XXXXX · OS: A1.XX.XXXX).</li>
+        <li>Nama ditulis dengan HURUF KAPITAL sesuai KTP dan harus sama dengan data karyawan.</li>
+        <li>Wajib memakai email aktif milik sendiri — tiket QR dikirim ke email tersebut. Email dari layanan sekali pakai tidak diterima.</li>
         <li>Anda bertanggung jawab menjaga kerahasiaan password. Panitia tidak pernah meminta password atau kode reset Anda.</li>
       </ul>
       <h2>2. Klaim tiket</h2>
       <ul>
-        <li>Satu akun hanya dapat memegang satu tiket aktif per event, di kategori mana pun.</li>
-        <li>Satu nomor identitas hanya dapat dipakai untuk satu tiket aktif per event, meskipun dari akun berbeda.</li>
+        <li>Satu NIK hanya dapat memegang satu tiket aktif, di kategori mana pun, meskipun dari akun berbeda.</li>
+        <li>Saat klaim, nama, NIK, dan ukuran baju diisi ulang dan dicocokkan dengan daftar karyawan. Ukuran baju tidak dapat diubah setelah klaim kecuali melalui panitia.</li>
         <li>Urutan klaim ditentukan oleh waktu server. Pengguna yang masuk antrean sebelum penjualan dibuka diacak urutannya saat dibuka.</li>
         <li>Klaim bersifat final setelah tombol Klaim Tiket berhasil diproses. Penggunaan bot, skrip otomatis, atau banyak akun dapat menyebabkan akun dinonaktifkan dan tiket dibatalkan.</li>
       </ul>
       <h2>3. Tiket</h2>
       <ul>
         <li>Tiket gratis, atas nama pemilik akun, dan <b>tidak dapat dipindahtangankan</b>.</li>
-        <li>Tiket berupa QR yang dikirim ke email terverifikasi dan selalu tersedia di menu Tiket Saya.</li>
+        <li>Tiket berupa QR yang dikirim ke email akun dan selalu tersedia di menu Tiket Saya.</li>
         <li>Jangan menyebarkan foto QR. Jika QR bocor, penyelenggara dapat menerbitkan ulang tiket sehingga QR lama tidak berlaku.</li>
       </ul>
       <h2>4. Pembatalan</h2>
@@ -33,8 +34,8 @@ export default function TermsPage() {
       </ul>
       <h2>5. Masuk ke venue</h2>
       <ul>
-        <li>Bawa kartu identitas asli yang sama dengan data di tiket. Petugas akan mencocokkan nama dan 4 digit terakhir nomor identitas.</li>
-        <li>Petugas berhak menolak masuk jika identitas tidak cocok. Satu QR hanya dapat dipakai untuk satu kali check-in.</li>
+        <li>Bawa ID card karyawan. Petugas akan mencocokkan nama dan NIK dengan data di tiket.</li>
+        <li>Petugas berhak menolak masuk jika data tidak cocok. Satu QR hanya dapat dipakai untuk satu kali check-in.</li>
       </ul>
       <p>
         Pemrosesan data pribadi diatur dalam <Link href="/privasi">Kebijakan Privasi</Link>.

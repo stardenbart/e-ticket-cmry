@@ -5,7 +5,7 @@ import { fmtDate, fmtTime } from "@/lib/format";
 import { CalIcon, PinIcon } from "./event-card";
 import { CategoryPanel } from "./category-panel";
 import type { loadCategoryPanel } from "./event-panel-data";
-import { BrushTagline, FrameTitle, LightStick, LineCow, MascotLive, MvImg } from "./ornaments";
+import { FrameTitle, MvImg } from "./ornaments";
 
 /** Ringkasan deskripsi (teks polos) untuk landing page. */
 export function excerpt(html: string, max = 260) {
@@ -19,20 +19,15 @@ export type PanelProps = Awaited<ReturnType<typeof loadCategoryPanel>>["panel"];
 export function About({ e, panel }: { e: EventRow; panel: PanelProps }) {
   return (
     <section id="acara" aria-labelledby="acara-title" className="relative scroll-mt-24 overflow-hidden pt-20 sm:pt-24">
-      <div aria-hidden className="mv-texture mv-texture-stage left-1/2 top-24 h-[70%] w-[min(1500px,150vw)] -translate-x-1/2 opacity-45" />
-      <LineCow side="left" className="absolute -left-8 top-32 hidden w-56 opacity-75 xl:block" />
-      <LineCow side="right" className="absolute -right-10 bottom-10 hidden w-60 opacity-75 [animation-delay:-3s] xl:block" />
-      <MvImg name="ledPanels" className="pointer-events-none absolute right-[3%] top-24 hidden w-28 opacity-80 drop-shadow-[0_0_20px_rgba(5,165,239,0.45)] 2xl:block" />
 
       <div className="relative mx-auto max-w-6xl px-4">
-        <FrameTitle sub={<BrushTagline className="text-xl sm:text-2xl">Moo Brings Us Together</BrushTagline>}>
+        <FrameTitle sub="Malam kebersamaan seluruh karyawan CMD.">
           <span id="acara-title">Tentang Acara</span>
         </FrameTitle>
 
         <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_400px]">
           <div className="mv-reveal min-w-0 space-y-6">
             <div className="mv-card relative overflow-hidden p-6 sm:p-8">
-              <LightStick color="magenta" className="absolute -right-8 -top-3 w-32 opacity-90" />
               <p className="font-hud text-sm font-bold uppercase tracking-[0.2em] text-[#9afcff]">✦ {e.event_type} · by Cimory</p>
               <h3 className="mv-neon mt-3 pr-16 text-xl leading-snug sm:text-2xl">{e.name}</h3>
               <p className="mt-4 text-[15px] leading-relaxed text-[#e3edfa]">{excerpt(e.description)}</p>
@@ -60,7 +55,6 @@ export function About({ e, panel }: { e: EventRow; panel: PanelProps }) {
           </div>
 
           <aside id="tiket" aria-label="Kategori tiket" className="mv-reveal relative scroll-mt-24">
-            <MvImg name="headBig" className="mv-peek pointer-events-none absolute -right-2 -top-[72px] w-28 max-lg:hidden sm:w-32" />
             <h3 className="mv-title mb-4 hidden text-xl lg:block">Pilih Kategori Tiket</h3>
             <CategoryPanel {...panel} />
           </aside>
@@ -86,7 +80,7 @@ const HIGHLIGHTS: { icon: "boltNeon" | "crownNeon" | "heart" | "m"; title: strin
   { icon: "boltNeon", title: "Konser Neon", text: "Panggung MOO dengan laser, layar LED, dan band live sepanjang malam." },
   { icon: "heart", title: "Good Food Good Mood", text: "Area kuliner dan sampling produk Cimory untuk seluruh karyawan." },
   { icon: "crownNeon", title: "Photo Spot", text: "Menara MOO, blimp neon, dan maskot MOO siap jadi latar foto." },
-  { icon: "m", title: "Light Stick", text: "Setiap pemegang tiket ikut menyalakan light stick bersama." },
+  { icon: "m", title: "Kaos Acara", text: "Setiap pemegang tiket mendapat kaos sesuai ukuran yang dipilih saat klaim." },
 ];
 
 /** Sorotan acara: kartu neon dengan ikon dari visual stock. */
@@ -98,8 +92,8 @@ export function Highlights() {
       </FrameTitle>
       <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {HIGHLIGHTS.map((h, i) => (
-          <li key={h.title} className="mv-card mv-reveal group relative overflow-hidden p-6 text-center transition hover:-translate-y-1 hover:border-[#f714f7]" style={{ transitionDelay: `${i * 70}ms` }}>
-            <MvImg name={h.icon} className="mv-bolt-pulse mx-auto h-14 w-auto" />
+          <li key={h.title} className="mv-card mv-reveal relative overflow-hidden p-6 text-center" style={{ transitionDelay: `${i * 70}ms` }}>
+            <MvImg name={h.icon} className="mx-auto h-14 w-auto" />
             <h3 className="mv-neon mt-4 text-base">{h.title}</h3>
             <p className="mt-2 text-sm text-[#d3e2f5]">{h.text}</p>
           </li>
@@ -110,29 +104,24 @@ export function Highlights() {
 }
 
 const STEPS = [
-  ["Daftar & Verifikasi", "Buat akun dengan email kantor/pribadi, lalu lengkapi profil identitas (KTP/SIM/Paspor)."],
-  ["Masuk Antrean", "Antrean dibuka 10 menit sebelum war. Urutan diacak saat dibuka agar adil bagi semua."],
-  ["Klaim Tiket", "Saat giliran tiba, konfirmasi data dan klaim. Kuota dijamin tidak pernah terlampaui."],
-  ["Datang ke Gate", "QR dikirim ke email dan tersedia di Tiket Saya. Bawa identitas asli untuk dicocokkan."],
+  ["Daftar dengan NIK", "Buat akun memakai NIK karyawan (CMD: 04.XXXXX · OS: A1.XX.XXXX), nama sesuai KTP, email, dan password."],
+  ["Masuk Antrean", "Antrean dibuka 10 menit sebelum pemesanan. Urutan diacak saat dibuka agar adil bagi semua."],
+  ["Klaim Tiket", "Saat giliran tiba, isi ulang nama, NIK, dan ukuran baju. Sistem mencocokkan dengan daftar karyawan."],
+  ["Datang ke Gate", "QR dikirim ke email dan tersedia di Tiket Saya. Bawa ID card karyawan untuk dicocokkan."],
 ];
 
-/** Cara kerja: maskot hidup sebagai pemandu + timeline neon di atas tekstur panggung. */
+/** Cara kerja: ikon kepala sapi sebagai pemandu + timeline neon. */
 export function HowItWorks() {
   return (
-    <section className="relative overflow-hidden pt-24" aria-labelledby="cara-kerja">
-      <div aria-hidden className="mv-texture mv-texture-lasers left-1/2 top-10 h-96 w-[min(1500px,150vw)] -translate-x-1/2 opacity-50" />
+    <section className="relative pt-24" aria-labelledby="cara-kerja">
       <div className="relative mx-auto max-w-6xl space-y-12 px-4">
         <FrameTitle sub="Empat langkah dari daftar sampai masuk venue." icon="crownNeon">
           <span id="cara-kerja">Cara Kerja</span>
         </FrameTitle>
-        <div className="grid items-center gap-10 lg:grid-cols-[360px_1fr]">
-          <div className="mv-reveal relative mx-auto w-full max-w-[300px] lg:max-w-none">
-            <div aria-hidden className="absolute inset-[12%] rounded-full bg-[radial-gradient(circle,rgba(247,20,247,0.4),transparent_65%)] blur-2xl" />
-            <LightStick color="cyan" className="absolute -left-6 top-6 w-28" />
-            <MascotLive alt="Maskot MOO dengan kacamata VR melambai" className="mv-float relative mx-auto w-full max-w-[340px]" />
-            <div className="mv-card relative -mt-4 px-4 py-3 text-center">
-              <p className="mv-brush text-lg sm:text-xl">&ldquo;Moo! Ikuti langkahnya, ya!&rdquo;</p>
-            </div>
+        <div className="grid items-center gap-10 lg:grid-cols-[320px_1fr]">
+          <div className="mv-reveal relative mx-auto w-full max-w-[260px] text-center lg:max-w-none">
+            <MvImg name="cowHead" alt="Kepala sapi MOO berkacamata VR" className="mx-auto h-auto w-full max-w-[280px]" />
+            <p className="font-hud mt-3 text-lg font-bold uppercase tracking-[0.14em] text-[#9afcff]">1 NIK · 1 Tiket</p>
           </div>
           <ol className="relative space-y-6 pl-16 sm:pl-28">
             <span aria-hidden className="mv-timeline-line absolute bottom-0 left-12 top-0 w-0.5 sm:left-20" />
@@ -154,9 +143,9 @@ export function HowItWorks() {
         <p className="flex justify-center">
           <Link
             href="/daftar"
-            className="font-hud inline-flex h-12 items-center gap-2 rounded-full bg-[linear-gradient(100deg,#f714f7,#9b2cf5_50%,#0827b5)] px-7 text-lg font-bold uppercase tracking-[0.12em] text-white shadow-[0_0_24px_rgba(247,20,247,0.6)] ring-1 ring-white/30 transition hover:brightness-110"
+            className="font-hud inline-flex h-12 items-center gap-2 rounded-full bg-[linear-gradient(100deg,#f714f7,#9b2cf5_50%,#0827b5)] px-7 text-lg font-bold uppercase tracking-[0.12em] text-white shadow-[0_0_18px_rgba(247,20,247,0.45)] ring-1 ring-white/30 transition hover:brightness-110"
           >
-            <MvImg name="sparkle" className="h-6 w-auto" /> Daftar Sekarang
+            Daftar dengan NIK
           </Link>
         </p>
       </div>

@@ -5,8 +5,10 @@ import { verifyToken } from "./crypto";
 import { enqueue } from "./outbox";
 import { setRemaining } from "./quota";
 import { clearQueueState, consumeAdmission } from "./queue";
+import { nikIdentityHash } from "./employees";
+import type { ShirtSize } from "./employee-shared";
 
-export type ClaimCode = "SUCCESS" | "SOLD_OUT" | "CLOSED" | "ALREADY_HAS_TICKET" | "IDENTITY_ALREADY_USED" | "PROFILE_INCOMPLETE";
+export type ClaimCode = "SUCCESS" | "SOLD_OUT" | "CLOSED" | "ALREADY_HAS_TICKET" | "IDENTITY_ALREADY_USED" | "PROFILE_INCOMPLETE" | "NIK_MISMATCH";
 
 export type ClaimResult = { code: ClaimCode; ticketId?: string; message: string };
 
@@ -15,8 +17,9 @@ const MESSAGES: Record<ClaimCode, string> = {
   SOLD_OUT: "Maaf, kuota kategori ini sudah habis.",
   CLOSED: "Pemesanan kategori ini sedang tidak dibuka.",
   ALREADY_HAS_TICKET: "Anda sudah memegang tiket untuk event ini.",
-  IDENTITY_ALREADY_USED: "Nomor identitas Anda sudah dipakai untuk tiket lain di event ini.",
-  PROFILE_INCOMPLETE: "Lengkapi profil identitas Anda sebelum klaim tiket.",
+  IDENTITY_ALREADY_USED: "NIK ini sudah dipakai untuk tiket lain di event ini.",
+  PROFILE_INCOMPLETE: "Tautkan NIK karyawan di profil Anda sebelum klaim tiket.",
+  NIK_MISMATCH: "NIK yang diisi berbeda dengan NIK akun Anda.",
 };
 
 const IDEM_TTL_SEC = 15 * 60;
@@ -53,6 +56,8 @@ export async function claimTicket(opts: {
   categoryId: string;
   admissionToken: string;
   idempotencyKey: string;
+  /** Biodata yang sudah dicek ke daftar karyawan (lihat checkEligibility) sebelum token dipakai. */
+  biodata: { nik: string; name: string; dept: string; shirtSize: ShirtSize };
 }): Promise<ClaimResult> {
   const { userId, categoryId, idempotencyKey } = opts;
   const idemKey = `idem:${userId}:${idempotencyKey}`;
@@ -120,9 +125,11 @@ export async function claimTicket(opts: {
     let quotaAfter: { quota: number; claimed: number } | null = null;
     try {
       const ticketId = await withTxRetry(() => sql.begin(async (tx) => {
-        const [u] = await tx<{ full_name: string; id_type: string | null; identity_hash: string | null; id_last4: string | null; email_verified_at: Date | null }[]>`
-          SELECT full_name, id_type, identity_hash, id_last4, email_verified_at FROM users WHERE id = ${userId} AND disabled_at IS NULL`;
-        if (!u || !u.email_verified_at || !u.id_type || !u.identity_hash || !u.full_name) throw new ClaimFail("PROFILE_INCOMPLETE");
+        const [u] = await tx<{ nik: string | null; email_verified_at: Date | null }[]>`
+          SELECT nik, email_verified_at FROM users WHERE id = ${userId} AND disabled_at IS NULL`;
+        if (!u || !u.email_verified_at || !u.nik) throw new ClaimFail("PROFILE_INCOMPLETE");
+        if (u.nik !== opts.biodata.nik) throw new ClaimFail("NIK_MISMATCH");
+        const bio = opts.biodata;
 
         // (a) Ambil slot. Waktu buka/tutup dievaluasi dengan jam DB, bukan jam klien.
         const [cat] = await tx<{ event_id: string; quota: number; claimed: number }[]>`
@@ -147,9 +154,10 @@ export async function claimTicket(opts: {
 
         // (b) Buat tiket. Unique index menolak tiket kedua.
         const [t] = await tx<{ id: string }[]>`
-          INSERT INTO tickets (event_id, category_id, user_id, identity_hash, holder_name, id_type, id_last4, status, idempotency_key)
-          VALUES (${cat.event_id}, ${categoryId}, ${userId}, ${u.identity_hash}, ${u.full_name}, ${u.id_type}, ${u.id_last4},
-                  'ACTIVE', ${idempotencyKey})
+          INSERT INTO tickets (event_id, category_id, user_id, identity_hash, holder_name, id_type, id_last4, nik, dept, shirt_size,
+                               status, idempotency_key)
+          VALUES (${cat.event_id}, ${categoryId}, ${userId}, ${nikIdentityHash(bio.nik)}, ${bio.name}, 'NIK', ${bio.nik.slice(-4)},
+                  ${bio.nik}, ${bio.dept}, ${bio.shirtSize}, 'ACTIVE', ${idempotencyKey})
           RETURNING id`;
 
         // (c) Email lewat outbox, di transaksi yang sama.

@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import { AuthShell, safeNext } from "@/components/site/auth-shell";
 import { RegisterForm } from "./register-form";
+import { GoogleButton, OrDivider } from "@/components/site/google-button";
+import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Daftar" };
@@ -14,7 +16,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   if (await currentUser()) redirect(next);
   return (
     <AuthShell
-      title="Buat akun"
+      title="Daftar dengan NIK"
       subtitle={
         <>
           Sudah punya akun?{" "}
@@ -24,6 +26,12 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
         </>
       }
     >
+      {env.GOOGLE_ENABLED && (
+        <>
+          <GoogleButton next={next} label="Daftar dengan Google" />
+          <OrDivider />
+        </>
+      )}
       <RegisterForm next={next} />
     </AuthShell>
   );

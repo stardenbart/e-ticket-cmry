@@ -5,6 +5,7 @@ import path from "node:path";
 import sharp from "sharp";
 import { sql } from "@/lib/db";
 import { hashPassword, identityHash, randomToken } from "@/lib/crypto";
+import { nameKey } from "@/lib/employee-shared";
 
 const PW = {
   admin: process.env.SEED_ADMIN_PASSWORD || "Admin12345!",
@@ -20,16 +21,30 @@ const DISPOSABLE = [
   "fakeinbox.com", "mintemail.com", "mohmal.com", "emailondeck.com", "tempail.com", "moakt.com", "mailnesia.com", "spamgourmet.com",
 ];
 
-async function upsertUser(email: string, name: string, role: string, password: string, identity?: { type: string; number: string }) {
+/** Akun demo. Peserta (`nik`) ditautkan ke data karyawan; nama mengikuti data karyawan. */
+async function upsertUser(email: string, name: string, role: string, password: string, nik?: string) {
   const hash = await hashPassword(password);
   const [u] = await sql<{ id: string }[]>`
-    INSERT INTO users (email, password_hash, full_name, role, email_verified_at, terms_accepted_at, id_type, identity_hash, id_last4)
+    INSERT INTO users (email, password_hash, full_name, role, email_verified_at, terms_accepted_at, nik, id_type, identity_hash, id_last4)
     VALUES (${email}, ${hash}, ${name}, ${role}, now(), now(),
-            ${identity?.type ?? null}, ${identity ? identityHash(identity.type, identity.number) : null}, ${identity?.number.slice(-4) ?? null})
-    ON CONFLICT ((lower(email))) DO UPDATE SET role = EXCLUDED.role, full_name = EXCLUDED.full_name
+            ${nik ?? null}, ${nik ? "NIK" : null}, ${nik ? identityHash("NIK", nik) : null}, ${nik?.slice(-4) ?? null})
+    ON CONFLICT ((lower(email))) DO UPDATE SET role = EXCLUDED.role, full_name = EXCLUDED.full_name, nik = EXCLUDED.nik,
+      id_type = EXCLUDED.id_type, identity_hash = EXCLUDED.identity_hash, id_last4 = EXCLUDED.id_last4
     RETURNING id`;
   return u.id;
 }
+
+// Contoh data karyawan eligible (di server, ganti lewat menu Admin → Data Karyawan → Impor).
+const DEMO_EMPLOYEES: [string, string, string, "CMD" | "OS"][] = [
+  ["04.00001", "BUDI SANTOSO", "Production", "CMD"],
+  ["A1.23.0001", "SARI WULANDARI", "Warehouse", "OS"],
+  ["04.00002", "MUHAMMAD RIZKI PRATAMA", "Quality Assurance", "CMD"],
+  ["04.00003", "DEWI LESTARI", "Human Capital", "CMD"],
+  ["04.00004", "AGUS SETIAWAN", "Engineering", "CMD"],
+  ["A1.23.0002", "RINA MARLINA", "Warehouse", "OS"],
+  ["A1.24.0003", "YOGI FIRMANSYAH", "Security", "OS"],
+  ["04.00005", "SITI NURHALIZA", "Finance", "CMD"],
+];
 
 // Banner demo bergaya neon (tanpa teks): gradien malam, matahari synthwave, lantai grid pink/cyan.
 async function banner(file: string, hueA: string, hueB: string) {
@@ -107,12 +122,13 @@ type SeedEvent = {
 
 const DESC = `<p>Gathering tahunan untuk keluarga besar dan komunitas. Nikmati penampilan musik, area kuliner, dan aktivitas seru sepanjang acara.</p>
 <h3>Highlight</h3><ul><li>Live music &amp; talkshow</li><li>Area kuliner dan sampling produk</li><li>Photo booth &amp; doorprize</li></ul>
-<p>Tiket gratis, terbatas, dan <strong>atas nama pemilik akun</strong>. Bawa identitas asli saat masuk.</p>`;
+<p>Tiket gratis, terbatas, khusus karyawan yang terdaftar, dan <strong>atas nama pemilik NIK</strong>. Bawa ID card karyawan saat masuk.</p>`;
 const DESC_MOONIVERSE = `<p><strong>Mooniverse — Cimory Employee Gathering 2026</strong>: malam kebersamaan seluruh karyawan Cimory bertema neon, tempat <strong>Good Food Good Mood</strong> bertemu panggung megah. MOO, maskot sapi berkacamata VR, siap menyambut kamu!</p>
 <h3>Highlight</h3><ul><li>Konser live di panggung neon MOO</li><li>Area kuliner &amp; sampling produk Cimory</li><li>Photo spot menara MOO &amp; blimp neon</li><li>Light stick untuk seluruh karyawan</li></ul>
-<p>Moo brings us together! Tiket gratis, terbatas, dan <strong>atas nama pemilik akun</strong>. Bawa identitas asli saat masuk.</p>`;
-const TERMS = `<ol><li>Satu akun hanya bisa memegang satu tiket per event.</li><li>Tiket atas nama pemilik akun dan tidak dapat dipindahtangankan.</li>
-<li>Pengunjung wajib membawa identitas asli (KTP/SIM/Paspor) yang sama dengan data di tiket.</li><li>Panitia berhak menolak masuk jika identitas tidak cocok.</li>
+<p>Moo brings us together! Tiket gratis, terbatas, khusus karyawan yang terdaftar, dan <strong>atas nama pemilik NIK</strong>. Bawa ID card karyawan saat masuk.</p>`;
+const TERMS = `<ol><li>Hanya karyawan yang terdaftar di daftar peserta (NIK CMD 04.XXXXX / OS A1.XX.XXXX) yang dapat memesan tiket.</li>
+<li>Satu NIK hanya bisa memegang satu tiket. Tiket atas nama pemilik NIK dan tidak dapat dipindahtangankan.</li>
+<li>Pengunjung wajib membawa ID card karyawan; nama dan NIK dicocokkan di gate.</li><li>Panitia berhak menolak masuk jika data tidak cocok.</li>
 <li>Pembatalan tiket hanya bisa dilakukan sebelum batas waktu yang ditentukan.</li></ol>`;
 
 async function main() {
@@ -122,8 +138,13 @@ async function main() {
   const superId = await upsertUser("superadmin@eticket.local", "Super Admin", "SUPER_ADMIN", PW.admin);
   const adminId = await upsertUser("admin@eticket.local", "Event Admin", "EVENT_ADMIN", PW.admin);
   const staffId = await upsertUser("staf@eticket.local", "Staf Gate A", "GATE_STAFF", PW.staff);
-  await upsertUser("budi@example.com", "Budi Santoso", "ATTENDEE", PW.attendee, { type: "KTP", number: "3201010101900001" });
-  await upsertUser("sari@example.com", "Sari Wulandari", "ATTENDEE", PW.attendee, { type: "SIM", number: "120198765432" });
+  for (const [nik, name, dept, category] of DEMO_EMPLOYEES) {
+    await sql`
+      INSERT INTO employees (nik, name, name_key, dept, category) VALUES (${nik}, ${name}, ${nameKey(name)}, ${dept}, ${category})
+      ON CONFLICT (nik) DO NOTHING`;
+  }
+  await upsertUser("budi@example.com", "BUDI SANTOSO", "ATTENDEE", PW.attendee, "04.00001");
+  await upsertUser("sari@example.com", "SARI WULANDARI", "ATTENDEE", PW.attendee, "A1.23.0001");
 
   const now = Date.now();
   const events: SeedEvent[] = [
@@ -180,12 +201,14 @@ async function main() {
     if (full) {
       const [cat] = await sql<{ id: string }[]>`SELECT id FROM ticket_categories WHERE event_id = ${ev.id} AND name = ${full.name}`;
       for (let k = 0; k < full.claimed!; k++) {
-        const uid = await upsertUser(`dummy${k + 1}@example.com`, `Peserta Dummy ${k + 1}`, "ATTENDEE", randomToken(18), { type: "KTP", number: `32010101019000${String(k + 10).padStart(2, "0")}` });
+        const nik = `04.9${String(k + 1).padStart(4, "0")}`;
+        await sql`INSERT INTO employees (nik, name, name_key, dept, category) VALUES (${nik}, ${`PESERTA DUMMY ${k + 1}`}, ${`PESERTA DUMMY ${k + 1}`}, 'Demo', 'CMD') ON CONFLICT (nik) DO NOTHING`;
+        const uid = await upsertUser(`dummy${k + 1}@example.com`, `PESERTA DUMMY ${k + 1}`, "ATTENDEE", randomToken(18), nik);
         await sql.begin(async (tx) => {
           await tx`UPDATE ticket_categories SET claimed = claimed + 1 WHERE id = ${cat.id}`;
           await tx`
-            INSERT INTO tickets (event_id, category_id, user_id, identity_hash, holder_name, id_type, id_last4, idempotency_key, email_status)
-            SELECT ${ev.id}, ${cat.id}, id, identity_hash, full_name, id_type, id_last4, gen_random_uuid()::text, 'SENT' FROM users WHERE id = ${uid}`;
+            INSERT INTO tickets (event_id, category_id, user_id, identity_hash, holder_name, id_type, id_last4, nik, dept, shirt_size, idempotency_key, email_status)
+            SELECT ${ev.id}, ${cat.id}, id, identity_hash, full_name, id_type, id_last4, nik, 'Demo', 'L', gen_random_uuid()::text, 'SENT' FROM users WHERE id = ${uid}`;
         });
       }
     }

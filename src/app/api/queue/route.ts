@@ -4,6 +4,7 @@ import { profileComplete, requireUser } from "@/lib/auth";
 import { joinQueue, leaveQueue, queueStatus, rejoinQueue } from "@/lib/queue";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { rateLimit } from "@/lib/rate-limit";
+import { findEmployee } from "@/lib/employees";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,10 @@ export const POST = route(async (req) => {
     await leaveQueue(u.id, d.categoryId);
     return json({ ok: true });
   }
-  if (!profileComplete(u)) throw new ApiError(403, "PROFILE_INCOMPLETE", "Lengkapi profil identitas Anda sebelum masuk antrean.");
+  if (!profileComplete(u)) throw new ApiError(403, "PROFILE_INCOMPLETE", "Tautkan NIK karyawan di halaman Profil sebelum masuk antrean.");
+  if (!(await findEmployee(u.nik!))) {
+    throw new ApiError(403, "NOT_ELIGIBLE", "NIK akun Anda tidak ada di daftar karyawan eligible. Hubungi panitia.");
+  }
   await rateLimit(`qjoin:${u.id}`, 20, 60);
   await verifyTurnstile(d.turnstileToken, clientIp(req));
   const status = d.action === "join" ? await joinQueue(u.id, d.categoryId) : await rejoinQueue(u.id, d.categoryId);

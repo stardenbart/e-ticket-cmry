@@ -680,7 +680,8 @@ function SearchView({ manifest, online, onPick }: { manifest: Manifest; online: 
                     <span className="min-w-0">
                       <span className="block truncate font-bold">{t.holder_name}</span>
                       <span className="block truncate text-sm text-muted">
-                        {t.category_name} · {idTypeLabel(t.id_type)} ••••{t.id_last4 ?? "----"} · <span className="font-mono">{t.id.slice(0, 8)}</span>
+                        {t.category_name} · {t.nik ? <span className="font-mono">{t.nik}</span> : <>{idTypeLabel(t.id_type)} ••••{t.id_last4 ?? "----"}</>}
+                        {t.dept ? ` · ${t.dept}` : ""}
                       </span>
                     </span>
                     <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${t.status === "ACTIVE" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>

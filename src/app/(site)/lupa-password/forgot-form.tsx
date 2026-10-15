@@ -6,7 +6,6 @@ import { Alert, Button, Field, Input, Spinner } from "@/components/ui";
 import { api, ClientApiError } from "@/lib/client-api";
 import { OtpInput } from "@/components/site/otp-input";
 import { PasswordInput } from "@/components/site/password-input";
-import { ResendButton } from "@/components/site/resend-button";
 
 export function ForgotForm() {
   const router = useRouter();
@@ -22,7 +21,7 @@ export function ForgotForm() {
     setBusy(true);
     setMsg(null);
     try {
-      const r = await api<{ message: string }>("/api/auth/forgot", { json: { email: email.trim() } });
+      const r = await api<{ message: string }>("/api/auth/forgot", { json: { identifier: email.trim() } });
       setMsg({ tone: "blue", text: r.message });
       setStep("reset");
     } catch (err) {
@@ -40,7 +39,7 @@ export function ForgotForm() {
     setBusy(true);
     setMsg(null);
     try {
-      await api("/api/auth/reset", { json: { email: email.trim(), code, password } });
+      await api("/api/auth/reset", { json: { identifier: email.trim(), code, password } });
       router.push("/login?reset=1");
     } catch (err) {
       setMsg({ tone: "red", text: err instanceof ClientApiError ? err.message : "Gagal mengubah password." });
@@ -51,9 +50,17 @@ export function ForgotForm() {
   if (step === "email")
     return (
       <form onSubmit={request} className="space-y-4">
-        <p className="text-sm text-muted">Masukkan email akun Anda. Kami akan mengirim kode 6 digit untuk mengatur ulang password.</p>
-        <Field label="Email" htmlFor="email">
-          <Input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nama@email.com" />
+        <p className="text-sm text-muted">Masukkan NIK karyawan atau email akun Anda. Kode 6 digit untuk mengatur ulang password dikirim ke email akun.</p>
+        <Field label="NIK atau Email" htmlFor="email">
+          <Input
+            id="email"
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            value={email}
+            onChange={(e) => setEmail(e.target.value.includes("@") ? e.target.value : e.target.value.toUpperCase().replace(/\s+/g, ""))}
+            placeholder="04.12345 atau nama@email.com"
+          />
         </Field>
         {msg && <Alert tone={msg.tone}>{msg.text}</Alert>}
         <Button type="submit" disabled={busy || !email} className="w-full">
@@ -65,7 +72,7 @@ export function ForgotForm() {
   return (
     <form onSubmit={reset} className="space-y-4">
       <p className="text-sm text-muted">
-        Kode dikirim ke <span className="font-semibold text-ink">{email}</span> (jika terdaftar).
+        Kode dikirim ke email akun <span className="font-semibold text-ink">{email}</span> (jika terdaftar).
       </p>
       <OtpInput value={code} onChange={setCode} disabled={busy} />
       <Field label="Password baru" htmlFor="password" hint="Minimal 8 karakter. Semua sesi login lain akan dikeluarkan.">
@@ -77,9 +84,22 @@ export function ForgotForm() {
       </Button>
       <div className="flex justify-between text-sm">
         <button type="button" className="font-semibold text-cimory-blue hover:underline" onClick={() => { setStep("email"); setMsg(null); }}>
-          Ganti email
+          Ganti NIK/email
         </button>
-        <ResendButton email={email.trim()} purpose="RESET_PASSWORD" onMessage={setMsg} />
+        <button
+          type="button"
+          className="font-semibold text-cimory-blue hover:underline"
+          onClick={async () => {
+            try {
+              const r = await api<{ message: string }>("/api/auth/forgot", { json: { identifier: email.trim() } });
+              setMsg({ tone: "blue", text: r.message });
+            } catch (err) {
+              setMsg({ tone: "red", text: err instanceof ClientApiError ? err.message : "Gagal mengirim ulang kode." });
+            }
+          }}
+        >
+          Kirim ulang kode
+        </button>
       </div>
     </form>
   );

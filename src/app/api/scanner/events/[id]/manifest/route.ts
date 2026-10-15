@@ -30,11 +30,14 @@ export const GET = route<{ id: string }>(async (req, ctx) => {
       category_name: string;
       id_type: string;
       id_last4: string | null;
+      nik: string | null;
+      dept: string | null;
+      shirt_size: string | null;
       checked_in_at: Date | null;
       checked_in_gate: string | null;
     }[]
   >`
-    SELECT t.id, t.version, t.status, t.holder_name, c.name AS category_name, t.id_type, t.id_last4, t.checked_in_at, t.checked_in_gate
+    SELECT t.id, t.version, t.status, t.holder_name, c.name AS category_name, t.id_type, t.id_last4, t.nik, t.dept, t.shirt_size, t.checked_in_at, t.checked_in_gate
     FROM tickets t JOIN ticket_categories c ON c.id = t.category_id
     WHERE t.event_id = ${e.id} ${since ? sql`AND t.updated_at >= ${since}` : sql``}`;
 

@@ -17,6 +17,8 @@ export type SessionUser = {
   id_last4: string | null;
   identity_hash: string | null;
   email_verified_at: Date | null;
+  /** NIK karyawan yang terhubung ke akun (null untuk admin/staf atau akun lama yang belum ditautkan). */
+  nik: string | null;
 };
 
 export const SESSION_COOKIE = "sid";
@@ -25,8 +27,9 @@ const TTL_STAFF_SEC = 12 * 3600;
 
 export const isAdminRole = (r: Role) => r === "EVENT_ADMIN" || r === "SUPER_ADMIN";
 export const isStaffRole = (r: Role) => r !== "ATTENDEE";
-export const profileComplete = (u: Pick<SessionUser, "full_name" | "id_type" | "identity_hash" | "email_verified_at">) =>
-  !!(u.email_verified_at && u.full_name && u.id_type && u.identity_hash);
+/** Siap ikut antrean: akun terhubung ke NIK karyawan yang ada di daftar eligible. */
+export const profileComplete = (u: Pick<SessionUser, "full_name" | "identity_hash" | "email_verified_at" | "nik">) =>
+  !!(u.email_verified_at && u.full_name && u.nik && u.identity_hash);
 
 export async function createSession(userId: string, role: Role, meta?: { ip?: string; userAgent?: string }) {
   const token = randomToken(32);
@@ -44,7 +47,7 @@ export async function createSession(userId: string, role: Role, meta?: { ip?: st
   });
 }
 
-async function cookieSecure() {
+export async function cookieSecure() {
   if (env.COOKIE_SECURE !== "auto") return env.COOKIE_SECURE;
   return (await headers()).get("x-forwarded-proto")?.split(",")[0].trim() === "https";
 }
@@ -62,7 +65,7 @@ export const currentUser = cache(async (): Promise<SessionUser | null> => {
   const token = jar.get(SESSION_COOKIE)?.value;
   if (!token) return null;
   const [u] = await sql<SessionUser[]>`
-    SELECT u.id, u.email, u.full_name, u.role, u.id_type, u.id_last4, u.identity_hash, u.email_verified_at
+    SELECT u.id, u.email, u.full_name, u.role, u.id_type, u.id_last4, u.identity_hash, u.email_verified_at, u.nik
     FROM sessions s JOIN users u ON u.id = s.user_id
     WHERE s.token_hash = ${sha256(token)} AND s.expires_at > now() AND u.disabled_at IS NULL`;
   return u ?? null;

@@ -8,7 +8,6 @@ import { HtmlTabs } from "@/components/site/tabs";
 import { CategoryPanel } from "@/components/site/category-panel";
 import { CalIcon, PinIcon } from "@/components/site/event-card";
 import { loadCategoryPanel } from "@/components/site/event-panel-data";
-import { BrushTagline, LightStick, LineCow, MvImg } from "@/components/site/ornaments";
 
 export const dynamic = "force-dynamic";
 
@@ -33,23 +32,14 @@ export default async function EventDetailPage({ params }: Props) {
   return (
     <div className="pb-28 lg:pb-0">
       <div className="relative pt-16 sm:pt-20">
-        {/* Tekstur panggung LED & laser di belakang banner */}
-        <div aria-hidden className="mv-texture mv-texture-stage left-1/2 top-4 h-[120%] w-[min(1400px,140vw)] -translate-x-1/2 opacity-60" />
-        <div aria-hidden className="mv-texture mv-texture-lasers mv-texture-top left-1/2 -top-20 h-80 w-[min(1400px,140vw)] -translate-x-1/2 opacity-70" />
-        <LineCow side="left" className="absolute -left-4 top-24 hidden w-48 opacity-80 xl:block" />
-        <LineCow side="right" className="absolute -right-6 top-56 hidden w-52 opacity-80 [animation-delay:-3s] xl:block" />
         <div className="relative mx-auto max-w-6xl px-4">
-          <LightStick color="magenta" className="absolute -left-10 -top-6 z-10 hidden w-36 md:block" />
-          <LightStick color="cyan" className="absolute -right-10 -bottom-6 z-10 hidden w-40 md:block" />
-          <div className="mv-halo">
           <div className="mv-frame relative aspect-[2/1] p-[3px] [--cut:28px]">
             {e.banner_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={e.banner_url} alt={`Banner ${e.name}`} className="size-full animate-fade-up object-cover [clip-path:polygon(26px_0,100%_0,100%_calc(100%-26px),calc(100%-26px)_100%,0_100%,0_26px)]" />
+              <img src={e.banner_url} alt={`Banner ${e.name}`} fetchPriority="high" decoding="async" className="size-full animate-fade-up object-cover [clip-path:polygon(26px_0,100%_0,100%_calc(100%-26px),calc(100%-26px)_100%,0_100%,0_26px)]" />
             ) : (
               <div className="size-full bg-cimory-gradient" />
             )}
-          </div>
           </div>
         </div>
       </div>
@@ -63,7 +53,6 @@ export default async function EventDetailPage({ params }: Props) {
           <div className="space-y-3">
             <span className="font-hud inline-flex items-center gap-1.5 rounded-full border border-[#9afcff]/40 bg-[#062a52]/70 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#9afcff]">✦ {e.event_type}</span>
             <h1 className="text-3xl leading-[1.15] sm:text-5xl">{e.name}</h1>
-            <BrushTagline className="text-xl sm:text-3xl">Good Food Good Mood</BrushTagline>
             {e.organizer && <p className="text-sm text-muted">Diselenggarakan oleh <span className="font-semibold text-ink">{e.organizer}</span></p>}
           </div>
 
@@ -92,7 +81,7 @@ export default async function EventDetailPage({ params }: Props) {
               title={`Peta lokasi ${e.venue}`}
               src={mapSrc}
               loading="lazy"
-              className="h-56 w-full rounded-md border border-[#9afcff]/50 bg-slate-100 shadow-[0_0_20px_rgba(154,252,255,0.2)] sm:h-72"
+              className="h-56 w-full rounded-md border border-[#9afcff]/50 bg-slate-100 sm:h-72"
               referrerPolicy="no-referrer"
             />
           )}
@@ -109,17 +98,14 @@ export default async function EventDetailPage({ params }: Props) {
           <div className="rounded-2xl bg-amber-50 p-4 text-sm text-warn ring-1 ring-amber-200">
             <p className="font-semibold">Tiket atas nama sendiri</p>
             <p className="mt-0.5 text-amber-900">
-              Nama di tiket diambil dari profil Anda dan dicocokkan dengan identitas fisik (KTP/SIM/Paspor) di gate. Tiket tidak dapat dipindahtangankan.
+              Khusus karyawan yang ada di daftar karyawan. Saat klaim, isi ulang nama (HURUF KAPITAL sesuai KTP), NIK (CMD: 04.XXXXX · OS: A1.XX.XXXX), dan ukuran baju. Di gate, nama & NIK dicocokkan dengan ID card karyawan. Tiket tidak dapat dipindahtangankan.
             </p>
           </div>
         </div>
 
         <aside id="tiket" aria-label="Kategori tiket" className="scroll-mt-24 lg:sticky lg:top-24 lg:self-start">
           <h2 className="mv-title mb-4 hidden text-xl lg:block">Pilih Kategori Tiket</h2>
-          <div className="relative">
-            <MvImg name="headBig" className="mv-peek pointer-events-none absolute -right-3 -top-16 hidden w-28 lg:block" />
-            <CategoryPanel {...panel} />
-          </div>
+          <CategoryPanel {...panel} />
         </aside>
       </div>
     </div>

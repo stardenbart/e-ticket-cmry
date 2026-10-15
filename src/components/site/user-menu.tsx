@@ -40,7 +40,7 @@ export function UserMenu({ user }: { user: U }) {
       <div className="flex items-center gap-2">
         {!user && (
           <>
-            <Link href={`/login?next=${encodeURIComponent(pathname)}`} className="font-hud hidden h-10 items-center rounded-full border border-[#9afcff]/60 bg-white/[0.05] px-4 text-[15px] font-bold uppercase tracking-[0.08em] text-white backdrop-blur-md transition hover:bg-[#9afcff]/15 hover:shadow-[0_0_14px_rgba(154,252,255,0.45)] sm:inline-flex">
+            <Link href={`/login?next=${encodeURIComponent(pathname)}`} className="font-hud hidden h-10 items-center rounded-full border border-[#9afcff]/60 bg-white/[0.05] px-4 text-[15px] font-bold uppercase tracking-[0.08em] text-white transition hover:bg-[#9afcff]/15 hover:shadow-[0_0_14px_rgba(154,252,255,0.45)] sm:inline-flex">
               Masuk
             </Link>
             <Link href="/daftar" className="font-hud inline-flex h-10 items-center gap-1.5 rounded-full bg-[linear-gradient(100deg,#f714f7,#9b2cf5_50%,#05a5ef)] px-4 text-[15px] font-bold uppercase tracking-[0.08em] text-white shadow-[0_0_18px_rgba(247,20,247,0.55)] ring-1 ring-white/30 transition hover:brightness-110">
@@ -54,7 +54,7 @@ export function UserMenu({ user }: { user: U }) {
           aria-expanded={open}
           aria-haspopup="menu"
           aria-label={user ? `Menu akun ${user.name}` : "Buka menu"}
-          className={`flex h-11 items-center gap-2 rounded-full border border-[#9afcff]/30 bg-[#062a52]/85 px-1.5 pr-2 text-white shadow-[0_6px_18px_rgba(2,10,23,0.4)] backdrop-blur transition hover:bg-[#0827b5] ${user ? "sm:pr-4" : "md:hidden"}`}
+          className={`flex h-11 items-center gap-2 rounded-full border border-[#9afcff]/30 bg-[#062a52]/85 px-1.5 pr-2 text-white shadow-[0_6px_18px_rgba(2,10,23,0.4)] transition hover:bg-[#0827b5] ${user ? "sm:pr-4" : "md:hidden"}`}
         >
           {user ? (
             <span className="grid size-8 place-items-center rounded-full bg-gradient-to-br from-[#9afcff] to-[#f714f7] text-sm font-extrabold text-[#020a17]">
@@ -69,7 +69,7 @@ export function UserMenu({ user }: { user: U }) {
         </button>
       </div>
       {open && (
-        <div role="menu" className="absolute right-0 mt-3 w-64 animate-fade-up rounded-lg border border-[#9afcff]/50 bg-[#031726]/95 p-2 shadow-[0_0_30px_rgba(247,20,247,0.25)] backdrop-blur-md">
+        <div role="menu" className="absolute right-0 mt-3 w-64 animate-fade-up rounded-lg border border-[#9afcff]/50 bg-[#031726] p-2 shadow-[0_0_30px_rgba(247,20,247,0.25)]">
           {user && (
             <div className="mb-1 border-b border-line px-3 pb-2 pt-1">
               <p className="truncate text-sm font-semibold">{user.name}</p>

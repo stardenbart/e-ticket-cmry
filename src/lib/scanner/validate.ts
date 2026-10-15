@@ -11,6 +11,9 @@ export type ManifestTicket = {
   category_name: string;
   id_type: string;
   id_last4: string | null;
+  nik?: string | null;
+  dept?: string | null;
+  shirt_size?: string | null;
   checked_in_at: string | null;
   checked_in_gate: string | null;
 };
@@ -41,7 +44,7 @@ export type ScanVerdict =
   | { ok: true; ticket: ManifestTicket; version: number }
   | { ok: false; code: string; reason: string; ticket?: ManifestTicket };
 
-const ID_LABEL: Record<string, string> = { KTP: "KTP", SIM: "SIM", PASPOR: "Paspor" };
+const ID_LABEL: Record<string, string> = { KTP: "KTP", SIM: "SIM", PASPOR: "Paspor", NIK: "NIK" };
 export const idTypeLabel = (t: string) => ID_LABEL[t] ?? t;
 
 export function verdictForTicket(t: ManifestTicket | undefined, version: number, tz: string): ScanVerdict {

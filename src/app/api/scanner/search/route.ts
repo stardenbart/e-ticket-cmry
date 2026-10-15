@@ -24,12 +24,12 @@ export const GET = route(async (req) => {
   const like = `%${d.q.replace(/[%_\\]/g, "")}%`;
   const idPrefix = `${d.q.toLowerCase().replace(/[^0-9a-f-]/g, "")}%`;
   const rows = await sql<
-    { id: string; version: number; status: string; holder_name: string; category_name: string; id_type: string; id_last4: string | null; checked_in_at: Date | null; checked_in_gate: string | null }[]
+    { id: string; version: number; status: string; holder_name: string; category_name: string; id_type: string; id_last4: string | null; nik: string | null; dept: string | null; shirt_size: string | null; checked_in_at: Date | null; checked_in_gate: string | null }[]
   >`
-    SELECT t.id, t.version, t.status, t.holder_name, c.name AS category_name, t.id_type, t.id_last4, t.checked_in_at, t.checked_in_gate
+    SELECT t.id, t.version, t.status, t.holder_name, c.name AS category_name, t.id_type, t.id_last4, t.nik, t.dept, t.shirt_size, t.checked_in_at, t.checked_in_gate
     FROM tickets t JOIN ticket_categories c ON c.id = t.category_id
     WHERE t.event_id = ${e.id}
-      AND (t.holder_name ILIKE ${like} ${idPrefix.length > 4 ? sql`OR t.id::text LIKE ${idPrefix}` : sql``})
+      AND (t.holder_name ILIKE ${like} OR t.nik ILIKE ${like} ${idPrefix.length > 4 ? sql`OR t.id::text LIKE ${idPrefix}` : sql``})
     ORDER BY (t.status = 'ACTIVE') DESC, t.holder_name
     LIMIT 10`;
   await audit({

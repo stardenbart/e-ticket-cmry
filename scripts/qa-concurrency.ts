@@ -16,26 +16,39 @@ const results: { name: string; ok: boolean; detail: string }[] = [];
 
 type Claim = { status: number; code: string; ticketId?: string; ms: number };
 
-async function makeUsers(n: number, prefix: string, sharedIdentity?: string) {
-  const users: { id: string; cookie: string }[] = [];
+type QaUser = { id: string; cookie: string; nik: string; name: string };
+
+// NIK uji format OS: A1.<2 digit dari RUN>.<4 digit urut> — dibuat juga sebagai karyawan eligible.
+const NIK_YY = String(parseInt(RUN, 16) % 100).padStart(2, "0");
+let nikSeq = 0;
+
+async function makeUsers(n: number, prefix: string): Promise<QaUser[]> {
+  const users: QaUser[] = [];
   const rows = Array.from({ length: n }, (_, i) => {
-    const num = sharedIdentity ?? `9${RUN.replace(/[^0-9]/g, "1").padEnd(6, "1").slice(0, 6)}${String(i).padStart(9, "0")}`;
-    return {
-      email: `${prefix}${i}-${RUN}@qa.local`,
-      full_name: `QA ${prefix} ${i}`,
-      id_type: "KTP",
-      identity_hash: identityHash("KTP", num),
-      id_last4: num.slice(-4),
-    };
+    const nik = `A1.${NIK_YY}.${String(nikSeq++).padStart(4, "0")}`;
+    const name = `QA ${prefix.toUpperCase()} ${i}`;
+    return { nik, name, email: `${prefix}${i}-${RUN}@qa.local` };
   });
   for (let i = 0; i < rows.length; i += 500) {
     const chunk = rows.slice(i, i + 500);
-    const inserted = await sql<{ id: string }[]>`
-      INSERT INTO users ${sql(chunk.map((r) => ({ ...r, email_verified_at: new Date(), terms_accepted_at: new Date() })))}
-      RETURNING id`;
-    const sessions = inserted.map((u) => ({ token: randomToken(24), user_id: u.id }));
-    await sql`INSERT INTO sessions ${sql(sessions.map((s) => ({ token_hash: sha256(s.token), user_id: s.user_id, expires_at: new Date(Date.now() + 3600_000) })))}`;
-    sessions.forEach((s) => users.push({ id: s.user_id, cookie: `sid=${s.token}` }));
+    await sql`INSERT INTO employees ${sql(chunk.map((r) => ({ nik: r.nik, name: r.name, name_key: r.name, dept: "QA", category: "OS" })))}`;
+    const inserted = await sql<{ id: string; nik: string; full_name: string }[]>`
+      INSERT INTO users ${sql(
+        chunk.map((r) => ({
+          email: r.email,
+          full_name: r.name,
+          nik: r.nik,
+          id_type: "NIK",
+          identity_hash: identityHash("NIK", r.nik),
+          id_last4: r.nik.slice(-4),
+          email_verified_at: new Date(),
+          terms_accepted_at: new Date(),
+        })),
+      )}
+      RETURNING id, nik, full_name`;
+    const sessions = inserted.map((u) => ({ token: randomToken(24), u }));
+    await sql`INSERT INTO sessions ${sql(sessions.map((s) => ({ token_hash: sha256(s.token), user_id: s.u.id, expires_at: new Date(Date.now() + 3600_000) })))}`;
+    sessions.forEach((s) => users.push({ id: s.u.id, cookie: `sid=${s.token}`, nik: s.u.nik, name: s.u.full_name }));
   }
   return users;
 }
@@ -62,14 +75,22 @@ function admission(userId: string, categoryId: string, eventId: string) {
   return signToken({ uid: userId, cid: categoryId, eid: eventId, jti: crypto.randomUUID(), exp: Date.now() + 300_000 });
 }
 
-async function claim(cookie: string, categoryId: string, token: string, idem = crypto.randomUUID()): Promise<Claim> {
+async function claim(u: QaUser, categoryId: string, token: string, idem = crypto.randomUUID(), bio: { nik?: string; fullName?: string } = {}): Promise<Claim> {
   const t0 = performance.now();
   try {
     const r = await ufetch(`${BASE}/api/claim`, {
       dispatcher: agent,
       method: "POST",
-      headers: { "content-type": "application/json", cookie, origin: BASE },
-      body: JSON.stringify({ categoryId, admissionToken: token, idempotencyKey: idem, agree: true }),
+      headers: { "content-type": "application/json", cookie: u.cookie, origin: BASE },
+      body: JSON.stringify({
+        categoryId,
+        admissionToken: token,
+        idempotencyKey: idem,
+        agree: true,
+        nik: bio.nik ?? u.nik,
+        fullName: bio.fullName ?? u.name,
+        shirtSize: "L",
+      }),
     });
     const data = (await r.json()) as { code?: string; ticketId?: string; error?: { code: string } };
     return { status: r.status, code: data.code ?? data.error?.code ?? "?", ticketId: data.ticketId, ms: performance.now() - t0 };
@@ -122,7 +143,7 @@ async function main() {
       const rs = await Promise.all(
         users.map(async (u, i) => {
           if (spread) await new Promise((r) => setTimeout(r, (i * spread) / users.length));
-          return claim(u.cookie, e.categoryIds[0], admission(u.id, e.categoryIds[0], e.eventId));
+          return claim(u, e.categoryIds[0], admission(u.id, e.categoryIds[0], e.eventId));
         }),
       );
       const a = await activeCount(e.categoryIds[0]);
@@ -139,7 +160,7 @@ async function main() {
       const e = await makeEvent([{ name: "S2", quota: 1, openOffsetMs: -60_000, closeOffsetMs: 3600_000 }]);
       createdEvents.push(e.eventId);
       const users = await makeUsers(200, "s2u");
-      const rs = await Promise.all(users.map((u) => claim(u.cookie, e.categoryIds[0], admission(u.id, e.categoryIds[0], e.eventId))));
+      const rs = await Promise.all(users.map((u) => claim(u, e.categoryIds[0], admission(u.id, e.categoryIds[0], e.eventId))));
       const a = await activeCount(e.categoryIds[0]);
       check("S2 200 akun → sisa 1 slot", count(rs, "SUCCESS") === 1 && count(rs, "SOLD_OUT") === 199 && a.n === 1 && a.claimed === 1,
         `SUCCESS=${count(rs, "SUCCESS")} SOLD_OUT=${count(rs, "SOLD_OUT")} lain=${rs.filter((r) => !["SUCCESS", "SOLD_OUT"].includes(r.code)).map((r) => r.code).join(",") || "-"}`);
@@ -157,9 +178,9 @@ async function main() {
       const retryIdem = crypto.randomUUID();
       const reqs: Promise<Claim>[] = [];
       for (let i = 0; i < 20; i++) {
-        if (i < 8) reqs.push(claim(u.cookie, e.categoryIds[0], sameToken, retryIdem)); // retry jaringan: idem key sama
-        else if (i < 14) reqs.push(claim(u.cookie, e.categoryIds[0], sameToken)); // tab lain, token sama
-        else reqs.push(claim(u.cookie, e.categoryIds[i % 2], admission(u.id, e.categoryIds[i % 2], e.eventId))); // tab lain, kategori lain
+        if (i < 8) reqs.push(claim(u, e.categoryIds[0], sameToken, retryIdem)); // retry jaringan: idem key sama
+        else if (i < 14) reqs.push(claim(u, e.categoryIds[0], sameToken)); // tab lain, token sama
+        else reqs.push(claim(u, e.categoryIds[i % 2], admission(u.id, e.categoryIds[i % 2], e.eventId))); // tab lain, kategori lain
       }
       const rs = await Promise.all(reqs);
       const [{ n }] = await sql<{ n: number }[]>`SELECT count(*)::int AS n FROM tickets WHERE event_id = ${e.eventId} AND user_id = ${u.id} AND status = 'ACTIVE'`;
@@ -169,17 +190,24 @@ async function main() {
         `tiket=${n} kode=${JSON.stringify(Object.fromEntries([...new Set(rs.map((r) => r.code))].map((c) => [c, count(rs, c)])))}`);
     }
 
-    // ---- Skenario 4: identitas sama di 2 akun ----
+    // ---- Skenario 4: NIK dipakai akun lain + biodata salah tidak menghanguskan giliran ----
     {
       const e = await makeEvent([{ name: "S4", quota: 10, openOffsetMs: -60_000, closeOffsetMs: 3600_000 }]);
       createdEvents.push(e.eventId);
-      const shared = `3201${RUN.replace(/[^0-9]/g, "7").padEnd(6, "7").slice(0, 6)}777777`;
-      const [a, b] = await makeUsers(2, "s4u", shared);
-      const r1 = await claim(a.cookie, e.categoryIds[0], admission(a.id, e.categoryIds[0], e.eventId));
-      const r2 = await claim(b.cookie, e.categoryIds[0], admission(b.id, e.categoryIds[0], e.eventId));
+      const [a, b] = await makeUsers(2, "s4u");
+      const r1 = await claim(a, e.categoryIds[0], admission(a.id, e.categoryIds[0], e.eventId));
+      // Akun B mencoba memakai NIK + nama milik A.
+      const r2 = await claim(b, e.categoryIds[0], admission(b.id, e.categoryIds[0], e.eventId), undefined, { nik: a.nik, fullName: a.name });
+      // Akun B salah ketik nama → ditolak tanpa memakai token; token yang sama lalu dipakai dengan nama benar.
+      const tokB = admission(b.id, e.categoryIds[0], e.eventId);
+      const r3 = await claim(b, e.categoryIds[0], tokB, undefined, { fullName: "NAMA SALAH" });
+      const r4 = await claim(b, e.categoryIds[0], tokB);
       const c = await activeCount(e.categoryIds[0]);
-      check("S4 identitas sama di 2 akun", r1.code === "SUCCESS" && r2.code === "IDENTITY_ALREADY_USED" && c.claimed === 1,
-        `akun1=${r1.code} akun2=${r2.code} claimed=${c.claimed}`);
+      check(
+        "S4 NIK akun lain ditolak; nama salah tidak menghanguskan token",
+        r1.code === "SUCCESS" && r2.code === "NIK_MISMATCH" && r3.code === "NAME_MISMATCH" && r4.code === "SUCCESS" && c.claimed === 2,
+        `akunA=${r1.code} akunB-NIK-A=${r2.code} nama-salah=${r3.code} ulang-token-sama=${r4.code} claimed=${c.claimed}`,
+      );
     }
 
     // ---- Skenario 5: klaim 1 detik sebelum open_at dan 1 detik sesudah close_at (token "dimanipulasi") ----
@@ -191,8 +219,8 @@ async function main() {
         { name: "S5-tutup", quota: 10, openOffsetMs: -3600_000, closeOffsetMs: -1_000 },
       ]);
       createdEvents.push(e.eventId);
-      const before = await claim(u.cookie, e.categoryIds[0], admission(u.id, e.categoryIds[0], e.eventId));
-      const after = await claim(v.cookie, e.categoryIds[1], admission(v.id, e.categoryIds[1], e.eventId));
+      const before = await claim(u, e.categoryIds[0], admission(u.id, e.categoryIds[0], e.eventId));
+      const after = await claim(v, e.categoryIds[1], admission(v.id, e.categoryIds[1], e.eventId));
       check("S5 sebelum open_at / sesudah close_at", before.code === "CLOSED" && after.code === "CLOSED", `sebelum=${before.code} sesudah=${after.code}`);
     }
 
@@ -201,8 +229,8 @@ async function main() {
       const e = await makeEvent([{ name: "S12", quota: 1, openOffsetMs: -60_000, closeOffsetMs: 3600_000 }]);
       createdEvents.push(e.eventId);
       const [a, b] = await makeUsers(2, "s12u");
-      const r1 = await claim(a.cookie, e.categoryIds[0], admission(a.id, e.categoryIds[0], e.eventId));
-      const full = await claim(b.cookie, e.categoryIds[0], admission(b.id, e.categoryIds[0], e.eventId));
+      const r1 = await claim(a, e.categoryIds[0], admission(a.id, e.categoryIds[0], e.eventId));
+      const full = await claim(b, e.categoryIds[0], admission(b.id, e.categoryIds[0], e.eventId));
       const c1 = await activeCount(e.categoryIds[0]);
       const cancel = await fetch(`${BASE}/api/tickets/${r1.ticketId}`, {
         method: "POST",
@@ -210,7 +238,7 @@ async function main() {
         body: JSON.stringify({ action: "cancel" }),
       });
       const c2 = await activeCount(e.categoryIds[0]);
-      const r2 = await claim(b.cookie, e.categoryIds[0], admission(b.id, e.categoryIds[0], e.eventId));
+      const r2 = await claim(b, e.categoryIds[0], admission(b.id, e.categoryIds[0], e.eventId));
       const c3 = await activeCount(e.categoryIds[0]);
       const [old] = await sql<{ status: string }[]>`SELECT status FROM tickets WHERE id = ${r1.ticketId!}`;
       check("S12 batal lalu slot diklaim orang lain",
@@ -228,6 +256,7 @@ async function main() {
       await sql`DELETE FROM events WHERE id IN ${sql(createdEvents)}`;
     }
     await sql`DELETE FROM users WHERE email LIKE ${`%-${RUN}@qa.local`} AND NOT EXISTS (SELECT 1 FROM audit_log a WHERE a.actor_id = users.id)`;
+    await sql`DELETE FROM employees WHERE nik LIKE ${`A1.${NIK_YY}.%`} AND dept = 'QA'`;
     await sql.end();
   }
   const failed = results.filter((r) => !r.ok).length;

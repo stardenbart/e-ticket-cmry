@@ -9,7 +9,7 @@ export type Overlay =
   | { kind: "admitted"; ticket: ManifestTicket; offline: boolean }
   | { kind: "rejected"; ticket?: ManifestTicket; reason: string; offline: boolean };
 
-const REJECT_REASONS = ["Nama tidak cocok", "4 digit identitas tidak cocok", "Tidak membawa identitas asli", "Identitas palsu / rusak", "Lainnya"];
+const REJECT_REASONS = ["Nama tidak cocok", "NIK tidak cocok dengan ID card", "Tidak membawa ID card karyawan", "ID card palsu / rusak", "Lainnya"];
 
 function CheckIcon() {
   return (
@@ -50,12 +50,33 @@ function TicketFacts({ t, showId }: { t: ManifestTicket; showId: boolean }) {
           <dd className="text-xl font-bold">{t.category_name}</dd>
         </div>
         {showId && (
-          <div>
-            <dt className="text-xs font-semibold uppercase tracking-wider opacity-80">Identitas</dt>
-            <dd className="text-xl font-bold">
-              {idTypeLabel(t.id_type)} ••••<span className="font-mono text-3xl tracking-widest">{t.id_last4 ?? "----"}</span>
-            </dd>
-          </div>
+          t.nik ? (
+            <>
+              <div>
+                <dt className="text-xs font-semibold uppercase tracking-wider opacity-80">NIK (cek ID card)</dt>
+                <dd className="font-mono text-3xl font-bold tracking-wider">{t.nik}</dd>
+              </div>
+              {t.dept && (
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-wider opacity-80">Departemen</dt>
+                  <dd className="text-xl font-bold">{t.dept}</dd>
+                </div>
+              )}
+              {t.shirt_size && (
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-wider opacity-80">Ukuran baju</dt>
+                  <dd className="text-xl font-bold">{t.shirt_size}</dd>
+                </div>
+              )}
+            </>
+          ) : (
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wider opacity-80">Identitas</dt>
+              <dd className="text-xl font-bold">
+                {idTypeLabel(t.id_type)} ••••<span className="font-mono text-3xl tracking-widest">{t.id_last4 ?? "----"}</span>
+              </dd>
+            </div>
+          )
         )}
       </div>
     </dl>
@@ -102,7 +123,7 @@ export function ResultScreen({
         <h2 id="res-title" className="mt-3 text-3xl font-extrabold">
           Perlu cek identitas
         </h2>
-        <p className="mt-1 max-w-sm text-white/90">Cocokkan nama{overlay.requireId ? " dan 4 digit terakhir" : ""} dengan kartu identitas fisik.</p>
+        <p className="mt-1 max-w-sm text-white/90">Cocokkan nama{overlay.requireId ? " dan NIK" : ""} dengan ID card karyawan.</p>
         <TicketFacts t={overlay.ticket} showId={overlay.requireId} />
         {!rejecting ? (
           <div className="mt-8 grid w-full max-w-md gap-3">

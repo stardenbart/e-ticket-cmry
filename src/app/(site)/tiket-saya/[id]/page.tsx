@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { requirePageUser } from "@/lib/auth";
 import { cancelDeadline, getTicket } from "@/lib/tickets";
 import { fmtDate, fmtDateTime, fmtTime } from "@/lib/format";
-import { ID_TYPE_LABEL, type IdType } from "@/lib/validation";
 import { Alert, Card } from "@/components/ui";
 import { TicketStatusBadge } from "@/components/site/ticket-status";
 import { TicketActions } from "./ticket-actions";
@@ -25,7 +24,6 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
   const deadline = cancelDeadline(t);
   const canCancel = t.status === "ACTIVE" && now < deadline.getTime();
   const nearEvent = now >= t.start_at.getTime() - 24 * 3600_000 && !finished;
-  const idType = ID_TYPE_LABEL[t.id_type as IdType] ?? t.id_type;
 
   return (
     <div className="mx-auto max-w-lg px-4 pb-8 pt-20 sm:pt-24">
@@ -77,9 +75,14 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
             </dd>
           </div>
           <div>
-            <dt className="text-muted">Identitas</dt>
+            <dt className="text-muted">Ukuran baju</dt>
+            <dd className="font-semibold">{t.shirt_size ?? "—"}</dd>
+          </div>
+          <div className="col-span-2">
+            <dt className="text-muted">NIK · Departemen</dt>
             <dd className="font-semibold">
-              {idType} •••• {t.id_last4 ?? "—"}
+              <span className="font-mono">{t.nik ?? "—"}</span>
+              {t.dept ? ` · ${t.dept}` : ""}
             </dd>
           </div>
           <div className="col-span-2">
@@ -113,7 +116,7 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
       </Card>
 
       <p className="mt-4 text-center text-sm text-muted">
-        Bawa <b>{idType} asli</b> yang sama dengan data di tiket. Tiket tidak dapat dipindahtangankan.{" "}
+        Bawa <b>ID card karyawan</b> (NIK {t.nik ?? "—"}) ke gate. Tiket tidak dapat dipindahtangankan.{" "}
         <Link href={`/event/${t.event_slug}`} className="font-semibold text-cimory-blue underline">
           Halaman event
         </Link>

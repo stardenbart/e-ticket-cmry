@@ -15,6 +15,9 @@ export type TicketView = {
   holder_name: string;
   id_type: string;
   id_last4: string | null;
+  nik: string | null;
+  dept: string | null;
+  shirt_size: string | null;
   status: "ACTIVE" | "CHECKED_IN" | "CANCELLED" | "REVOKED";
   version: number;
   email_status: string;
@@ -42,7 +45,7 @@ export type TicketView = {
 };
 
 const ticketSelect = () => sql`
-  SELECT t.id, t.event_id, t.category_id, t.user_id, t.holder_name, t.id_type, t.id_last4, t.status, t.version,
+  SELECT t.id, t.event_id, t.category_id, t.user_id, t.holder_name, t.id_type, t.id_last4, t.nik, t.dept, t.shirt_size, t.status, t.version,
          t.email_status, t.issued_at, t.cancelled_at, t.checked_in_at, t.checked_in_gate,
          e.name AS event_name, e.slug AS event_slug, e.status AS event_status, e.venue, e.address, e.city, e.timezone,
          e.start_at, e.end_at, e.gate_open_at, e.banner_url, e.thumb_url, e.cancel_deadline_hours, e.email_text,
@@ -165,13 +168,14 @@ export async function ticketPdf(t: TicketView): Promise<Uint8Array> {
     y -= 22;
   };
   line("Nama pemegang", t.holder_name);
-  line("Kategori", t.category_name);
+  line("NIK / Departemen", [t.nik, t.dept].filter(Boolean).join(" / ") || "-");
+  line("Kategori / Ukuran baju", `${t.category_name}${t.shirt_size ? " / " + t.shirt_size : ""}`);
   line("Tanggal", `${fmtDate(t.start_at, t.timezone)}, ${fmtTime(t.start_at, t.timezone)}`);
   line("Lokasi", `${t.venue}${t.city ? ", " + t.city : ""}`);
   line("ID Tiket", t.id);
 
   page.drawRectangle({ x: 20, y: 24, width: width - 40, height: 40, color: rgb(1, 0.95, 0.95) });
-  page.drawText(clean(`Bawa ${t.id_type} asli (akhiran ${t.id_last4 ?? "-"}) untuk dicocokkan di gate.`), { x: 30, y: 46, size: 9, font: bold, color: RED });
+  page.drawText(clean(`Bawa ID card karyawan (NIK ${t.nik ?? "-"}) untuk dicocokkan di gate.`), { x: 30, y: 46, size: 9, font: bold, color: RED });
   page.drawText("Jangan bagikan QR ini. Tiket tidak dapat dipindahtangankan.", { x: 30, y: 33, size: 8, font: reg, color: GREY });
 
   return doc.save();

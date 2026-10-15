@@ -6,8 +6,8 @@ import "./globals.css";
 const inter = localFont({ src: "../fonts/inter-400-700.woff2", weight: "400 700", variable: "--font-inter", display: "swap" });
 
 export const metadata: Metadata = {
-  title: { default: "E-Ticket Gathering", template: "%s · E-Ticket Gathering" },
-  description: "Klaim tiket gratis untuk event favoritmu. Satu akun, satu tiket, atas nama sendiri.",
+  title: { default: "CMD Employee Gathering 2026", template: "%s · CMD Employee Gathering 2026" },
+  description: "CMD Employee Gathering 2026 — Mooniverse by Cimory. Klaim tiket gratis khusus karyawan.",
 };
 
 export const viewport: Viewport = { themeColor: "#1B3A6F", width: "device-width", initialScale: 1 };

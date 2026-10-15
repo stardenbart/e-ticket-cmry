@@ -6,20 +6,25 @@ import { EventCard } from "@/components/site/event-card";
 import { About, Highlights, HowItWorks } from "@/components/site/landing";
 import { loadCategoryPanel } from "@/components/site/event-panel-data";
 import { FEATURED_SLUG } from "@/components/site/config";
-import { FrameTitle, Marquee, StickerNote } from "@/components/site/ornaments";
+import { FrameTitle, StickerNote } from "@/components/site/ornaments";
 
 export const dynamic = "force-dynamic";
 
-/** Waktu buka berikutnya / tutup terdekat untuk countdown hero. */
-async function heroCountdown(e: EventRow, open: boolean) {
-  const [t] = await sql<{ opens: Date | null; closes: Date | null }[]>`
-    SELECT min(open_at) FILTER (WHERE open_at > now() AND NOT is_closed) AS opens,
-           min(close_at) FILTER (WHERE open_at <= now() AND close_at > now() AND NOT is_closed AND claimed < quota) AS closes
-    FROM ticket_categories WHERE event_id = ${e.id}`;
-  if (open && t?.closes) return { label: "Pemesanan Ditutup Dalam", target: t.closes.toISOString() };
-  if (t?.opens) return { label: "Pemesanan Dibuka Dalam", target: t.opens.toISOString() };
-  if (e.start_at.getTime() > Date.now()) return { label: "Acara Dimulai Dalam", target: e.start_at.toISOString() };
-  return null;
+/**
+ * Countdown pemesanan untuk hero:
+ *   sebelum dibuka  → menuju open_at paling awal ("Pemesanan Dibuka Dalam")
+ *   sedang dibuka   → menuju close_at paling akhir ("Pemesanan Ditutup Dalam")
+ *   sudah ditutup   → label saja, tanpa hitung mundur
+ */
+async function heroCountdown(e: EventRow) {
+  const [t] = await sql<{ opens: Date | null; closes: Date | null; now: Date }[]>`
+    SELECT min(open_at) AS opens, max(close_at) AS closes, now() AS now
+    FROM ticket_categories WHERE event_id = ${e.id} AND NOT is_closed`;
+  if (!t?.opens || !t.closes) return null;
+  const now = t.now.getTime();
+  if (now < t.opens.getTime()) return { label: "Pemesanan Dibuka Dalam", target: t.opens.toISOString() };
+  if (now < t.closes.getTime()) return { label: "Pemesanan Ditutup Dalam", target: t.closes.toISOString() };
+  return { label: "Pemesanan Tiket Sudah Ditutup", target: null };
 }
 
 export default async function HomePage() {
@@ -32,7 +37,7 @@ export default async function HomePage() {
   let panelData: Awaited<ReturnType<typeof loadCategoryPanel>> | null = null;
   if (featuredRow) {
     const badge = featuredCard?.badge;
-    const [countdown, pd] = await Promise.all([heroCountdown(featuredRow, badge?.key === "OPEN"), loadCategoryPanel(featuredRow)]);
+    const [countdown, pd] = await Promise.all([heroCountdown(featuredRow), loadCategoryPanel(featuredRow)]);
     panelData = pd;
     slides = [
       {
@@ -50,7 +55,6 @@ export default async function HomePage() {
   return (
     <div>
       <HeroCarousel slides={slides} />
-      <Marquee className="-mt-px" />
 
       {featuredRow && panelData ? (
         <>
@@ -61,7 +65,7 @@ export default async function HomePage() {
       ) : (
         <div className="mx-auto max-w-xl px-4 pt-16">
           <StickerNote sticker="cowChill" title="Event segera diumumkan">
-            Pantau terus halaman ini — Mooniverse akan segera membuka pendaftaran.
+            Pantau terus halaman ini — pendaftaran CMD Employee Gathering 2026 akan segera dibuka.
           </StickerNote>
         </div>
       )}
