@@ -13,7 +13,7 @@ export function SiteFooter() {
           <Logo size="lg" />
           <CimoryLogo size="lg" />
         </div>
-        <p className="mx-auto mt-5 max-w-md text-sm text-[#c9d3ff]">
+        <p className="mx-auto mt-5 max-w-md text-balance text-sm text-[#c9d3ff]">
           Tiket gratis khusus karyawan PT Cisarua Mountain Dairy Tbk.
           <br />
           Satu NIK, satu tiket, atas nama sendiri.
