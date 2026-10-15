@@ -1,6 +1,6 @@
 "use client";
 
-// Input biodata karyawan: NIK (format 04.XXXXX / A1.XX.XXXX) dan nama HURUF KAPITAL sesuai KTP.
+// Input biodata karyawan: NIK (format 04.xxxx / A1.xx.xxxx) dan nama HURUF KAPITAL sesuai KTP.
 import { Field, Input, Select } from "@/components/ui";
 import { SHIRT_SIZES, cleanNik, nikCategory, validateName } from "@/lib/employee-shared";
 
@@ -16,7 +16,7 @@ export function NikField({ value, onChange, error, id = "nik" }: { value: string
           <span className="text-ok">✓ Format NIK karyawan {cat === "CMD" ? "CMD" : "OS (outsourcing)"}</span>
         ) : (
           <>
-            Format: <b>04.XXXXX</b> untuk karyawan CMD, <b>A1.XX.XXXX</b> untuk karyawan OS (X = angka).
+            Format: <b>04.xxxx</b> untuk karyawan CMD, <b>A1.xx.xxxx</b> untuk karyawan OS (x = angka; jumlah digit boleh berbeda).
           </>
         )
       }
@@ -30,7 +30,7 @@ export function NikField({ value, onChange, error, id = "nik" }: { value: string
         autoCapitalize="characters"
         spellCheck={false}
         inputMode="text"
-        maxLength={12}
+        maxLength={16}
         className="font-mono tracking-wider"
       />
     </Field>
@@ -79,7 +79,7 @@ export function ShirtSizeField({ value, onChange, error, id = "shirtSize" }: { v
 /** Validasi di browser (server tetap memvalidasi ulang). */
 export function checkBiodata(nik: string, name: string): Record<string, string> {
   const fe: Record<string, string> = {};
-  if (!nikCategory(cleanNik(nik))) fe.nik = "NIK tidak sesuai format: 04.XXXXX (CMD) atau A1.XX.XXXX (OS).";
+  if (!nikCategory(cleanNik(nik))) fe.nik = "NIK tidak sesuai format: 04.xxxx (CMD) atau A1.xx.xxxx (OS).";
   const n = validateName(name);
   if (!n.ok) fe.fullName = n.message;
   return fe;

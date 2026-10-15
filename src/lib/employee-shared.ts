@@ -2,13 +2,13 @@
 
 export type EmployeeCategory = "CMD" | "OS";
 
-/** CMD: 04.XXXXX — OS (outsourcing): A1.XX.XXXX. X = angka. */
+/** CMD: 04.xxxx — OS (outsourcing): A1.xx.xxxx. x = angka, jumlah digit boleh berbeda. */
 export const NIK_PATTERNS: Record<EmployeeCategory, RegExp> = {
-  CMD: /^04\.\d{5}$/,
-  OS: /^A1\.\d{2}\.\d{4}$/,
+  CMD: /^04\.\d{1,8}$/,
+  OS: /^A1\.\d{1,4}\.\d{1,8}$/,
 };
 
-export const NIK_HINT = "Format NIK: 04.XXXXX untuk karyawan CMD, A1.XX.XXXX untuk karyawan OS (X = angka).";
+export const NIK_HINT = "Format NIK: 04.xxxx untuk karyawan CMD, A1.xx.xxxx untuk karyawan OS (x = angka; jumlah digit boleh berbeda).";
 
 export const SHIRT_SIZES = ["2S", "3S", "4S", "XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL", "5XL"] as const;
 export type ShirtSize = (typeof SHIRT_SIZES)[number];

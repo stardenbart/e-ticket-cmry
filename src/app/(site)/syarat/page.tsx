@@ -9,7 +9,7 @@ export default function TermsPage() {
     <ProsePage title="Syarat & Ketentuan" updated="15 Oktober 2026">
       <h2>1. Akun</h2>
       <ul>
-        <li>Pendaftaran khusus karyawan yang ada di daftar karyawan, memakai NIK sendiri (CMD: 04.XXXXX · OS: A1.XX.XXXX).</li>
+        <li>Pendaftaran khusus karyawan yang ada di daftar karyawan, memakai NIK sendiri (CMD: 04.xxxx · OS: A1.xx.xxxx).</li>
         <li>Nama ditulis dengan HURUF KAPITAL sesuai KTP dan harus sama dengan data karyawan.</li>
         <li>Wajib memakai email aktif milik sendiri — tiket QR dikirim ke email tersebut. Email dari layanan sekali pakai tidak diterima.</li>
         <li>Anda bertanggung jawab menjaga kerahasiaan password. Panitia tidak pernah meminta password atau kode reset Anda.</li>

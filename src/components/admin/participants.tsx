@@ -279,7 +279,7 @@ function ActionModal({ action, onClose, onDone }: { action: NonNullable<Action>;
             <Alert tone="blue">
               Tautkan akun pemegang ke NIK lain dari Data Karyawan. Nama akun mengikuti data karyawan. Perubahan tercatat di audit log.
             </Alert>
-            <Field label="NIK karyawan" htmlFor="i-nik" hint="Format 04.XXXXX (CMD) atau A1.XX.XXXX (OS).">
+            <Field label="NIK karyawan" htmlFor="i-nik" hint="Format 04.xxxx (CMD) atau A1.xx.xxxx (OS).">
               <Input id="i-nik" value={nik} onChange={(e) => setNik(e.target.value.toUpperCase().replace(/\s+/g, ""))} autoComplete="off" className="font-mono" />
             </Field>
             <label className="flex items-start gap-2 rounded-xl border border-line p-3">

@@ -104,7 +104,7 @@ export function Highlights() {
 }
 
 const STEPS = [
-  ["Daftar dengan NIK", "Buat akun memakai NIK karyawan (CMD: 04.XXXXX · OS: A1.XX.XXXX), nama sesuai KTP, email, dan password."],
+  ["Daftar dengan NIK", "Buat akun memakai NIK karyawan (CMD: 04.xxxx · OS: A1.xx.xxxx), nama sesuai KTP, email, dan password."],
   ["Masuk Antrean", "Antrean dibuka 10 menit sebelum pemesanan. Urutan diacak saat dibuka agar adil bagi semua."],
   ["Klaim Tiket", "Saat giliran tiba, isi ulang nama, NIK, dan ukuran baju. Sistem mencocokkan dengan daftar karyawan."],
   ["Datang ke Gate", "QR dikirim ke email dan tersedia di Tiket Saya. Bawa ID card karyawan untuk dicocokkan."],

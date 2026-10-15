@@ -126,7 +126,7 @@ const DESC = `<p>Gathering tahunan untuk keluarga besar dan komunitas. Nikmati p
 const DESC_MOONIVERSE = `<p><strong>Mooniverse — Cimory Employee Gathering 2026</strong>: malam kebersamaan seluruh karyawan Cimory bertema neon, tempat <strong>Good Food Good Mood</strong> bertemu panggung megah. MOO, maskot sapi berkacamata VR, siap menyambut kamu!</p>
 <h3>Highlight</h3><ul><li>Konser live di panggung neon MOO</li><li>Area kuliner &amp; sampling produk Cimory</li><li>Photo spot menara MOO &amp; blimp neon</li><li>Light stick untuk seluruh karyawan</li></ul>
 <p>Moo brings us together! Tiket gratis, terbatas, khusus karyawan yang terdaftar, dan <strong>atas nama pemilik NIK</strong>. Bawa ID card karyawan saat masuk.</p>`;
-const TERMS = `<ol><li>Hanya karyawan yang terdaftar di daftar peserta (NIK CMD 04.XXXXX / OS A1.XX.XXXX) yang dapat memesan tiket.</li>
+const TERMS = `<ol><li>Hanya karyawan yang terdaftar di daftar peserta (NIK CMD 04.xxxx / OS A1.xx.xxxx) yang dapat memesan tiket.</li>
 <li>Satu NIK hanya bisa memegang satu tiket. Tiket atas nama pemilik NIK dan tidak dapat dipindahtangankan.</li>
 <li>Pengunjung wajib membawa ID card karyawan; nama dan NIK dicocokkan di gate.</li><li>Panitia berhak menolak masuk jika data tidak cocok.</li>
 <li>Pembatalan tiket hanya bisa dilakukan sebelum batas waktu yang ditentukan.</li></ol>`;

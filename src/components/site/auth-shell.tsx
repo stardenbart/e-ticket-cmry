@@ -18,7 +18,7 @@ export function AuthShell({ title, subtitle, children, aside }: { title: string;
           <p className="mt-3 max-w-md text-[#dbe4ff]">Khusus karyawan yang terdaftar di daftar karyawan. Satu NIK, satu tiket, atas nama sendiri — QR dikirim ke email Anda.</p>
           {aside ?? (
             <ul className="mt-6 space-y-3 text-left text-sm text-white">
-              {["Daftar dengan NIK: 04.XXXXX (CMD) atau A1.XX.XXXX (OS)", "Nama ditulis HURUF KAPITAL sesuai KTP", "QR selalu tersedia di Tiket Saya"].map((t) => (
+              {["Daftar dengan NIK: 04.xxxx (CMD) atau A1.xx.xxxx (OS)", "Nama ditulis HURUF KAPITAL sesuai KTP", "QR selalu tersedia di Tiket Saya"].map((t) => (
                 <li key={t} className="flex items-center gap-3">
                   <span aria-hidden className="grid size-7 place-items-center rounded-sm border border-[#9afcff] text-xs font-bold text-[#9afcff] shadow-[0_0_10px_rgba(154,252,255,0.5)]">✓</span>
                   {t}

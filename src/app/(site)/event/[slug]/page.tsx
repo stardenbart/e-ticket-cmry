@@ -98,7 +98,7 @@ export default async function EventDetailPage({ params }: Props) {
           <div className="rounded-2xl bg-amber-50 p-4 text-sm text-warn ring-1 ring-amber-200">
             <p className="font-semibold">Tiket atas nama sendiri</p>
             <p className="mt-0.5 text-amber-900">
-              Khusus karyawan yang ada di daftar karyawan. Saat klaim, isi ulang nama (HURUF KAPITAL sesuai KTP), NIK (CMD: 04.XXXXX · OS: A1.XX.XXXX), dan ukuran baju. Di gate, nama & NIK dicocokkan dengan ID card karyawan. Tiket tidak dapat dipindahtangankan.
+              Khusus karyawan yang ada di daftar karyawan. Saat klaim, isi ulang nama (HURUF KAPITAL sesuai KTP), NIK (CMD: 04.xxxx · OS: A1.xx.xxxx), dan ukuran baju. Di gate, nama & NIK dicocokkan dengan ID card karyawan. Tiket tidak dapat dipindahtangankan.
             </p>
           </div>
         </div>

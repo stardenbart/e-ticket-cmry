@@ -94,7 +94,7 @@ export function normalizeEmployee(raw: { nik: unknown; name: unknown; dept: unkn
   const catRaw = String(raw.category ?? "").trim().toUpperCase();
   const fromNik = nikCategory(nik);
   if (!nik) errors.push("NIK kosong");
-  else if (!fromNik) errors.push(`NIK "${nik}" tidak sesuai format 04.XXXXX (CMD) / A1.XX.XXXX (OS)`);
+  else if (!fromNik) errors.push(`NIK "${nik}" tidak sesuai format 04.xxxx (CMD) / A1.xx.xxxx (OS)`);
   if (!name) errors.push("Nama kosong");
   else if (name.length > 150) errors.push("Nama terlalu panjang");
   else if (!/^[A-Z0-9 .,'\-]+$/.test(name)) errors.push("Nama mengandung karakter tidak valid");
@@ -107,9 +107,12 @@ export function normalizeEmployee(raw: { nik: unknown; name: unknown; dept: unkn
   return { ok: true, value: { nik, name, dept, category } };
 }
 
-/** NIK dari sel Excel. Bila Excel mengubah "04.12345" jadi angka 4.12345, kembalikan ke format teks. */
+/**
+ * NIK dari sel Excel. Bila Excel mengubah "04.0018" jadi angka 4.0018, kembalikan dengan menambah "0" di depan.
+ * (Nol di akhir yang sudah dibuang Excel, mis. 04.0010 → 4.001, tidak bisa ditebak — format kolom NIK sebagai Teks.)
+ */
 function normalizeNikCell(v: unknown): string {
-  if (typeof v === "number" && v >= 4 && v < 5) return `04.${(v - 4).toFixed(5).slice(2)}`;
+  if (typeof v === "number" && v >= 4 && v < 5) return `0${String(v)}`;
   if (v && typeof v === "object" && "text" in (v as Record<string, unknown>)) v = (v as { text: unknown }).text;
   if (v && typeof v === "object" && "result" in (v as Record<string, unknown>)) v = (v as { result: unknown }).result;
   return String(v ?? "").toUpperCase().replace(/\s+/g, "");
@@ -343,7 +346,7 @@ export async function templateXlsx() {
   help.getColumn(1).width = 110;
   [
     "Isi sheet \"Data Karyawan\" mulai baris 2 (hapus 2 baris contoh). Kolom wajib: NIK, Nama Pegawai, Dept, Kategori.",
-    "NIK karyawan CMD: 04.XXXXX (contoh 04.12345). NIK karyawan OS: A1.XX.XXXX (contoh A1.23.4567). X = angka.",
+    "NIK karyawan CMD: 04.xxxx (contoh 04.0018 atau 04.12345). NIK karyawan OS: A1.xx.xxxx (contoh A1.23.4567). x = angka, jumlah digit boleh berbeda.",
     "Kolom NIK sudah berformat Teks — jangan diubah ke angka, agar \"04.\" tidak hilang.",
     "Nama Pegawai: nama lengkap sesuai KTP. Disimpan dalam HURUF KAPITAL; peserta harus mengetik nama yang sama saat daftar & pemesanan.",
     "Kategori: CMD atau OS (boleh dikosongkan — akan diisi otomatis dari format NIK).",

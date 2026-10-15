@@ -309,7 +309,7 @@ function EditModal({ row, onClose, onSaved }: { row: Row | null; onClose: () => 
       <div className="space-y-4">
         {err && <Alert tone="red">{err}</Alert>}
         {row?.user_id && <Alert tone="blue">Karyawan ini sudah punya akun ({row.user_email}). Nama akun ikut diperbarui; NIK tidak bisa diganti.</Alert>}
-        <Field label="NIK" htmlFor="e-nik" hint="04.XXXXX untuk CMD, A1.XX.XXXX untuk OS.">
+        <Field label="NIK" htmlFor="e-nik" hint="04.xxxx untuk CMD, A1.xx.xxxx untuk OS.">
           <Input id="e-nik" value={f.nik} disabled={!!row?.user_id} onChange={(e) => setF({ ...f, nik: e.target.value.toUpperCase().replace(/\s+/g, "") })} className="font-mono" />
         </Field>
         <Field label="Nama Pegawai (sesuai KTP)" htmlFor="e-name" hint="Disimpan dalam huruf kapital.">
