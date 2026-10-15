@@ -21,7 +21,7 @@ export function About({ e, panel }: { e: EventRow; panel: PanelProps }) {
     <section id="acara" aria-labelledby="acara-title" className="relative scroll-mt-24 overflow-hidden pt-20 sm:pt-24">
 
       <div className="relative mx-auto max-w-6xl px-4">
-        <FrameTitle sub="Malam kebersamaan seluruh karyawan CMD.">
+        <FrameTitle sub="Rayakan keseruan-Moo bersama CMD Plant Sentul">
           <span id="acara-title">Tentang Acara</span>
         </FrameTitle>
 
