@@ -21,12 +21,22 @@ type QaUser = { id: string; cookie: string; nik: string; name: string };
 // NIK uji format OS: A1.<2 digit dari RUN>.<4 digit urut> — dibuat juga sebagai karyawan eligible.
 const NIK_YY = String(parseInt(RUN, 16) % 100).padStart(2, "0");
 let nikSeq = 0;
+const toLetters = (n: number) => {
+  let out = "";
+  do {
+    out = String.fromCharCode(65 + (n % 26)) + out;
+    n = Math.floor(n / 26);
+  } while (n > 0);
+  return out.padStart(3, "A");
+};
 
 async function makeUsers(n: number, prefix: string): Promise<QaUser[]> {
   const users: QaUser[] = [];
   const rows = Array.from({ length: n }, (_, i) => {
-    const nik = `A1.${NIK_YY}.${String(nikSeq++).padStart(4, "0")}`;
-    const name = `QA ${prefix.toUpperCase()} ${i}`;
+    const seq = nikSeq++;
+    const nik = `A1.${NIK_YY}.${String(seq).padStart(4, "0")}`;
+    // Nama sesuai aturan KTP: huruf saja (angka urut dikodekan jadi huruf, mis. 27 → "BB").
+    const name = `QA PESERTA ${toLetters(seq)}`;
     return { nik, name, email: `${prefix}${i}-${RUN}@qa.local` };
   });
   for (let i = 0; i < rows.length; i += 500) {
