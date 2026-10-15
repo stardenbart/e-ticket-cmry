@@ -36,10 +36,10 @@ echo "→ build image eticket-app:$SHA"
 podman build -q -t "eticket-app:$SHA" "src-$SHA" >/dev/null
 
 PG_PW="$(grep -E '^POSTGRES_PASSWORD=' .env | cut -d= -f2-)"
+podman rm -f eticket_staging >/dev/null 2>&1 || true
 podman exec eticket_postgres dropdb -U eticket --if-exists eticket_staging
 podman exec eticket_postgres createdb -U eticket eticket_staging
 podman exec eticket_redis redis-cli -n 1 FLUSHDB >/dev/null
-podman rm -f eticket_staging >/dev/null 2>&1 || true
 
 podman run -d --name eticket_staging --network eticket_network --env-file .env \
   -e DATABASE_URL="postgres://eticket:${PG_PW}@eticket_postgres:5432/eticket_staging" \
