@@ -7,23 +7,16 @@ import { splitDuration, useServerNow } from "./use-server-now";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
+/** Satu kotak per satuan waktu (mis. "17"), gaya sama dengan countdown hero. */
 function FlipUnit({ value, label, size }: { value: string; label: string; size: "sm" | "lg" }) {
   return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="flex gap-0.5" style={{ perspective: "300px" }}>
-        {value.split("").map((ch, i) => (
-          <span
-            key={`${i}-${ch}`}
-            className={cx(
-              "flip-digit mv-count-box font-digits grid place-items-center rounded-lg font-extrabold tabular-nums",
-              size === "lg" ? "h-12 w-9 text-2xl sm:h-14 sm:w-10 sm:text-3xl" : "h-8 w-6 text-base",
-            )}
-          >
-            {ch}
-          </span>
-        ))}
+    <div className="flex flex-col items-center gap-1.5">
+      <div className={cx("mv-count-box grid place-items-center", size === "lg" ? "size-[60px] rounded-2xl sm:size-[68px]" : "size-11 rounded-xl")}>
+        <span key={value} className={cx("flip-digit font-digits font-extrabold tabular-nums", size === "lg" ? "text-2xl sm:text-3xl" : "text-lg")}>
+          {value}
+        </span>
       </div>
-      <span className={cx("font-hud font-semibold uppercase tracking-[0.14em] text-[#eef2ff]", size === "lg" ? "text-xs" : "text-[10px]")}>{label}</span>
+      <span className={cx("font-hud font-bold uppercase tracking-[0.18em] text-[#9afcff]", size === "lg" ? "text-[11px]" : "text-[10px]")}>{label}</span>
     </div>
   );
 }
@@ -46,8 +39,8 @@ export function FlipCountdown({ target, size = "sm", onDone, className }: { targ
   const { d, h, m, s } = splitDuration(remaining);
   const label = `${d} hari ${h} jam ${m} menit ${s} detik lagi`;
   return (
-    <div className={cx("flex items-start gap-2", className)} role="timer" aria-label={label}>
-      {d > 0 && <FlipUnit value={String(d)} label="Hari" size={size} />}
+    <div className={cx("flex items-start gap-3", className)} role="timer" aria-label={label}>
+      {d > 0 && <FlipUnit value={pad(d)} label="Hari" size={size} />}
       <FlipUnit value={pad(h)} label="Jam" size={size} />
       <FlipUnit value={pad(m)} label="Menit" size={size} />
       <FlipUnit value={pad(s)} label="Detik" size={size} />

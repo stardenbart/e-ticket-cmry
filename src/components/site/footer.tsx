@@ -14,7 +14,9 @@ export function SiteFooter() {
           <CimoryLogo size="lg" />
         </div>
         <p className="mx-auto mt-5 max-w-md text-sm text-[#c9d3ff]">
-          Tiket gratis khusus karyawan PT Cisarua Mountain Dairy Tbk. Satu NIK, satu tiket, atas nama sendiri.
+          Tiket gratis khusus karyawan PT Cisarua Mountain Dairy Tbk.
+          <br />
+          Satu NIK, satu tiket, atas nama sendiri.
         </p>
         <nav aria-label="Tautan footer" className="mt-6 flex flex-wrap justify-center gap-1">
           <Link href="/" className={link}>Beranda</Link>
