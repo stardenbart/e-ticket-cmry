@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { GridFloor, MvImg, Sparkle } from "./ornaments";
 import { BoxCountdown } from "./countdown";
-import { CimoryLogo } from "./header";
 
 export type HeroSlide = {
   slug: string;
@@ -42,10 +41,8 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
         <GridFloor className="h-24 opacity-70 sm:h-32" />
       </div>
 
-      <div className="relative mx-auto flex min-h-[600px] max-w-5xl flex-col items-center px-4 pb-24 pt-28 text-center sm:min-h-[700px] sm:pb-32 sm:pt-32">
+      <div className="relative mx-auto flex min-h-[600px] max-w-5xl flex-col items-center px-4 pb-24 pt-20 text-center sm:min-h-[700px] sm:pb-32 sm:pt-20">
         <div className="flex animate-fade-up flex-col items-center">
-          {/* Logo Cimory untuk HP & tablet (di header hanya tampil di desktop) */}
-          <CimoryLogo className="mb-3 lg:hidden" />
           <div className="flex items-center justify-center lg:gap-4">
             <h1 className="m-0">
               <span className="sr-only">CMD Employee Gathering 2026 — Mooniverse</span>
@@ -54,7 +51,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
                 eager
                 srcSet="/images/brand/mooniverse-title-640.webp 640w, /images/brand/mooniverse-title-1200.webp 819w"
                 sizes="(min-width: 768px) 600px, 90vw"
-                className="h-auto w-[min(90vw,600px)]"
+                className="h-auto w-[min(90vw,600px,62svh)]"
               />
             </h1>
             {/* Maskot hidup di samping judul (desktop saja; lazy → tidak diunduh di HP karena tersembunyi) */}
@@ -68,7 +65,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
               <p className="font-hud mt-3 text-lg font-semibold tracking-wide text-white sm:text-xl">
                 {s.date} <span className="mx-1 text-[#f714f7]">✦</span> {s.place}
               </p>
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
                 <Link
                   href="#tiket"
                   className="font-hud inline-flex h-12 items-center gap-2 rounded-full bg-[linear-gradient(100deg,#f714f7,#9b2cf5_50%,#0827b5)] px-7 text-lg font-bold uppercase tracking-[0.12em] text-white shadow-[0_0_18px_rgba(247,20,247,0.5)] transition hover:brightness-110"
@@ -87,7 +84,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
         </div>
 
         {s?.countdown && (
-          <div className="mt-9">
+          <div className="mt-6">
             <h2 className="font-hud text-base font-bold uppercase tracking-[0.3em] text-[#9afcff] sm:text-lg">{s.countdown.label}</h2>
             {s.countdown.target ? (
               <BoxCountdown target={s.countdown.target} className="mt-4 justify-center" />
