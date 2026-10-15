@@ -188,7 +188,7 @@ export function Employees() {
                 <Td>{r.dept || "—"}</Td>
                 <Td>{r.category}</Td>
                 <Td>
-                  <Badge tone={STATUS[r.status].tone}>{STATUS[r.status].label}</Badge>
+                  <Badge tone={STATUS[r.status].tone} className="whitespace-nowrap">{STATUS[r.status].label}</Badge>
                 </Td>
                 <Td>
                   {r.user_email ? (

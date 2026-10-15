@@ -56,7 +56,7 @@ export function AdminSidebar({ superAdmin, name, email }: { superAdmin: boolean;
         )}
       >
         <div className="bg-cimory-gradient px-5 py-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-80">E-Ticket Gathering</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-80">CMD Employee Gathering 2026</p>
           <p className="text-lg font-bold">Panel Admin</p>
         </div>
         <nav className="flex-1 space-y-1 px-3 py-4">

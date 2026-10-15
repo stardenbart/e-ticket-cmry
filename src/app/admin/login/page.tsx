@@ -76,7 +76,7 @@ function AdminLogin() {
     <div className="grid min-h-dvh place-items-center bg-cimory-light px-4 py-10">
       <div className="w-full max-w-md overflow-hidden rounded-2xl border border-line bg-white shadow-lg">
         <div className="bg-cimory-gradient px-7 py-6 text-white">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">E-Ticket Gathering</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">CMD Employee Gathering 2026</p>
           <h1 className="mt-1 text-2xl font-bold">Panel Admin</h1>
           <p className="mt-1 text-sm opacity-90">Login dengan verifikasi 2 langkah (OTP email).</p>
         </div>
