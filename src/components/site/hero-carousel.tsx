@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GridFloor, MascotLive, MvImg, Sparkle } from "./ornaments";
+import { GridFloor, MvImg, Sparkle } from "./ornaments";
 import { BoxCountdown } from "./countdown";
 import { CimoryLogo } from "./header";
 
@@ -22,27 +22,30 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
   const s = slides[0];
   return (
     <section aria-label="Event utama" className="relative -mt-20 overflow-hidden">
-      <picture>
-        <source media="(min-width: 900px)" srcSet="/images/mooniverse/stage-hero-1600.webp" />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/images/mooniverse/stage-hero-900.webp"
-          alt=""
-          aria-hidden
-          width={1600}
-          height={1067}
-          fetchPriority="high"
-          decoding="async"
-          className="absolute inset-0 size-full object-cover object-[50%_18%] md:object-[50%_30%]"
-        />
-      </picture>
-      <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,10,23,0.7)_0%,rgba(2,10,23,0.55)_35%,rgba(2,10,23,0.85)_72%,#020a17_100%)]" />
-      <GridFloor className="h-24 opacity-70 sm:h-32" />
+      {/* Latar hero memudar ke transparan di bagian bawah → menyatu halus dengan latar halaman (tanpa garis batas). */}
+      <div aria-hidden className="mv-hero-fade pointer-events-none absolute inset-0">
+        <picture>
+          <source media="(min-width: 900px)" srcSet="/images/mooniverse/stage-hero-1600.webp" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/mooniverse/stage-hero-900.webp"
+            alt=""
+            aria-hidden
+            width={1600}
+            height={1067}
+            fetchPriority="high"
+            decoding="async"
+            className="absolute inset-0 size-full object-cover object-[50%_18%] md:object-[50%_30%]"
+          />
+        </picture>
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,10,23,0.7)_0%,rgba(2,10,23,0.55)_35%,rgba(2,10,23,0.75)_70%,rgba(2,10,23,0.6)_100%)]" />
+        <GridFloor className="h-24 opacity-70 sm:h-32" />
+      </div>
 
       <div className="relative mx-auto flex min-h-[600px] max-w-5xl flex-col items-center px-4 pb-24 pt-28 text-center sm:min-h-[700px] sm:pb-32 sm:pt-32">
         <div className="flex animate-fade-up flex-col items-center">
-          {/* Logo Cimory untuk layar kecil (di header hanya tampil mulai sm) */}
-          <CimoryLogo className="mb-3 sm:hidden" />
+          {/* Logo Cimory untuk HP & tablet (di header hanya tampil di desktop) */}
+          <CimoryLogo className="mb-3 lg:hidden" />
           <div className="flex items-center justify-center lg:gap-4">
             <h1 className="m-0">
               <span className="sr-only">CMD Employee Gathering 2026 — Mooniverse</span>
@@ -55,7 +58,6 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
               />
             </h1>
             {/* Maskot hidup di samping judul (desktop saja; lazy → tidak diunduh di HP karena tersembunyi) */}
-            <MascotLive className="hidden w-40 shrink-0 lg:block xl:w-48" />
           </div>
 
           {s && (

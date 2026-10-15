@@ -39,7 +39,8 @@ export async function SiteHeader() {
         <Logo />
         <div className="flex items-center gap-2">
           <PillNav />
-          <CimoryLogo className="hidden sm:inline-flex" />
+          {/* Disembunyikan di HP & tablet agar header tidak sesak. */}
+          <CimoryLogo className="hidden lg:inline-flex" />
           <UserMenu user={user} />
         </div>
       </div>
