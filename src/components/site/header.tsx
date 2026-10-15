@@ -20,8 +20,11 @@ export function Logo({ size = "md" }: { size?: "md" | "lg" }) {
 
 /** Logo Cimory pada latar terang kecil agar tetap terbaca di tema gelap. */
 export function CimoryLogo({ size = "md", className = "" }: { size?: "md" | "lg"; className?: string }) {
+  // Bila pemanggil menentukan display (mis. "hidden lg:inline-flex"), jangan tambahkan inline-flex bawaan —
+  // keduanya class dasar dan urutan CSS-nya membuat "hidden" kalah.
+  const display = /(^|\s)(hidden|block|flex|inline-flex)(\s|$)/.test(className) ? "" : "inline-flex";
   return (
-    <span className={`inline-flex items-center rounded-full bg-white/95 px-2.5 py-1 ${className}`}>
+    <span className={`${display} items-center rounded-full bg-white/95 px-2.5 py-1 ${className}`}>
       <MvImg name={size === "lg" ? "cimory" : "cimorySm"} alt="Cimory" eager={size !== "lg"} className={`${size === "lg" ? "h-12" : "h-7"} w-auto`} />
     </span>
   );
