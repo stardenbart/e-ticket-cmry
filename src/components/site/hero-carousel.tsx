@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GridFloor, MvImg, Sparkle } from "./ornaments";
+import { GridFloor, Lasers, LightStick, MvImg, Sparkle } from "./ornaments";
 import { BoxCountdown } from "./countdown";
 
 export type HeroSlide = {
@@ -39,6 +39,9 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
         </picture>
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,10,23,0.7)_0%,rgba(2,10,23,0.55)_35%,rgba(2,10,23,0.75)_70%,rgba(2,10,23,0.6)_100%)]" />
         <GridFloor className="h-24 opacity-70 sm:h-32" />
+        <Lasers />
+        <LightStick color="magenta" className="absolute bottom-40 left-[4%] hidden w-40 md:block" />
+        <LightStick color="cyan" className="absolute bottom-48 right-[5%] hidden w-44 md:block" />
       </div>
 
       <div className="relative mx-auto flex min-h-[max(600px,100svh)] max-w-5xl flex-col items-center justify-center px-4 pb-14 pt-28 text-center sm:pb-16">

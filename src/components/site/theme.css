@@ -383,3 +383,30 @@
   -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 58%, rgb(0 0 0 / 0.55) 80%, transparent 100%);
   mask-image: linear-gradient(180deg, #000 0%, #000 58%, rgb(0 0 0 / 0.55) 80%, transparent 100%);
 }
+
+/* Sinar laser hero: menyapu pelan (transform saja, tanpa animasi filter). */
+.mv-laser {
+  position: absolute;
+  bottom: 0;
+  width: 3px;
+  height: 120%;
+  transform-origin: 50% 100%;
+  border-radius: 3px;
+  will-change: transform;
+  animation: mv-sweep 6s ease-in-out infinite alternate;
+}
+.mv-laser.pink { background: linear-gradient(0deg, rgb(247 20 247 / 0.9), transparent 90%); box-shadow: 0 0 14px rgb(247 20 247 / 0.8); }
+.mv-laser.cyan { background: linear-gradient(0deg, rgb(154 252 255 / 0.9), transparent 90%); box-shadow: 0 0 14px rgb(154 252 255 / 0.8); }
+@keyframes mv-sweep { from { transform: rotate(var(--from, -22deg)); } to { transform: rotate(var(--to, 18deg)); } }
+
+/* Light stick berayun + berdenyut (opacity, bukan filter). */
+.mv-stick { transform-origin: 15% 85%; will-change: transform; animation: mv-stick-sway 4.5s ease-in-out infinite, mv-stick-pulse 2.2s ease-in-out infinite; }
+.mv-stick-alt { animation-duration: 5.5s, 2.8s; animation-delay: -1.5s, -0.7s; }
+@keyframes mv-stick-sway { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(7deg); } }
+@keyframes mv-stick-pulse { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
+.mv-clip-stick-cyan { clip-path: inset(0 8% 0 0); }
+.mv-clip-stick-magenta { clip-path: inset(0 0 0 6%); }
+
+@media (prefers-reduced-motion: reduce) {
+  .mv-laser, .mv-stick { animation: none; }
+}

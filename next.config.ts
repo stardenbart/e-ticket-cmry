@@ -32,6 +32,9 @@ const nextConfig: NextConfig = {
           ...(isDev || process.env.COOKIE_SECURE === "false" ? [] : [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }]),
         ],
       },
+      // Service worker & manifest selalu dicek ulang agar pembaruan cepat sampai ke aplikasi terpasang.
+      { source: "/sw-site.js", headers: [{ key: "Cache-Control", value: "no-cache" }] },
+      { source: "/app.webmanifest", headers: [{ key: "Cache-Control", value: "no-cache" }, { key: "Content-Type", value: "application/manifest+json" }] },
     ];
   },
 };

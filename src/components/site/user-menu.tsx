@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { FEATURED_PATH } from "./config";
+import { InstallMenuItem } from "./pwa";
 
 type U = { name: string; email: string; isAdmin: boolean; isStaff: boolean } | null;
 
@@ -97,6 +98,7 @@ export function UserMenu({ user }: { user: U }) {
               <Link href="/daftar" className={item} role="menuitem">Daftar akun</Link>
             </>
           )}
+          <InstallMenuItem className={item} />
         </div>
       )}
     </div>

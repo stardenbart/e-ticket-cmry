@@ -1,4 +1,4 @@
-// Ornamen tema MOONIVERSE. Sengaja ringan: dekorasi statis, animasi hanya kepala maskot (transform).
+// Ornamen tema MOONIVERSE. Sengaja ringan: animasi hanya transform/opacity (laser, light stick, kepala maskot).
 import type { CSSProperties, ReactNode } from "react";
 import { cx } from "@/components/ui";
 
@@ -113,9 +113,25 @@ export function GridFloor({ className }: { className?: string }) {
   );
 }
 
-/** Sinar laser — dinonaktifkan agar halaman ringan (ekspor dipertahankan untuk kompatibilitas). */
-export function Lasers(_props: { className?: string }) {
-  return null;
+/** Sinar laser yang menyapu dari bawah. Hanya transform + opacity agar tetap ringan; 2 sinar di HP, 4 di layar lebar. */
+export function Lasers({ className }: { className?: string }) {
+  const beams: { left: string; c: "pink" | "cyan"; from: string; to: string; delay: string; wide?: boolean }[] = [
+    { left: "8%", c: "cyan", from: "-30deg", to: "-8deg", delay: "0s" },
+    { left: "22%", c: "pink", from: "-18deg", to: "12deg", delay: "-2s", wide: true },
+    { left: "78%", c: "pink", from: "10deg", to: "-16deg", delay: "-1s", wide: true },
+    { left: "92%", c: "cyan", from: "28deg", to: "6deg", delay: "-3s" },
+  ];
+  return (
+    <div aria-hidden className={cx("pointer-events-none absolute inset-x-0 top-0 bottom-[20%] overflow-hidden opacity-70", className)}>
+      {beams.map((b, i) => (
+        <span
+          key={i}
+          className={cx("mv-laser", b.c, b.wide && "hidden md:block")}
+          style={{ left: b.left, "--from": b.from, "--to": b.to, animationDelay: b.delay } as CSSProperties}
+        />
+      ))}
+    </div>
+  );
 }
 
 /** Pembatas section: garis neon dengan ikon di tengah. */
@@ -175,9 +191,18 @@ export function StickerNote({ sticker = "cowChill", title, children, action, cla
   );
 }
 
-/** Light stick — dinonaktifkan agar halaman ringan (ekspor dipertahankan). */
-export function LightStick(_props: { color: "cyan" | "magenta"; className?: string }) {
-  return null;
+/** Light stick berayun (dekorasi). */
+export function LightStick({ color, className }: { color: "cyan" | "magenta"; className?: string }) {
+  return (
+    <MvImg
+      name={color === "cyan" ? "stickCyan" : "stickMagenta"}
+      className={cx(
+        "mv-stick pointer-events-none h-auto",
+        color === "cyan" ? "mv-clip-stick-cyan" : "mv-clip-stick-magenta mv-stick-alt",
+        className,
+      )}
+    />
+  );
 }
 
 /** Sapi garis neon (dekorasi statis). */

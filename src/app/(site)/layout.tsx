@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site/header";
 import { SiteFooter } from "@/components/site/footer";
 import { StarSky } from "@/components/site/ornaments";
 import { HelpBubble, RevealOnScroll } from "@/components/site/site-chrome";
+import { PwaSetup } from "@/components/site/pwa";
 
 // Font di-host sendiri (next/font/local): build tidak bergantung pada akses ke Google Fonts.
 const jakarta = localFont({ src: "../../fonts/plus-jakarta-sans-400-800.woff2", weight: "400 800", variable: "--font-jakarta", display: "swap" });
@@ -27,6 +28,10 @@ const rajdhani = localFont({
 export const metadata: Metadata = {
   title: { default: "CMD Employee Gathering 2026", template: "%s · CMD Employee Gathering 2026" },
   description: "Mooniverse — CMD Employee Gathering 2026 by Cimory. Klaim tiket gratis khusus karyawan: satu NIK, satu tiket.",
+  // PWA: bisa dipasang ke layar utama (Android: dialog "Pasang aplikasi"; iPhone: Bagikan → Tambah ke Layar Utama).
+  manifest: "/app.webmanifest",
+  icons: { icon: [{ url: "/icons/app-192.png", sizes: "192x192", type: "image/png" }], apple: "/icons/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "Mooniverse", statusBarStyle: "black-translucent" },
 };
 
 export const viewport: Viewport = { themeColor: "#020A17" };
@@ -48,6 +53,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <SiteFooter />
       <HelpBubble />
       <RevealOnScroll />
+      <PwaSetup />
     </div>
   );
 }

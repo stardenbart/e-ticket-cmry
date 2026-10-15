@@ -1,0 +1,22 @@
+{
+  "name": "CMD Employee Gathering 2026 — Mooniverse",
+  "short_name": "Mooniverse",
+  "description": "Klaim tiket CMD Employee Gathering 2026 dan simpan e-ticket Anda.",
+  "id": "/",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#020A17",
+  "theme_color": "#020A17",
+  "lang": "id",
+  "categories": ["events", "entertainment"],
+  "icons": [
+    { "src": "/icons/app-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/app-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/app-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Tiket Saya", "url": "/tiket-saya", "icons": [{ "src": "/icons/app-192.png", "sizes": "192x192" }] }
+  ]
+}
