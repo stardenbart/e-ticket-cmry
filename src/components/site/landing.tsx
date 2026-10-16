@@ -122,12 +122,12 @@ const HIGHLIGHTS: {
   {
     icon: "boltNeon",
     title: "Konser Neon",
-    text: "Panggung MOO dengan laser, layar LED, dan band live sepanjang malam.",
+    text: "Panggung MOO dengan berbagai keseruan dan performance menarik.",
   },
   {
     icon: "heart",
     title: "Good Food Good Mood",
-    text: "Area kuliner dan sampling produk Cimory untuk seluruh karyawan.",
+    text: "Area kuliner dan produk Cimory untuk seluruh karyawan.",
   },
   {
     icon: "crownNeon",
@@ -136,8 +136,8 @@ const HIGHLIGHTS: {
   },
   {
     icon: "m",
-    title: "Kaos Acara",
-    text: "Setiap pemegang tiket mendapat kaos sesuai ukuran yang dipilih saat klaim.",
+    title: "Merchandise",
+    text: "Setiap peserta akan mendapatkan merchandise dari acara.",
   },
 ];
 
