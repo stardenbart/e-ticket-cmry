@@ -16,7 +16,7 @@ function AdminLogin() {
   const [code, setCode] = useState("");
   const [challenge, setChallenge] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(sp.get("keluar") === "1" ? "Anda sudah keluar dari panel admin." : null);
   const [busy, setBusy] = useState(false);
 
   const finish = (role?: string) => {

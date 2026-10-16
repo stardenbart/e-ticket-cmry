@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { FEATURED_PATH } from "./config";
+import { LOGOUT_PARAM } from "./navigation-ux";
 import { InstallMenuItem } from "./pwa";
 
 type U = { name: string; email: string; isAdmin: boolean; isStaff: boolean } | null;
@@ -11,7 +12,6 @@ type U = { name: string; email: string; isAdmin: boolean; isStaff: boolean } | n
 export function UserMenu({ user }: { user: U }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => setOpen(false), [pathname]);
@@ -28,10 +28,13 @@ export function UserMenu({ user }: { user: U }) {
     };
   }, []);
 
+  const [leaving, setLeaving] = useState(false);
   async function logout() {
+    if (leaving) return;
+    setLeaving(true);
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
-    router.push("/");
-    router.refresh();
+    // Muat ulang penuh ke beranda: header & data akun langsung bersih, lalu tampil notifikasi "Anda sudah keluar".
+    window.location.replace(`/?${LOGOUT_PARAM}=1`);
   }
 
   const item = "block rounded-full px-3 py-2.5 text-sm font-medium text-[#f8fafc] hover:bg-white/10";
@@ -88,8 +91,8 @@ export function UserMenu({ user }: { user: U }) {
               <Link href="/profil" className={item} role="menuitem">Profil &amp; Identitas</Link>
               {user.isAdmin && <Link href="/admin" className={item} role="menuitem">Panel Admin</Link>}
               {(user.isStaff || user.isAdmin) && <Link href="/scanner" className={item} role="menuitem">Aplikasi Scanner</Link>}
-              <button type="button" onClick={logout} className={`${item} w-full text-left text-cimory-red-dark`} role="menuitem">
-                Keluar
+              <button type="button" onClick={logout} disabled={leaving} className={`${item} w-full text-left text-cimory-red-dark disabled:opacity-60`} role="menuitem">
+                {leaving ? "Keluar…" : "Keluar"}
               </button>
             </>
           ) : (

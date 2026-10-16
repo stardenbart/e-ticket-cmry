@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { cx } from "@/components/ui";
 
@@ -19,7 +19,6 @@ const ICONS: Record<string, string> = {
 
 export function AdminSidebar({ superAdmin, name, email }: { superAdmin: boolean; name: string; email: string }) {
   const path = usePathname();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const items: Item[] = [
     { href: "/admin", label: "Dashboard", icon: "dash", exact: true },
@@ -37,8 +36,8 @@ export function AdminSidebar({ superAdmin, name, email }: { superAdmin: boolean;
   const active = (i: Item) => (i.exact ? path === i.href : path === i.href || path.startsWith(i.href + "/"));
 
   async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.replace("/admin/login");
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    window.location.replace("/admin/login?keluar=1");
   }
 
   return (

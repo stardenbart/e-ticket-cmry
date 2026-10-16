@@ -8,6 +8,7 @@ import { StarSky } from "@/components/site/ornaments";
 import { HelpBubble, RevealOnScroll } from "@/components/site/site-chrome";
 import { PwaSetup } from "@/components/site/pwa";
 import { Backsound } from "@/components/site/backsound";
+import { LogoutNotice, ScrollReset } from "@/components/site/navigation-ux";
 
 // Font di-host sendiri (next/font/local): build tidak bergantung pada akses ke Google Fonts.
 const jakarta = localFont({ src: "../../fonts/plus-jakarta-sans-400-800.woff2", weight: "400 800", variable: "--font-jakarta", display: "swap" });
@@ -56,6 +57,8 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <RevealOnScroll />
       <PwaSetup />
       <Backsound />
+      <ScrollReset />
+      <LogoutNotice />
     </div>
   );
 }
