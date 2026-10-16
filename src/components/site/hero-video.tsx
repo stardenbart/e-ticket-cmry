@@ -11,7 +11,10 @@ export function HeroVideo({ className }: { className?: string }) {
     const v = ref.current;
     if (!v) return;
     v.muted = true;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      v.pause();
+      return;
+    }
     // Percobaan pertama bisa kalah balapan dengan pemuatan halaman → ulangi saat video siap diputar.
     const tryPlay = () => {
       if (v.paused) v.play().catch(() => {});
