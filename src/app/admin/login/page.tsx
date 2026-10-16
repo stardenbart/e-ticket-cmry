@@ -16,7 +16,8 @@ function AdminLogin() {
   const [code, setCode] = useState("");
   const [challenge, setChallenge] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(sp.get("keluar") === "1" ? "Anda sudah keluar dari panel admin." : null);
+  const [info, setInfo] = useState<string | null>(null);
+  const loggedOut = sp.get("keluar") === "1";
   const [busy, setBusy] = useState(false);
 
   const finish = (role?: string) => {
@@ -78,10 +79,11 @@ function AdminLogin() {
         <div className="bg-cimory-gradient px-7 py-6 text-white">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">CMD Employee Gathering 2026</p>
           <h1 className="mt-1 text-2xl font-bold">Panel Admin</h1>
-          <p className="mt-1 text-sm opacity-90">Login dengan verifikasi 2 langkah (OTP email).</p>
+          <p className="mt-1 text-sm opacity-90">Masuk dengan email dan password akun admin.</p>
         </div>
         <div className="space-y-5 px-7 py-6">
           {error && <Alert tone="red">{error}</Alert>}
+          {loggedOut && !error && !challenge && <Alert tone="green">Anda sudah keluar dari panel admin.</Alert>}
           {!challenge ? (
             <form onSubmit={submitPassword} className="space-y-4">
               <Field label="Email" htmlFor="email">
