@@ -12,7 +12,17 @@ export function HeroVideo({ className }: { className?: string }) {
     if (!v) return;
     v.muted = true;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    v.play().catch(() => {});
+    // Percobaan pertama bisa kalah balapan dengan pemuatan halaman → ulangi saat video siap diputar.
+    const tryPlay = () => {
+      if (v.paused) v.play().catch(() => {});
+    };
+    tryPlay();
+    v.addEventListener("canplay", tryPlay);
+    v.addEventListener("loadeddata", tryPlay);
+    return () => {
+      v.removeEventListener("canplay", tryPlay);
+      v.removeEventListener("loadeddata", tryPlay);
+    };
   }, []);
   return (
     <video
@@ -20,6 +30,7 @@ export function HeroVideo({ className }: { className?: string }) {
       src="/media/bg-landing.mp4"
       poster="/media/bg-landing-poster.webp"
       muted
+      autoPlay
       loop
       playsInline
       preload="auto"
