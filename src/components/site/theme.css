@@ -416,11 +416,21 @@
   .mv-laser, .mv-stick { animation: none; }
 }
 
-/* Video maskot: latar hitam video "hilang" di halaman gelap (screen), tepi dipudarkan. */
+/* Video maskot ditampilkan sebagai "layar panggung" neon: latar gelap video jadi bagian dari bingkai. */
 .mv-mascot-video {
-  mix-blend-mode: screen;
-  -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
-  mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
+  overflow: hidden;
+  border-radius: 1.5rem;
+  background: #05070d;
+  box-shadow: 0 0 0 1px rgb(154 252 255 / 0.55), 0 0 22px rgb(247 20 247 / 0.35), inset 0 0 28px rgb(2 10 23 / 0.9);
+}
+.mv-mascot-video::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  /* Vignette lembut + kilau tepi atas agar menyatu dengan tema */
+  background: radial-gradient(closest-side, transparent 70%, rgb(2 10 23 / 0.55) 100%), linear-gradient(180deg, rgb(154 252 255 / 0.10), transparent 18%);
 }
 
 /* Equalizer kecil di tombol musik saat sedang diputar. */

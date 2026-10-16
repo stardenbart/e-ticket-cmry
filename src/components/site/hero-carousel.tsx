@@ -42,7 +42,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
         <Lasers />
       </div>
 
-      <div className="relative mx-auto flex min-h-[max(600px,100svh)] max-w-5xl flex-col items-center justify-center px-4 pb-14 pt-28 text-center sm:pb-16">
+      <div className="relative mx-auto flex min-h-[max(600px,100svh)] max-w-5xl flex-col items-center justify-center px-4 pb-28 pt-28 text-center lg:pb-16">
         <div className="flex animate-fade-up flex-col items-center">
           <div className="flex items-center justify-center lg:gap-4">
             <h1 className="m-0">
