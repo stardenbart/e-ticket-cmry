@@ -28,6 +28,11 @@ describe("Nama sesuai KTP (huruf kapital)", () => {
     expect(validateName("MUH. RIZKI-PRATAMA").ok).toBe(true);
     expect(validateName("BUDI123").ok).toBe(false);
   });
+  it("tanda ' diganti spasi: RIVA'I → RIVA I", () => {
+    expect(validateName("RIVA'I")).toEqual({ ok: true, name: "RIVA I" });
+    expect(validateName("SITI NUR’AINI")).toEqual({ ok: true, name: "SITI NUR AINI" });
+    expect(nameKey("RIVA'I")).toBe(nameKey("RIVA I"));
+  });
   it("pencocokan mengabaikan tanda baca & spasi ganda", () => {
     expect(nameKey("MUH. RIZKI")).toBe(nameKey("MUH  RIZKI"));
     expect(nameKey("SITI NUR'AINI")).toBe("SITI NUR AINI");

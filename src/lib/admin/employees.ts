@@ -3,7 +3,7 @@ import ExcelJS from "exceljs";
 import { Readable } from "node:stream";
 import { sql, type Tx } from "../db";
 import { audit } from "../audit";
-import { nameKey, nikCategory, type EmployeeCategory } from "../employee-shared";
+import { apostropheToSpace, nameKey, nikCategory, type EmployeeCategory } from "../employee-shared";
 
 export type EmployeeAccountStatus = "BELUM_DAFTAR" | "TERDAFTAR" | "SUDAH_KLAIM";
 
@@ -89,7 +89,7 @@ export type EmployeeInput = { nik: string; name: string; dept: string; category:
 export function normalizeEmployee(raw: { nik: unknown; name: unknown; dept: unknown; category: unknown }): { ok: true; value: EmployeeInput } | { ok: false; errors: string[] } {
   const errors: string[] = [];
   const nik = normalizeNikCell(raw.nik);
-  const name = String(raw.name ?? "").replace(/\s+/g, " ").trim().toUpperCase();
+  const name = apostropheToSpace(String(raw.name ?? "")).replace(/\s+/g, " ").trim().toUpperCase();
   const dept = String(raw.dept ?? "").replace(/\s+/g, " ").trim();
   const catRaw = String(raw.category ?? "").trim().toUpperCase();
   const fromNik = nikCategory(nik);

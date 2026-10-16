@@ -32,9 +32,14 @@ export function validateNik(raw: string): { ok: true; nik: string; category: Emp
   return { ok: true, nik, category };
 }
 
+/** Tanda petik/apostrof pada nama diganti spasi: RIVA'I → RIVA I (sama dengan data karyawan). */
+export function apostropheToSpace(name: string): string {
+  return name.replace(/['’‘`´]/g, " ");
+}
+
 /** Nama wajib huruf kapital sesuai Kartu Karyawan: hanya huruf A–Z, spasi, titik, koma, apostrof, tanda hubung. */
 export function validateName(raw: string): { ok: true; name: string } | { ok: false; message: string } {
-  const name = raw.replace(/\s+/g, " ").trim();
+  const name = apostropheToSpace(raw).replace(/\s+/g, " ").trim();
   if (name.length < 2) return { ok: false, message: "Nama wajib diisi sesuai Kartu Karyawan." };
   if (name.length > 150) return { ok: false, message: "Nama terlalu panjang." };
   if (/[a-z]/.test(name)) return { ok: false, message: "Nama wajib ditulis HURUF KAPITAL semua, sesuai Kartu Karyawan." };

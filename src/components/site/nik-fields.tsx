@@ -2,7 +2,7 @@
 
 // Input biodata karyawan: NIK (format 04.xxxx / A1.xx.xxxx) dan nama HURUF KAPITAL sesuai Kartu Karyawan.
 import { Field, Input, Select } from "@/components/ui";
-import { SHIRT_SIZES, cleanNik, nikCategory, validateName } from "@/lib/employee-shared";
+import { SHIRT_SIZES, apostropheToSpace, cleanNik, nikCategory, validateName } from "@/lib/employee-shared";
 
 export function NikField({ value, onChange, error, id = "nik" }: { value: string; onChange: (v: string) => void; error?: string; id?: string }) {
   const cat = nikCategory(cleanNik(value));
@@ -43,13 +43,22 @@ export function NameField({ value, onChange, error, id = "fullName", hint }: { v
       label="Nama lengkap (HURUF KAPITAL, sesuai Kartu Karyawan)"
       htmlFor={id}
       error={error}
-      hint={hint ?? "Tulis lengkap tanpa singkatan, persis seperti di Kartu Karyawan. Contoh: MUHAMMAD RIZKI PRATAMA"}
+      hint={
+        hint ?? (
+          <>
+            Tulis lengkap tanpa singkatan, persis seperti di Kartu Karyawan. Contoh: MUHAMMAD RIZKI PRATAMA
+            <span className="mt-1 block">
+              Tanda <b>&apos;</b> diganti spasi: <b>RIVA&apos;I</b> ditulis <b>RIVA I</b>.
+            </span>
+          </>
+        )
+      }
     >
       <Input
         id={id}
         value={value}
-        // Huruf otomatis menjadi kapital saat diketik.
-        onChange={(e) => onChange(e.target.value.toUpperCase())}
+        // Huruf otomatis menjadi kapital dan tanda ' otomatis menjadi spasi saat diketik.
+        onChange={(e) => onChange(apostropheToSpace(e.target.value.toUpperCase()))}
         placeholder="NAMA SESUAI KARTU KARYAWAN"
         autoComplete="name"
         autoCapitalize="characters"
