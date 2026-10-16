@@ -8,6 +8,7 @@ import { HtmlTabs } from "@/components/site/tabs";
 import { CategoryPanel } from "@/components/site/category-panel";
 import { CalIcon, PinIcon } from "@/components/site/event-card";
 import { loadCategoryPanel } from "@/components/site/event-panel-data";
+import { ShirtGuide } from "@/components/site/shirt-guide";
 
 export const dynamic = "force-dynamic";
 
@@ -95,10 +96,18 @@ export default async function EventDetailPage({ params }: Props) {
             />
           </div>
 
+          {(e.shirt_design_url || e.size_chart_url) && (
+            <section aria-labelledby="baju-title" className="rounded-2xl border border-line bg-white p-4 sm:p-6">
+              <h2 id="baju-title" className="mv-title mb-1 text-lg">Baju Acara</h2>
+              <p className="mb-4 text-sm text-muted">Cek desain dan chart ukurannya dulu — ukuran baju dipilih saat klaim tiket.</p>
+              <ShirtGuide design={e.shirt_design_url} chart={e.size_chart_url} />
+            </section>
+          )}
+
           <div className="rounded-2xl bg-amber-50 p-4 text-sm text-warn ring-1 ring-amber-200">
             <p className="font-semibold">Tiket atas nama sendiri</p>
             <p className="mt-0.5 text-amber-900">
-              Khusus karyawan yang ada di daftar karyawan. Saat klaim, isi ulang nama (HURUF KAPITAL sesuai Kartu Karyawan), NIK (CMD: 04.xxxx · OS: A1.xx.xxxx), dan ukuran baju. Di gate, nama & NIK dicocokkan dengan Kartu Karyawan. Tiket tidak dapat dipindahtangankan.
+              Khusus karyawan yang ada di daftar karyawan. Saat klaim, isi ulang nama (HURUF KAPITAL sesuai Kartu Karyawan), NIK (NIK karyawan atau NIK KTP), dan ukuran baju. Di gate, nama & NIK dicocokkan dengan Kartu Karyawan. Tiket tidak dapat dipindahtangankan.
             </p>
           </div>
         </div>

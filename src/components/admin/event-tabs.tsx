@@ -76,7 +76,7 @@ export function MediaTab({ data, reload, toast }: { data: EventPayload; reload: 
   const e = data.event;
   const [busy, setBusy] = useState<string | null>(null);
 
-  async function upload(kind: "banner" | "thumb" | "gallery", file: File) {
+  async function upload(kind: "banner" | "thumb" | "gallery" | "shirt" | "sizechart", file: File) {
     if (file.size > 2 * 1024 * 1024) return toast({ tone: "err", text: "Ukuran gambar maksimal 2 MB." });
     setBusy(kind);
     const fd = new FormData();
@@ -101,6 +101,12 @@ export function MediaTab({ data, reload, toast }: { data: EventPayload; reload: 
     else toast({ tone: "err", text: "Gagal menghapus gambar." });
   }
 
+  async function removeSingle(kind: "shirt" | "sizechart") {
+    const r = await fetch(`/api/admin/events/${e.id}/media`, { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind }) });
+    if (r.ok) await reload();
+    else toast({ tone: "err", text: "Gagal menghapus gambar." });
+  }
+
   return (
     <div className="space-y-8">
       <Alert tone="blue">Format JPG, PNG, atau WebP, maksimal 2 MB. Gambar dikompresi otomatis ke WebP.</Alert>
@@ -113,6 +119,32 @@ export function MediaTab({ data, reload, toast }: { data: EventPayload; reload: 
         onPick={(f) => upload("banner", f)}
       />
       <ImageSlot title="Thumbnail kartu" hint="Rasio 1:1, minimal 400×400 px. Tampil di kartu event." url={e.thumb_url} aspect="aspect-square max-w-xs" busy={busy === "thumb"} onPick={(f) => upload("thumb", f)} />
+      <div className="space-y-6 rounded-xl border border-line p-4">
+        <div>
+          <h3 className="font-bold">Baju acara</h3>
+          <p className="text-sm text-muted">Tampil di halaman event dan di form klaim tiket, di atas pilihan ukuran baju. Ganti kapan saja — peserta langsung melihat versi terbaru.</p>
+        </div>
+        <ImageSlot
+          title="Desain / mock-up baju"
+          hint="Gambar desain kaos acara (bebas rasio)."
+          url={e.shirt_design_url}
+          aspect="aspect-[4/3] max-w-md"
+          fit="contain"
+          busy={busy === "shirt"}
+          onPick={(f) => upload("shirt", f)}
+          onRemove={e.shirt_design_url ? () => removeSingle("shirt") : undefined}
+        />
+        <ImageSlot
+          title="Chart ukuran baju"
+          hint="Tabel ukuran (2S–5XL). Pastikan teks terbaca jelas; disimpan dengan kualitas lebih tinggi."
+          url={e.size_chart_url}
+          aspect="aspect-[4/3] max-w-md"
+          fit="contain"
+          busy={busy === "sizechart"}
+          onPick={(f) => upload("sizechart", f)}
+          onRemove={e.size_chart_url ? () => removeSingle("sizechart") : undefined}
+        />
+      </div>
       <div>
         <div className="mb-2 flex items-center justify-between">
           <div>
@@ -160,7 +192,25 @@ function PickButton({ label, busy, onPick, disabled }: { label: string; busy: bo
   );
 }
 
-function ImageSlot({ title, hint, url, aspect, busy, onPick }: { title: string; hint: string; url: string | null; aspect: string; busy: boolean; onPick: (f: File) => void }) {
+function ImageSlot({
+  title,
+  hint,
+  url,
+  aspect,
+  busy,
+  onPick,
+  onRemove,
+  fit = "cover",
+}: {
+  title: string;
+  hint: string;
+  url: string | null;
+  aspect: string;
+  busy: boolean;
+  onPick: (f: File) => void;
+  onRemove?: () => void;
+  fit?: "cover" | "contain";
+}) {
   return (
     <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-start">
       <div>
@@ -169,13 +219,20 @@ function ImageSlot({ title, hint, url, aspect, busy, onPick }: { title: string; 
         <div className={`${aspect} w-full overflow-hidden rounded-xl border border-dashed border-line bg-slate-50`}>
           {url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={url} alt={title} className="size-full object-cover" />
+            <img src={url} alt={title} className={`size-full ${fit === "contain" ? "bg-white object-contain" : "object-cover"}`} />
           ) : (
             <div className="grid size-full place-items-center text-sm text-muted">Belum ada gambar</div>
           )}
         </div>
       </div>
-      <PickButton label={url ? "Ganti gambar" : "Unggah gambar"} busy={busy} onPick={onPick} />
+      <div className="flex flex-wrap gap-2 md:flex-col">
+        <PickButton label={url ? "Ganti gambar" : "Unggah gambar"} busy={busy} onPick={onPick} />
+        {onRemove && (
+          <Button type="button" variant="ghost" className="py-2 text-sm text-cimory-red-dark" onClick={onRemove}>
+            Hapus
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

@@ -19,6 +19,8 @@ export type SessionUser = {
   email_verified_at: Date | null;
   /** NIK karyawan yang terhubung ke akun (null untuk admin/staf atau akun lama yang belum ditautkan). */
   nik: string | null;
+  /** Nomor HP (08xxxxxxxxxx); null untuk akun lama yang belum mengisi. */
+  phone: string | null;
 };
 
 export const SESSION_COOKIE = "sid";
@@ -65,7 +67,7 @@ export const currentUser = cache(async (): Promise<SessionUser | null> => {
   const token = jar.get(SESSION_COOKIE)?.value;
   if (!token) return null;
   const [u] = await sql<SessionUser[]>`
-    SELECT u.id, u.email, u.full_name, u.role, u.id_type, u.id_last4, u.identity_hash, u.email_verified_at, u.nik
+    SELECT u.id, u.email, u.full_name, u.role, u.id_type, u.id_last4, u.identity_hash, u.email_verified_at, u.nik, u.phone
     FROM sessions s JOIN users u ON u.id = s.user_id
     WHERE s.token_hash = ${sha256(token)} AND s.expires_at > now() AND u.disabled_at IS NULL`;
   return u ?? null;

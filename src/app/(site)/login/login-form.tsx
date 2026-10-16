@@ -87,7 +87,7 @@ export function LoginForm({ next }: { next: string }) {
 
   return (
     <form onSubmit={submit} className="space-y-4" noValidate>
-      <Field label="NIK atau Email" htmlFor="identifier" hint="Peserta: pakai NIK karyawan (04.xxxx / A1.xx.xxxx). Admin & staf: pakai email.">
+      <Field label="NIK atau Email" htmlFor="identifier" hint="Peserta: pakai NIK karyawan (04.xxxx / A1.xx.xxxx), NIK KTP (16 digit), atau email. Admin & staf: pakai email.">
         <Input
           id="identifier"
           autoComplete="username"

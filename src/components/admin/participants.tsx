@@ -12,6 +12,7 @@ type Row = {
   id: string;
   holder_name: string;
   email: string;
+  phone: string | null;
   user_id: string;
   category_name: string;
   status: string;
@@ -149,6 +150,7 @@ export function Participants({ id }: { id: string }) {
                   <Td>
                     <p className="font-semibold">{r.holder_name}</p>
                     <p className="text-xs text-muted">{r.email}</p>
+                    {r.phone && <p className="text-xs text-muted">{r.phone}</p>}
                     <p className="font-mono text-[11px] text-muted">{r.id}</p>
                   </Td>
                   <Td>{r.category_name}</Td>
@@ -279,7 +281,7 @@ function ActionModal({ action, onClose, onDone }: { action: NonNullable<Action>;
             <Alert tone="blue">
               Tautkan akun pemegang ke NIK lain dari Data Karyawan. Nama akun mengikuti data karyawan. Perubahan tercatat di audit log.
             </Alert>
-            <Field label="NIK karyawan" htmlFor="i-nik" hint="Format 04.xxxx (CMD) atau A1.xx.xxxx (OS).">
+            <Field label="NIK karyawan atau NIK KTP" htmlFor="i-nik" hint="04.xxxx (CMD), A1.xx.xxxx (OS), atau NIK KTP 16 digit.">
               <Input id="i-nik" value={nik} onChange={(e) => setNik(e.target.value.toUpperCase().replace(/\s+/g, ""))} autoComplete="off" className="font-mono" />
             </Field>
             <label className="flex items-start gap-2 rounded-xl border border-line p-3">

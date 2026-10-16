@@ -13,6 +13,39 @@ export const NIK_HINT = "Format NIK: 04.xxxx untuk karyawan CMD, A1.xx.xxxx untu
 export const SHIRT_SIZES = ["2S", "3S", "4S", "XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL", "5XL"] as const;
 export type ShirtSize = (typeof SHIRT_SIZES)[number];
 
+/** NIK KTP (Nomor Induk Kependudukan): 16 digit angka. */
+export const KTP_PATTERN = /^\d{16}$/;
+
+export type IdentityInput =
+  | { ok: true; kind: "NIK"; nik: string; category: EmployeeCategory }
+  | { ok: true; kind: "KTP"; ktp: string }
+  | { ok: false; message: string };
+
+/**
+ * Input "NIK" peserta: boleh Nomor Induk Karyawan (04.xxxx / A1.xx.xxxx) ATAU NIK KTP (16 digit).
+ * Cukup salah satu; sistem mencari karyawannya dari yang diisi.
+ */
+export function parseIdentity(raw: string): IdentityInput {
+  const v = cleanNik(raw);
+  if (!v) return { ok: false, message: "NIK wajib diisi." };
+  const ktp = v.replace(/[.\-]/g, "");
+  if (KTP_PATTERN.test(ktp)) return { ok: true, kind: "KTP", ktp };
+  const category = nikCategory(v);
+  if (category) return { ok: true, kind: "NIK", nik: v, category };
+  if (/^\d+$/.test(ktp)) return { ok: false, message: `NIK tidak sesuai format: NIK KTP harus 16 digit (Anda mengisi ${ktp.length} digit), NIK karyawan memakai titik (04.xxxx / A1.xx.xxxx).` };
+  return { ok: false, message: `NIK tidak sesuai format. Isi Nomor Induk Karyawan (04.xxxx / A1.xx.xxxx) atau NIK KTP 16 digit.` };
+}
+
+/** Nomor HP Indonesia → format 08xxxxxxxxxx (menerima +62 / 62 / spasi / tanda hubung). */
+export function validatePhone(raw: string): { ok: true; phone: string } | { ok: false; message: string } {
+  let v = raw.replace(/[\s\-().]/g, "");
+  if (!v) return { ok: false, message: "Nomor HP wajib diisi." };
+  if (v.startsWith("+62")) v = `0${v.slice(3)}`;
+  else if (v.startsWith("62")) v = `0${v.slice(2)}`;
+  if (!/^08\d{8,12}$/.test(v)) return { ok: false, message: "Nomor HP tidak valid. Contoh: 081234567890." };
+  return { ok: true, phone: v };
+}
+
 /** Rapikan input NIK: huruf besar, tanpa spasi. Tidak menebak titik yang hilang. */
 export function cleanNik(raw: string): string {
   return raw.toUpperCase().replace(/\s+/g, "");

@@ -5,18 +5,20 @@ import { body, clientIp, json, route, ApiError } from "@/lib/http";
 import { createSession } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkEligibility, nikIdentityHash } from "@/lib/employees";
+import { validatePhone } from "@/lib/employee-shared";
 import { GOOGLE_PENDING_COOKIE, dropPending, readPending } from "@/lib/google";
 
 const schema = z.object({
-  nik: z.string().trim().min(1, "NIK wajib diisi.").max(20),
+  nik: z.string().trim().min(1, "NIK wajib diisi.").max(24),
   fullName: z.string().trim().min(1, "Nama wajib diisi sesuai Kartu Karyawan.").max(150),
+  phone: z.string().trim().min(1, "Nomor HP wajib diisi.").max(20),
   agree: z.literal(true, { message: "Anda harus menyetujui S&K dan kebijakan privasi." }),
 });
 
 const fieldError = (status: number, code: string, field: string, message: string) =>
   new ApiError(status, code, message, { fields: [{ path: field, message }] });
 
-/** Selesaikan daftar dengan Google: isi NIK + nama, dicek ke daftar karyawan eligible. Tanpa password/kode. */
+/** Selesaikan daftar dengan Google: isi NIK (karyawan/KTP) + nama + nomor HP, dicek ke daftar karyawan eligible. Tanpa password/kode. */
 export const POST = route(async (req) => {
   const ip = clientIp(req);
   await rateLimit(`gcomplete:ip:${ip}`, 30, 3600);
@@ -29,12 +31,14 @@ export const POST = route(async (req) => {
   const elig = await checkEligibility(d.nik, d.fullName);
   if (!elig.ok) throw fieldError(elig.code === "NOT_ELIGIBLE" ? 403 : 400, elig.code, elig.field, elig.message);
   const emp = elig.employee;
+  const ph = validatePhone(d.phone);
+  if (!ph.ok) throw fieldError(400, "INVALID_PHONE", "phone", ph.message);
 
   let userId: string;
   try {
     const [u] = await sql<{ id: string }[]>`
-      INSERT INTO users (email, password_hash, full_name, nik, id_type, identity_hash, id_last4, google_sub, terms_accepted_at, email_verified_at)
-      VALUES (${pending.email}, NULL, ${emp.name}, ${emp.nik}, 'NIK', ${nikIdentityHash(emp.nik)}, ${emp.nik.slice(-4)}, ${pending.sub}, now(), now())
+      INSERT INTO users (email, password_hash, full_name, nik, phone, id_type, identity_hash, id_last4, google_sub, terms_accepted_at, email_verified_at)
+      VALUES (${pending.email}, NULL, ${emp.name}, ${emp.nik}, ${ph.phone}, 'NIK', ${nikIdentityHash(emp.nik)}, ${emp.nik.slice(-4)}, ${pending.sub}, now(), now())
       RETURNING id`;
     userId = u.id;
   } catch (e) {

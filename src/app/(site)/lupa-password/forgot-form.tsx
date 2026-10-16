@@ -51,7 +51,7 @@ export function ForgotForm() {
     return (
       <form onSubmit={request} className="space-y-4">
         <p className="text-sm text-muted">Masukkan NIK karyawan atau email akun Anda. Kode 6 digit untuk mengatur ulang password dikirim ke email akun.</p>
-        <Field label="NIK atau Email" htmlFor="email">
+        <Field label="NIK atau Email" htmlFor="email" hint="NIK karyawan, NIK KTP (16 digit), atau email akun.">
           <Input
             id="email"
             autoComplete="username"

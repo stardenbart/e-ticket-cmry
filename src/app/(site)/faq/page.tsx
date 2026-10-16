@@ -10,7 +10,7 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
     q: "Bagaimana format NIK yang benar?",
     a: (
       <>
-        Karyawan CMD: <b>04.xxxx</b> (contoh 04.0018 atau 04.12345). Karyawan OS (outsourcing): <b>A1.xx.xxxx</b> (contoh A1.23.4567). x adalah angka; jumlah digit tiap NIK boleh berbeda. Tulis lengkap dengan titiknya.
+        Karyawan CMD: <b>04.xxxx</b> (contoh 04.0018 atau 04.12345). Karyawan OS (outsourcing): <b>A1.xx.xxxx</b> (contoh A1.23.4567). x adalah angka; jumlah digit tiap NIK boleh berbeda. Tulis lengkap dengan titiknya. Anda juga boleh memakai <b>NIK KTP</b> (16 digit) sebagai gantinya — cukup salah satu.
       </>
     ),
   },

@@ -40,6 +40,9 @@ export default async function ConfirmPage({ params }: { params: Promise<{ catego
           nik: u.nik ?? "-",
           dept: emp?.dept ?? "",
           email: u.email,
+          phone: u.phone ?? "",
+          shirtDesign: event.shirt_design_url ?? null,
+          sizeChart: event.size_chart_url ?? null,
           termsHtml: safeRichText(event.terms),
         }}
         alternatives={alternatives}

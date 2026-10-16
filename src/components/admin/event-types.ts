@@ -8,6 +8,8 @@ export type AdminEvent = {
   terms: string;
   banner_url: string | null;
   thumb_url: string | null;
+  shirt_design_url: string | null;
+  size_chart_url: string | null;
   gallery: string[];
   venue: string;
   address: string;

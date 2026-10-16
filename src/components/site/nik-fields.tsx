@@ -1,22 +1,28 @@
 "use client";
 
-// Input biodata karyawan: NIK (format 04.xxxx / A1.xx.xxxx) dan nama HURUF KAPITAL sesuai Kartu Karyawan.
+// Input biodata karyawan: NIK (karyawan 04.xxxx / A1.xx.xxxx atau NIK KTP 16 digit), nama HURUF KAPITAL, nomor HP.
 import { Field, Input, Select } from "@/components/ui";
-import { SHIRT_SIZES, apostropheToSpace, cleanNik, nikCategory, validateName } from "@/lib/employee-shared";
+import { SHIRT_SIZES, apostropheToSpace, parseIdentity, validateName, validatePhone } from "@/lib/employee-shared";
 
 export function NikField({ value, onChange, error, id = "nik" }: { value: string; onChange: (v: string) => void; error?: string; id?: string }) {
-  const cat = nikCategory(cleanNik(value));
+  const parsed = value ? parseIdentity(value) : null;
+  const detected =
+    parsed?.ok && parsed.kind === "KTP"
+      ? "NIK KTP"
+      : parsed?.ok && parsed.kind === "NIK"
+        ? `NIK karyawan ${parsed.category === "CMD" ? "CMD" : "OS (outsourcing)"}`
+        : null;
   return (
     <Field
-      label="NIK (Nomor Induk Karyawan)"
+      label="NIK Karyawan atau NIK KTP"
       htmlFor={id}
       error={error}
       hint={
-        cat ? (
-          <span className="text-ok">✓ Format NIK karyawan {cat === "CMD" ? "CMD" : "OS (outsourcing)"}</span>
+        detected ? (
+          <span className="text-ok">✓ Terbaca sebagai {detected}</span>
         ) : (
           <>
-            Format: <b>04.xxxx</b> untuk karyawan CMD, <b>A1.xx.xxxx</b> untuk karyawan OS (x = angka; jumlah digit boleh berbeda).
+            Cukup isi <b>salah satu</b>: Nomor Induk Karyawan (<b>04.xxxx</b> / <b>A1.xx.xxxx</b>) atau NIK KTP (<b>16 digit</b>).
           </>
         )
       }
@@ -25,12 +31,12 @@ export function NikField({ value, onChange, error, id = "nik" }: { value: string
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value.toUpperCase().replace(/\s+/g, ""))}
-        placeholder="04.12345 atau A1.23.4567"
+        placeholder="04.12345 / A1.23.4567 / 3201xxxxxxxxxxxx"
         autoComplete="off"
         autoCapitalize="characters"
         spellCheck={false}
         inputMode="text"
-        maxLength={16}
+        maxLength={20}
         className="font-mono tracking-wider"
       />
     </Field>
@@ -70,6 +76,23 @@ export function NameField({ value, onChange, error, id = "fullName", hint }: { v
   );
 }
 
+export function PhoneField({ value, onChange, error, id = "phone" }: { value: string; onChange: (v: string) => void; error?: string; id?: string }) {
+  return (
+    <Field label="Nomor HP (WhatsApp)" htmlFor={id} error={error} hint="Dipakai panitia untuk menghubungi Anda bila perlu. Contoh: 081234567890.">
+      <Input
+        id={id}
+        type="tel"
+        inputMode="tel"
+        autoComplete="tel"
+        value={value}
+        onChange={(e) => onChange(e.target.value.replace(/[^\d+\s-]/g, ""))}
+        placeholder="08xxxxxxxxxx"
+        maxLength={18}
+      />
+    </Field>
+  );
+}
+
 export function ShirtSizeField({ value, onChange, error, id = "shirtSize" }: { value: string; onChange: (v: string) => void; error?: string; id?: string }) {
   return (
     <Field label="Ukuran baju" htmlFor={id} error={error} hint="Pilih ukuran kaos acara yang Anda inginkan.">
@@ -86,10 +109,15 @@ export function ShirtSizeField({ value, onChange, error, id = "shirtSize" }: { v
 }
 
 /** Validasi di browser (server tetap memvalidasi ulang). */
-export function checkBiodata(nik: string, name: string): Record<string, string> {
+export function checkBiodata(nik: string, name: string, phone?: string): Record<string, string> {
   const fe: Record<string, string> = {};
-  if (!nikCategory(cleanNik(nik))) fe.nik = "NIK tidak sesuai format: 04.xxxx (CMD) atau A1.xx.xxxx (OS).";
+  const id = parseIdentity(nik);
+  if (!id.ok) fe.nik = id.message;
   const n = validateName(name);
   if (!n.ok) fe.fullName = n.message;
+  if (phone !== undefined) {
+    const p = validatePhone(phone);
+    if (!p.ok) fe.phone = p.message;
+  }
   return fe;
 }

@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Alert, Button, ButtonLink, Card, Spinner } from "@/components/ui";
 import { api, ClientApiError } from "@/lib/client-api";
-import { NameField, NikField, checkBiodata } from "@/components/site/nik-fields";
+import { NameField, NikField, PhoneField, checkBiodata } from "@/components/site/nik-fields";
+import { validatePhone } from "@/lib/employee-shared";
 
 type Linked = { nik: string; name: string; dept: string | null; category: "CMD" | "OS" | null; eligible: boolean };
 
@@ -74,7 +75,7 @@ export function ProfileForm({ linked, locked, next }: { linked: Linked | null; l
     <Card className="p-6">
       <form onSubmit={submit} className="space-y-4" noValidate>
         <Alert tone="blue" title={linked ? "Ganti NIK karyawan" : "Tautkan akun ke NIK karyawan"}>
-          Hanya karyawan yang terdaftar di daftar peserta yang bisa memesan tiket. Isi NIK dan nama persis seperti data karyawan.
+          Hanya karyawan yang terdaftar di daftar peserta yang bisa memesan tiket. Isi NIK karyawan atau NIK KTP (salah satu) dan nama persis seperti data karyawan.
         </Alert>
         <NikField value={f.nik} onChange={(nik) => setF({ ...f, nik })} error={fieldErr.nik} />
         <NameField value={f.fullName} onChange={(fullName) => setF({ ...f, fullName })} error={fieldErr.fullName} />
@@ -90,6 +91,60 @@ export function ProfileForm({ linked, locked, next }: { linked: Linked | null; l
           )}
         </div>
       </form>
+    </Card>
+  );
+}
+
+/** Nomor HP akun: bisa diubah kapan saja (juga setelah memegang tiket). */
+export function PhoneCard({ phone }: { phone: string | null }) {
+  const router = useRouter();
+  const [editing, setEditing] = useState(!phone);
+  const [v, setV] = useState(phone ?? "");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    const p = validatePhone(v);
+    if (!p.ok) return setErr(p.message);
+    setBusy(true);
+    setErr(null);
+    try {
+      await api("/api/profile", { method: "PATCH", json: { phone: v } });
+      setEditing(false);
+      router.refresh();
+    } catch (x) {
+      setErr(x instanceof ClientApiError ? x.message : "Gagal menyimpan. Coba lagi.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card className="mt-6 p-6">
+      {editing ? (
+        <form onSubmit={save} className="space-y-4" noValidate>
+          {!phone && <Alert tone="amber">Lengkapi nomor HP Anda agar panitia bisa menghubungi bila perlu.</Alert>}
+          <PhoneField value={v} onChange={setV} error={err ?? undefined} />
+          <div className="flex flex-wrap gap-3">
+            <Button type="submit" disabled={busy}>
+              {busy && <Spinner />} Simpan nomor HP
+            </Button>
+            {phone && (
+              <Button type="button" variant="ghost" onClick={() => setEditing(false)}>
+                Batal
+              </Button>
+            )}
+          </div>
+        </form>
+      ) : (
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <Item label="Nomor HP" value={<span className="font-mono">{phone}</span>} />
+          <Button variant="secondary" onClick={() => setEditing(true)}>
+            Ubah nomor HP
+          </Button>
+        </div>
+      )}
     </Card>
   );
 }

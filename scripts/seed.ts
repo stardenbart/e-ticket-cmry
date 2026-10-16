@@ -138,13 +138,16 @@ async function main() {
   const superId = await upsertUser("superadmin@eticket.local", "Super Admin", "SUPER_ADMIN", PW.admin);
   const adminId = await upsertUser("admin@eticket.local", "Event Admin", "EVENT_ADMIN", PW.admin);
   const staffId = await upsertUser("staf@eticket.local", "Staf Gate A", "GATE_STAFF", PW.staff);
-  for (const [nik, name, dept, category] of DEMO_EMPLOYEES) {
+  // NIK KTP demo: 3201010101900001, 3201010101900002, … (urut sesuai daftar).
+  for (const [i, [nik, name, dept, category]] of DEMO_EMPLOYEES.entries()) {
+    const ktp = `320101010190${String(i + 1).padStart(4, "0")}`;
     await sql`
-      INSERT INTO employees (nik, name, name_key, dept, category) VALUES (${nik}, ${name}, ${nameKey(name)}, ${dept}, ${category})
-      ON CONFLICT (nik) DO NOTHING`;
+      INSERT INTO employees (nik, nik_ktp, name, name_key, dept, category) VALUES (${nik}, ${ktp}, ${name}, ${nameKey(name)}, ${dept}, ${category})
+      ON CONFLICT (nik) DO UPDATE SET nik_ktp = COALESCE(employees.nik_ktp, EXCLUDED.nik_ktp)`;
   }
   await upsertUser("budi@example.com", "BUDI SANTOSO", "ATTENDEE", PW.attendee, "04.00001");
   await upsertUser("sari@example.com", "SARI WULANDARI", "ATTENDEE", PW.attendee, "A1.23.0001");
+  await sql`UPDATE users SET phone = '081200000001' WHERE lower(email) = 'budi@example.com' AND phone IS NULL`;
 
   const now = Date.now();
   const events: SeedEvent[] = [

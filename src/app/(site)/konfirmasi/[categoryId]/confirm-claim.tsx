@@ -8,7 +8,8 @@ import { AltCategories } from "@/components/site/alt-categories";
 import { useServerNow } from "@/components/site/use-server-now";
 import { MvImg } from "@/components/site/ornaments";
 import { uuidv4 } from "@/lib/uuid";
-import { NameField, NikField, ShirtSizeField, checkBiodata } from "@/components/site/nik-fields";
+import { NameField, NikField, PhoneField, ShirtSizeField, checkBiodata } from "@/components/site/nik-fields";
+import { ShirtGuide } from "@/components/site/shirt-guide";
 
 type Summary = {
   eventName: string;
@@ -22,6 +23,9 @@ type Summary = {
   nik: string;
   dept: string;
   email: string;
+  phone: string;
+  shirtDesign: string | null;
+  sizeChart: string | null;
   termsHtml: string;
 };
 
@@ -48,7 +52,7 @@ export function ConfirmClaim({ categoryId, slug, heldTicketId, summary, alternat
   const [showTerms, setShowTerms] = useState(false);
   // Biodata diisi ulang saat pemesanan dan dicek ke daftar karyawan eligible.
   // Terisi otomatis dari data akun; peserta cukup memilih ukuran baju (nama/NIK tetap bisa dikoreksi).
-  const [bio, setBio] = useState({ fullName: summary.holderName, nik: summary.nik === "-" ? "" : summary.nik, shirtSize: "" });
+  const [bio, setBio] = useState({ fullName: summary.holderName, nik: summary.nik === "-" ? "" : summary.nik, phone: summary.phone, shirtSize: "" });
   const [fieldErr, setFieldErr] = useState<Record<string, string>>({});
   const idemKey = useRef<string | null>(null);
   const now = useServerNow(1000);
@@ -73,7 +77,7 @@ export function ConfirmClaim({ categoryId, slug, heldTicketId, summary, alternat
 
   async function claim() {
     if (!adm || !agree || busy) return;
-    const fe = checkBiodata(bio.nik, bio.fullName);
+    const fe = checkBiodata(bio.nik, bio.fullName, bio.phone);
     if (!bio.shirtSize) fe.shirtSize = "Pilih ukuran baju.";
     setFieldErr(fe);
     if (Object.keys(fe).length) return;
@@ -83,7 +87,7 @@ export function ConfirmClaim({ categoryId, slug, heldTicketId, summary, alternat
       const res = await fetch("/api/claim", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ categoryId, admissionToken: adm.token, idempotencyKey: idemKey.current, agree: true, nik: bio.nik, fullName: bio.fullName.trim(), shirtSize: bio.shirtSize }),
+        body: JSON.stringify({ categoryId, admissionToken: adm.token, idempotencyKey: idemKey.current, agree: true, nik: bio.nik, fullName: bio.fullName.trim(), phone: bio.phone, shirtSize: bio.shirtSize }),
       });
       const data = await res.json().catch(() => ({}));
       // Biodata tidak cocok: perbaiki di form. Token antrean belum dipakai, giliran tetap aman.
@@ -220,10 +224,12 @@ export function ConfirmClaim({ categoryId, slug, heldTicketId, summary, alternat
 
           <fieldset className="space-y-4 rounded-xl border border-line p-4">
             <legend className="px-1 text-sm font-bold">Biodata pemesan</legend>
-            <p className="text-sm text-muted">Nama dan NIK sudah terisi dari akun Anda — periksa, lalu pilih ukuran baju. Data dicek ke daftar karyawan sebelum tiket diterbitkan; salah isi tidak menghanguskan giliran Anda.</p>
+            <p className="text-sm text-muted">Nama, NIK, dan nomor HP sudah terisi dari akun Anda — periksa, lalu pilih ukuran baju. NIK boleh diisi NIK karyawan atau NIK KTP. Data dicek ke daftar karyawan sebelum tiket diterbitkan; salah isi tidak menghanguskan giliran Anda.</p>
+            <ShirtGuide design={summary.shirtDesign} chart={summary.sizeChart} compact />
             <ShirtSizeField value={bio.shirtSize} onChange={(shirtSize) => setBio({ ...bio, shirtSize })} error={fieldErr.shirtSize} />
             <NameField value={bio.fullName} onChange={(fullName) => setBio({ ...bio, fullName })} error={fieldErr.fullName} />
             <NikField value={bio.nik} onChange={(nik) => setBio({ ...bio, nik })} error={fieldErr.nik} />
+            <PhoneField value={bio.phone} onChange={(phone) => setBio({ ...bio, phone })} error={fieldErr.phone} />
           </fieldset>
 
           <div>

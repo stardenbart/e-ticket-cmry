@@ -12,9 +12,15 @@ import { loadEventOr404 } from "@/lib/admin/events";
 const MAX_BYTES = 2 * 1024 * 1024;
 const MAX_GALLERY = 8;
 
-type Kind = "banner" | "thumb" | "gallery";
+type Kind = "banner" | "thumb" | "gallery" | "shirt" | "sizechart";
 
-/** Upload banner (2:1, min 1440×720), thumbnail (1:1) atau galeri. JPG/PNG/WebP ≤ 2 MB, dikompresi otomatis ke WebP. */
+/** Kolom events untuk gambar tunggal. */
+const SINGLE_COL = { banner: "banner_url", thumb: "thumb_url", shirt: "shirt_design_url", sizechart: "size_chart_url" } as const;
+
+/**
+ * Upload banner (2:1, min 1440×720), thumbnail (1:1), galeri, desain baju, atau chart ukuran baju.
+ * JPG/PNG/WebP ≤ 2 MB, dikompresi otomatis ke WebP.
+ */
 export const POST = route<{ id: string }>(async (req, ctx) => {
   const u = await requireAdmin();
   const { id } = await ctx.params;
@@ -22,7 +28,7 @@ export const POST = route<{ id: string }>(async (req, ctx) => {
   const form = await req.formData().catch(() => null);
   if (!form) throw new ApiError(400, "BAD_FORM", "Unggahan tidak valid.");
   const kind = String(form.get("kind")) as Kind;
-  if (!["banner", "thumb", "gallery"].includes(kind)) throw new ApiError(400, "VALIDATION", "Jenis gambar tidak valid.");
+  if (!["banner", "thumb", "gallery", "shirt", "sizechart"].includes(kind)) throw new ApiError(400, "VALIDATION", "Jenis gambar tidak valid.");
   const file = form.get("file");
   if (!(file instanceof File)) throw new ApiError(400, "VALIDATION", "Pilih file gambar.");
   if (file.size > MAX_BYTES) throw new ApiError(400, "TOO_LARGE", "Ukuran gambar maksimal 2 MB.");
@@ -47,11 +53,13 @@ export const POST = route<{ id: string }>(async (req, ctx) => {
     if (w < 400) throw new ApiError(400, "TOO_SMALL", "Thumbnail minimal 400×400.");
   }
 
+  // Chart ukuran berisi teks kecil: simpan lebih tajam.
   const maxW = kind === "banner" ? 1920 : kind === "thumb" ? 800 : 1600;
+  const quality = kind === "sizechart" ? 90 : 80;
   const name = `${kind}-${Date.now()}-${crypto.randomBytes(3).toString("hex")}.webp`;
   const dir = path.join(process.cwd(), "storage", "uploads", "events", id);
   await fs.mkdir(dir, { recursive: true });
-  await sharp(buf).rotate().resize({ width: maxW, withoutEnlargement: true }).webp({ quality: 80 }).toFile(path.join(dir, name));
+  await sharp(buf).rotate().resize({ width: maxW, withoutEnlargement: true }).webp({ quality }).toFile(path.join(dir, name));
   const url = `/media/events/${id}/${name}`;
 
   let version: number;
@@ -60,7 +68,7 @@ export const POST = route<{ id: string }>(async (req, ctx) => {
     [{ version }] = await sql<{ version: number }[]>`
       UPDATE events SET gallery = gallery || ${sql.json([url])}, version = version + 1 WHERE id = ${id} RETURNING version`;
   } else {
-    const col = kind === "banner" ? "banner_url" : "thumb_url";
+    const col = SINGLE_COL[kind];
     [{ version }] = await sql<{ version: number }[]>`
       UPDATE events SET ${sql(col)} = ${url}, version = version + 1 WHERE id = ${id} RETURNING version`;
   }
@@ -68,11 +76,20 @@ export const POST = route<{ id: string }>(async (req, ctx) => {
   return json({ ok: true, url, version });
 });
 
-/** Hapus satu gambar galeri. */
+/** Hapus satu gambar galeri, atau kosongkan gambar desain baju / chart ukuran (`kind`). */
 export const DELETE = route<{ id: string }>(async (req, ctx) => {
   const u = await requireAdmin();
   const { id } = await ctx.params;
-  const d = await body(req, z.object({ url: z.string().startsWith(`/media/events/${id}/`) }));
+  const d = await body(req, z.object({ url: z.string().startsWith(`/media/events/${id}/`).optional(), kind: z.enum(["shirt", "sizechart"]).optional() }));
+  if (d.kind) {
+    const col = SINGLE_COL[d.kind];
+    const [r] = await sql<{ version: number }[]>`
+      UPDATE events SET ${sql(col)} = NULL, version = version + 1 WHERE id = ${id} RETURNING version`;
+    if (!r) throw new ApiError(404, "NOT_FOUND", "Event tidak ditemukan.");
+    await audit({ actorId: u.id, action: `event.media_${d.kind}_remove`, entity: "event", entityId: id, ip: clientIp(req) });
+    return json({ ok: true, version: r.version });
+  }
+  if (!d.url) throw new ApiError(400, "VALIDATION", "Gambar tidak valid.");
   const [r] = await sql<{ version: number }[]>`
     UPDATE events SET gallery = gallery - ${d.url}, version = version + 1 WHERE id = ${id} RETURNING version`;
   if (!r) throw new ApiError(404, "NOT_FOUND", "Event tidak ditemukan.");

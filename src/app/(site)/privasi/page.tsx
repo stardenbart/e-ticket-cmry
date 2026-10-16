@@ -12,14 +12,15 @@ export default function PrivacyPage() {
       </p>
       <h2>Data yang kami kumpulkan</h2>
       <ul>
-        <li><b>Data karyawan:</b> NIK, nama pegawai, departemen, dan kategori (CMD/OS) dari daftar karyawan penyelenggara.</li>
-        <li><b>Data akun:</b> NIK, nama lengkap sesuai Kartu Karyawan, email, dan password (disimpan dalam bentuk hash).</li>
+        <li><b>Data karyawan:</b> NIK karyawan, NIK KTP, nama pegawai, departemen, dan kategori (CMD/OS) dari daftar karyawan penyelenggara.</li>
+        <li><b>Data akun:</b> NIK, nama lengkap sesuai Kartu Karyawan, nomor HP, email, dan password (disimpan dalam bentuk hash).</li>
         <li><b>Data tiket &amp; check-in:</b> kategori tiket, ukuran baju, waktu klaim, serta waktu dan gate check-in.</li>
       </ul>
-      <p>Kami <b>tidak</b> meminta atau menyimpan nomor identitas pribadi (KTP, SIM, atau Paspor); identitas yang dipakai hanya NIK dan Kartu Karyawan.</p>
+      <p>NIK KTP berasal dari data karyawan penyelenggara dan hanya dipakai untuk mencocokkan identitas saat Anda mendaftar atau memesan dengan NIK KTP. NIK KTP tidak dicetak di tiket, tidak dikirim lewat email, dan tidak ditampilkan ke petugas gate. Kami tidak meminta SIM atau Paspor.</p>
       <h2>Untuk apa data dipakai</h2>
       <ul>
-        <li><b>Kelayakan:</b> NIK dan nama dicocokkan dengan daftar karyawan agar hanya karyawan yang berhak dapat mengklaim tiket.</li>
+        <li><b>Kelayakan:</b> NIK (karyawan atau KTP) dan nama dicocokkan dengan daftar karyawan agar hanya karyawan yang berhak dapat mengklaim tiket.</li>
+        <li><b>Kontak:</b> nomor HP dipakai panitia untuk menghubungi Anda terkait acara bila diperlukan.</li>
         <li><b>Satu NIK satu tiket:</b> mencegah satu orang memegang beberapa tiket melalui beberapa akun.</li>
         <li><b>Verifikasi di gate:</b> petugas mencocokkan nama dan NIK di tiket dengan Kartu Karyawan.</li>
         <li><b>Logistik acara:</b> ukuran baju dipakai panitia untuk menyiapkan kaos acara.</li>

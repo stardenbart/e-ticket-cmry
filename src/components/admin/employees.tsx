@@ -8,11 +8,13 @@ import { Modal, Stat, Td, Th, useToast } from "./kit";
 
 type Row = {
   nik: string;
+  nik_ktp: string | null;
   name: string;
   dept: string;
   category: "CMD" | "OS";
   user_id: string | null;
   user_email: string | null;
+  user_phone: string | null;
   user_registered_at: string | null;
   user_google: boolean | null;
   ticket_id: string | null;
@@ -21,10 +23,23 @@ type Row = {
   shirt_size: string | null;
   ticket_issued_at: string | null;
   checked_in_at: string | null;
-  status: "BELUM_DAFTAR" | "TERDAFTAR" | "SUDAH_KLAIM";
+  status: Status;
 };
-type Stats = { total: number; cmd: number; os: number; registered: number; claimed: number; depts: string[] };
-type ListRes = { rows: Row[]; total: number; page: number; pageSize: number; stats: Stats };
+type Status = "BELUM_DAFTAR" | "BELUM_KLAIM" | "BELUM_CHECKIN" | "SUDAH_CHECKIN";
+type Stats = {
+  total: number;
+  cmd: number;
+  os: number;
+  with_ktp: number;
+  registered: number;
+  belum_daftar: number;
+  belum_klaim: number;
+  belum_checkin: number;
+  sudah_checkin: number;
+  depts: string[];
+};
+type EventOpt = { id: string; name: string; status: string };
+type ListRes = { rows: Row[]; total: number; page: number; pageSize: number; stats: Stats; events: EventOpt[]; eventId: string | null };
 type Preview = {
   token: string;
   filename: string;
@@ -33,14 +48,15 @@ type Preview = {
   moreErrors: number;
 };
 
-const STATUS: Record<Row["status"], { label: string; tone: "slate" | "blue" | "green" }> = {
-  BELUM_DAFTAR: { label: "Belum daftar", tone: "slate" },
-  TERDAFTAR: { label: "Terdaftar", tone: "blue" },
-  SUDAH_KLAIM: { label: "Sudah klaim", tone: "green" },
+const STATUS: Record<Status, { label: string; tone: "slate" | "blue" | "amber" | "green"; stat: keyof Stats }> = {
+  BELUM_DAFTAR: { label: "Belum tautkan akun", tone: "slate", stat: "belum_daftar" },
+  BELUM_KLAIM: { label: "Belum klaim tiket", tone: "amber", stat: "belum_klaim" },
+  BELUM_CHECKIN: { label: "Belum check-in", tone: "blue", stat: "belum_checkin" },
+  SUDAH_CHECKIN: { label: "Sudah check-in", tone: "green", stat: "sudah_checkin" },
 };
 
 export function Employees() {
-  const [filters, setFilters] = useState({ q: "", category: "", dept: "", status: "" });
+  const [filters, setFilters] = useState({ eventId: "", q: "", category: "", dept: "", status: "" });
   const [page, setPage] = useState(1);
   const [data, setData] = useState<ListRes | null>(null);
   const [loading, setLoading] = useState(true);
@@ -94,18 +110,21 @@ export function Employees() {
 
   const s = data?.stats;
   const pages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
+  // Event aktif: pilihan admin, atau default dari server (event terbaru).
+  const eventId = filters.eventId || data?.eventId || "";
+  const pct = (n: number) => (s?.total ? `${Math.round((n / s.total) * 100)}%` : undefined);
 
   return (
     <div>
       <PageTitle
         title="Data Karyawan"
-        subtitle="Acuan peserta eligible. Akun peserta terhubung otomatis lewat NIK yang diisi saat daftar."
+        subtitle="Acuan peserta eligible. Akun peserta terhubung otomatis lewat NIK karyawan / NIK KTP yang diisi saat daftar."
         action={
           <div className="flex flex-wrap gap-2">
             <a href="/api/admin/employees/template" className="inline-flex items-center rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-cimory-blue hover:bg-slate-50">
               Unduh template
             </a>
-            <a href={`/api/admin/employees/export?${qs()}`} className="inline-flex items-center rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-cimory-blue hover:bg-slate-50">
+            <a href={`/api/admin/employees/export?${qs({ eventId })}`} className="inline-flex items-center rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-cimory-blue hover:bg-slate-50">
               Ekspor Excel
             </a>
             <Button variant="secondary" className="!py-2.5 text-sm" onClick={() => setImportOpen(true)}>
@@ -118,18 +137,44 @@ export function Employees() {
         }
       />
 
+      <Card className="mb-4 flex flex-wrap items-center gap-3 p-3">
+        <label htmlFor="emp-event" className="text-sm font-semibold">
+          Event
+        </label>
+        <Select id="emp-event" value={eventId} onChange={(e) => set("eventId", e.target.value)} className="min-w-64 flex-1 sm:flex-none">
+          {data?.events.map((ev) => (
+            <option key={ev.id} value={ev.id}>
+              {ev.name}
+              {ev.status === "DRAFT" ? " (draft)" : ""}
+            </option>
+          ))}
+        </Select>
+        {s && (
+          <p className="text-sm text-muted">
+            {fmtNumber(s.total)} karyawan · CMD {fmtNumber(s.cmd)} · OS {fmtNumber(s.os)} · NIK KTP terisi {fmtNumber(s.with_ktp)}
+          </p>
+        )}
+      </Card>
+
       {s && (
-        <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
-          <Stat label="Total karyawan" value={fmtNumber(s.total)} />
-          <Stat label="CMD" value={fmtNumber(s.cmd)} />
-          <Stat label="OS" value={fmtNumber(s.os)} />
-          <Stat label="Sudah daftar akun" value={fmtNumber(s.registered)} hint={s.total ? `${Math.round((s.registered / s.total) * 100)}%` : undefined} />
-          <Stat label="Sudah klaim tiket" value={fmtNumber(s.claimed)} tone="green" hint={s.total ? `${Math.round((s.claimed / s.total) * 100)}%` : undefined} />
+        <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-5" role="tablist" aria-label="Filter status">
+          <StatusTab active={!filters.status} onClick={() => set("status", "")} label="Semua karyawan" value={s.total} />
+          {(Object.keys(STATUS) as Status[]).map((k) => (
+            <StatusTab
+              key={k}
+              active={filters.status === k}
+              onClick={() => set("status", k)}
+              label={STATUS[k].label}
+              value={s[STATUS[k].stat] as number}
+              hint={pct(s[STATUS[k].stat] as number)}
+              tone={STATUS[k].tone}
+            />
+          ))}
         </div>
       )}
 
-      <Card className="mb-4 grid gap-3 p-3 sm:grid-cols-[2fr_1fr_1fr_1fr]">
-        <Input value={filters.q} onChange={(e) => set("q", e.target.value)} placeholder="Cari NIK, nama, dept, atau email akun…" aria-label="Cari" />
+      <Card className="mb-4 grid gap-3 p-3 sm:grid-cols-[2fr_1fr_1fr]">
+        <Input value={filters.q} onChange={(e) => set("q", e.target.value)} placeholder="Cari NIK, NIK KTP, nama, dept, email, atau no HP…" aria-label="Cari" />
         <Select value={filters.category} onChange={(e) => set("category", e.target.value)} aria-label="Kategori">
           <option value="">Semua kategori</option>
           <option value="CMD">CMD</option>
@@ -143,12 +188,6 @@ export function Employees() {
             </option>
           ))}
         </Select>
-        <Select value={filters.status} onChange={(e) => set("status", e.target.value)} aria-label="Status">
-          <option value="">Semua status</option>
-          <option value="BELUM_DAFTAR">Belum daftar</option>
-          <option value="TERDAFTAR">Terdaftar (belum klaim)</option>
-          <option value="SUDAH_KLAIM">Sudah klaim</option>
-        </Select>
       </Card>
 
       {err && <Alert tone="red" className="mb-4">{err}</Alert>}
@@ -157,7 +196,7 @@ export function Employees() {
         <table className="w-full min-w-[980px]">
           <thead>
             <tr>
-              <Th>NIK</Th>
+              <Th>NIK / NIK KTP</Th>
               <Th>Nama Pegawai</Th>
               <Th>Dept</Th>
               <Th>Kategori</Th>
@@ -183,7 +222,10 @@ export function Employees() {
             )}
             {data?.rows.map((r) => (
               <tr key={r.nik} className="hover:bg-slate-50">
-                <Td className="whitespace-nowrap font-mono">{r.nik}</Td>
+                <Td className="whitespace-nowrap font-mono">
+                  {r.nik}
+                  <p className="text-xs text-muted">{r.nik_ktp ?? "KTP —"}</p>
+                </Td>
                 <Td className="font-semibold">{r.name}</Td>
                 <Td>{r.dept || "—"}</Td>
                 <Td>{r.category}</Td>
@@ -194,6 +236,7 @@ export function Employees() {
                   {r.user_email ? (
                     <>
                       <p className="max-w-56 truncate">{r.user_email}</p>
+                      <p className="text-xs text-muted">{r.user_phone ?? "No HP —"}</p>
                       <p className="text-xs text-muted">
                         {r.user_registered_at ? fmtDateTime(r.user_registered_at) : ""}
                         {r.user_google ? " · Google" : ""}
@@ -272,8 +315,25 @@ export function Employees() {
   );
 }
 
+function StatusTab({ active, onClick, label, value, hint, tone }: { active: boolean; onClick: () => void; label: string; value: number; hint?: string; tone?: "slate" | "blue" | "amber" | "green" }) {
+  const color = tone === "green" ? "text-ok" : tone === "amber" ? "text-warn" : tone === "slate" ? "text-slate-600" : "text-cimory-blue";
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={`rounded-xl border bg-white px-4 py-3 text-left shadow-sm transition hover:border-cimory-blue ${active ? "border-cimory-blue ring-2 ring-cimory-blue/30" : "border-line"}`}
+    >
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</p>
+      <p className={`mt-1 text-2xl font-bold tabular-nums ${color}`}>{fmtNumber(value)}</p>
+      {hint && <p className="text-xs text-muted">{hint}</p>}
+    </button>
+  );
+}
+
 function EditModal({ row, onClose, onSaved }: { row: Row | null; onClose: () => void; onSaved: (msg: string) => void }) {
-  const [f, setF] = useState({ nik: row?.nik ?? "", name: row?.name ?? "", dept: row?.dept ?? "", category: row?.category ?? "" });
+  const [f, setF] = useState({ nik: row?.nik ?? "", nik_ktp: row?.nik_ktp ?? "", name: row?.name ?? "", dept: row?.dept ?? "", category: row?.category ?? "" });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -311,6 +371,9 @@ function EditModal({ row, onClose, onSaved }: { row: Row | null; onClose: () => 
         {row?.user_id && <Alert tone="blue">Karyawan ini sudah punya akun ({row.user_email}). Nama akun ikut diperbarui; NIK tidak bisa diganti.</Alert>}
         <Field label="NIK" htmlFor="e-nik" hint="04.xxxx untuk CMD, A1.xx.xxxx untuk OS.">
           <Input id="e-nik" value={f.nik} disabled={!!row?.user_id} onChange={(e) => setF({ ...f, nik: e.target.value.toUpperCase().replace(/\s+/g, "") })} className="font-mono" />
+        </Field>
+        <Field label="NIK KTP" htmlFor="e-ktp" hint="16 digit (boleh kosong). Peserta bisa daftar/klaim memakai NIK ini.">
+          <Input id="e-ktp" value={f.nik_ktp} inputMode="numeric" maxLength={16} onChange={(e) => setF({ ...f, nik_ktp: e.target.value.replace(/\D/g, "") })} className="font-mono" />
         </Field>
         <Field label="Nama Pegawai (sesuai Kartu Karyawan)" htmlFor="e-name" hint="Disimpan dalam huruf kapital.">
           <Input id="e-name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value.toUpperCase() })} />

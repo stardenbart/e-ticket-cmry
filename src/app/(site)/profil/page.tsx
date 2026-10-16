@@ -4,7 +4,7 @@ import { requirePageUser } from "@/lib/auth";
 import { findEmployee } from "@/lib/employees";
 import { PageHero } from "@/components/site/ornaments";
 import { safeNext } from "@/components/site/auth-shell";
-import { ProfileForm } from "./profile-form";
+import { PhoneCard, ProfileForm } from "./profile-form";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Profil Karyawan" };
@@ -23,6 +23,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         locked={!!locked}
         next={next}
       />
+      <PhoneCard phone={u.phone} />
     </div>
   );
 }

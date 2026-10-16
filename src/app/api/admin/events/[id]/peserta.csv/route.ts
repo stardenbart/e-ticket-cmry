@@ -20,11 +20,11 @@ export const GET = route<{ id: string }>(async (req, ctx) => {
   if (categoryId) z.string().uuid().parse(categoryId);
   const filters = { q: sp.get("q") ?? undefined, status: sp.get("status") || undefined, categoryId };
   const { rows } = await queryParticipants(id, filters);
-  const header = ["ticket_id", "nik", "nama_pemegang", "departemen", "ukuran_baju", "email", "kategori", "status", "diterbitkan", "check_in", "gate", "status_email"];
+  const header = ["ticket_id", "nik", "nama_pemegang", "departemen", "ukuran_baju", "email", "no_hp", "kategori", "status", "diterbitkan", "check_in", "gate", "status_email"];
   const lines = [header.join(",")];
   for (const r of rows) {
     lines.push(
-      [r.id, r.nik, r.holder_name, r.dept, r.shirt_size, r.email, r.category_name, STATUS_ID[r.status] ?? r.status, r.issued_at, r.checked_in_at, r.checked_in_gate, r.email_status]
+      [r.id, r.nik, r.holder_name, r.dept, r.shirt_size, r.email, r.phone, r.category_name, STATUS_ID[r.status] ?? r.status, r.issued_at, r.checked_in_at, r.checked_in_gate, r.email_status]
         .map(csvCell)
         .join(","),
     );

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanNik, nameKey, nikCategory, validateName, validateNik } from "@/lib/employee-shared";
+import { cleanNik, nameKey, nikCategory, parseIdentity, validateName, validateNik, validatePhone } from "@/lib/employee-shared";
 import { normalizeEmployee } from "@/lib/admin/employees";
 
 describe("NIK karyawan", () => {
@@ -44,7 +44,7 @@ describe("Baris impor data karyawan", () => {
   it("kategori otomatis dari NIK, nama jadi kapital", () => {
     expect(normalizeEmployee({ nik: "04.00001", name: "budi santoso", dept: " Production ", category: "" })).toEqual({
       ok: true,
-      value: { nik: "04.00001", name: "BUDI SANTOSO", dept: "Production", category: "CMD" },
+      value: { nik: "04.00001", nik_ktp: null, name: "BUDI SANTOSO", dept: "Production", category: "CMD" },
     });
   });
   it("Excel mengubah 04.0018 menjadi angka 4.0018 → dikembalikan", () => {
@@ -54,5 +54,42 @@ describe("Baris impor data karyawan", () => {
   it("kategori tidak cocok dengan format NIK ditolak", () => {
     const r = normalizeEmployee({ nik: "A1.23.4567", name: "SARI", dept: "", category: "CMD" });
     expect(r.ok).toBe(false);
+  });
+});
+
+describe("NIK karyawan ATAU NIK KTP", () => {
+  it("mengenali jenis NIK", () => {
+    expect(parseIdentity("04.0018")).toEqual({ ok: true, kind: "NIK", nik: "04.0018", category: "CMD" });
+    expect(parseIdentity("a1.5.123")).toEqual({ ok: true, kind: "NIK", nik: "A1.5.123", category: "OS" });
+    expect(parseIdentity("3201 0101 0190 0001")).toEqual({ ok: true, kind: "KTP", ktp: "3201010101900001" });
+    expect(parseIdentity("3201.0101.0190.0001")).toEqual({ ok: true, kind: "KTP", ktp: "3201010101900001" });
+  });
+  it("menolak KTP yang bukan 16 digit dan format lain", () => {
+    for (const bad of ["320101010190001", "32010101019000011", "0412345", "ABC", ""]) expect(parseIdentity(bad).ok, bad).toBe(false);
+  });
+});
+
+describe("Nomor HP", () => {
+  it("dinormalisasi ke 08…", () => {
+    expect(validatePhone("0812-3456-7890")).toEqual({ ok: true, phone: "081234567890" });
+    expect(validatePhone("+62 812 3456 7890")).toEqual({ ok: true, phone: "081234567890" });
+    expect(validatePhone("6281234567890")).toEqual({ ok: true, phone: "081234567890" });
+  });
+  it("menolak yang tidak valid", () => {
+    for (const bad of ["", "0212345678", "08123", "0812345678901234"]) expect(validatePhone(bad).ok, bad).toBe(false);
+  });
+});
+
+describe("NIK KTP di impor data karyawan", () => {
+  const base = { nik: "04.00001", name: "BUDI", dept: "", category: "" };
+  it("teks 16 digit diterima; kosong = null", () => {
+    const r = normalizeEmployee({ ...base, nik_ktp: "'3201010101900001" });
+    expect(r.ok && r.value.nik_ktp).toBe("3201010101900001");
+    const e = normalizeEmployee({ ...base, nik_ktp: "" });
+    expect(e.ok && e.value.nik_ktp).toBe(null);
+  });
+  it("angka Excel (presisi 15 digit) dan panjang salah ditolak", () => {
+    expect(normalizeEmployee({ ...base, nik_ktp: 3201010101900000 }).ok).toBe(false);
+    expect(normalizeEmployee({ ...base, nik_ktp: "320101" }).ok).toBe(false);
   });
 });

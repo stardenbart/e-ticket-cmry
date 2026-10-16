@@ -171,7 +171,7 @@ export function Highlights() {
 const STEPS = [
   [
     "Daftar dengan NIK",
-    "Buat akun memakai NIK karyawan (CMD: 04.xxxx · OS: A1.xx.xxxx), nama sesuai Kartu Karyawan, email, dan password.",
+    "Buat akun memakai NIK karyawan atau NIK KTP (cukup salah satu), nama sesuai Kartu Karyawan, nomor HP, email, dan password.",
   ],
   [
     "Masuk Antrean",

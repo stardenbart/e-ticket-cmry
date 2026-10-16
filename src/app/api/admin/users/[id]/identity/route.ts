@@ -3,8 +3,8 @@ import { sql, pgConstraint } from "@/lib/db";
 import { body, clientIp, json, route, ApiError } from "@/lib/http";
 import { requireAdmin } from "@/lib/auth";
 import { audit } from "@/lib/audit";
-import { findEmployee, nikIdentityHash } from "@/lib/employees";
-import { validateNik } from "@/lib/employee-shared";
+import { findEmployeeByIdentity, nikIdentityHash } from "@/lib/employees";
+import { parseIdentity } from "@/lib/employee-shared";
 
 const schema = z.object({
   nik: z.string().trim().min(1, "NIK wajib diisi."),
@@ -21,10 +21,10 @@ export const POST = route<{ id: string }>(async (req, ctx) => {
   const { id } = await ctx.params;
   if (!z.string().uuid().safeParse(id).success) throw new ApiError(404, "NOT_FOUND", "Pengguna tidak ditemukan.");
   const d = await body(req, schema);
-  const v = validateNik(d.nik);
+  const v = parseIdentity(d.nik);
   if (!v.ok) throw new ApiError(400, "VALIDATION", v.message);
-  const emp = await findEmployee(v.nik);
-  if (!emp) throw new ApiError(404, "NOT_ELIGIBLE", "NIK tidak ada di daftar karyawan. Tambahkan dulu di menu Data Karyawan.");
+  const emp = await findEmployeeByIdentity(d.nik);
+  if (!emp) throw new ApiError(404, "NOT_ELIGIBLE", "NIK (karyawan/KTP) tidak ada di daftar karyawan. Tambahkan dulu di menu Data Karyawan.");
 
   const res = await sql.begin(async (tx) => {
     const [u] = await tx<{ full_name: string; nik: string | null }[]>`SELECT full_name, nik FROM users WHERE id = ${id} FOR UPDATE`;

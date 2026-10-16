@@ -1,11 +1,21 @@
 import { sql, type Tx } from "./db";
 import { identityHash } from "./crypto";
-import { nameKey, validateName, validateNik, type EmployeeCategory } from "./employee-shared";
+import { nameKey, parseIdentity, validateName, type EmployeeCategory } from "./employee-shared";
 
-export type Employee = { nik: string; name: string; name_key: string; dept: string; category: EmployeeCategory };
+export type Employee = { nik: string; nik_ktp: string | null; name: string; name_key: string; dept: string; category: EmployeeCategory };
 
 export async function findEmployee(nik: string, tx: Tx | typeof sql = sql): Promise<Employee | null> {
-  const [e] = await tx<Employee[]>`SELECT nik, name, name_key, dept, category FROM employees WHERE nik = ${nik}`;
+  const [e] = await tx<Employee[]>`SELECT nik, nik_ktp, name, name_key, dept, category FROM employees WHERE nik = ${nik}`;
+  return e ?? null;
+}
+
+/** Cari karyawan dari NIK karyawan ATAU NIK KTP (16 digit). */
+export async function findEmployeeByIdentity(raw: string, tx: Tx | typeof sql = sql): Promise<Employee | null> {
+  const id = parseIdentity(raw);
+  if (!id.ok) return null;
+  const [e] = await tx<Employee[]>`
+    SELECT nik, nik_ktp, name, name_key, dept, category FROM employees
+    WHERE ${id.kind === "KTP" ? tx`nik_ktp = ${id.ktp}` : tx`nik = ${id.nik}`}`;
   return e ?? null;
 }
 
@@ -18,7 +28,7 @@ export type EligibilityFail =
   | { ok: false; code: "NAME_MISMATCH"; field: "name"; message: string };
 
 /**
- * Cek NIK + nama terhadap daftar karyawan eligible.
+ * Cek NIK (karyawan atau KTP) + nama terhadap daftar karyawan eligible.
  * NIK harus sama persis; nama dicocokkan setelah mengabaikan tanda baca & spasi ganda.
  */
 export async function checkEligibility(
@@ -26,13 +36,14 @@ export async function checkEligibility(
   rawName: string,
   tx: Tx | typeof sql = sql,
 ): Promise<{ ok: true; employee: Employee } | EligibilityFail> {
-  const n = validateNik(rawNik);
-  if (!n.ok) return { ok: false, code: "INVALID_NIK", field: "nik", message: n.message };
+  const id = parseIdentity(rawNik);
+  if (!id.ok) return { ok: false, code: "INVALID_NIK", field: "nik", message: id.message };
   const nm = validateName(rawName);
   if (!nm.ok) return { ok: false, code: "INVALID_NAME", field: "name", message: nm.message };
-  const employee = await findEmployee(n.nik, tx);
+  const employee = await findEmployeeByIdentity(rawNik, tx);
   if (!employee) {
-    return { ok: false, code: "NOT_ELIGIBLE", field: "nik", message: "NIK tidak terdaftar sebagai peserta eligible. Hubungi panitia bila menurut Anda ini keliru." };
+    const what = id.kind === "KTP" ? "NIK KTP" : "NIK karyawan";
+    return { ok: false, code: "NOT_ELIGIBLE", field: "nik", message: `${what} tidak terdaftar di daftar karyawan. Coba isi dengan NIK yang lain (karyawan/KTP), atau hubungi panitia.` };
   }
   if (employee.name_key !== nameKey(nm.name)) {
     return { ok: false, code: "NAME_MISMATCH", field: "name", message: "Nama tidak sesuai dengan data karyawan untuk NIK ini. Tulis nama lengkap sesuai Kartu Karyawan (huruf kapital)." };

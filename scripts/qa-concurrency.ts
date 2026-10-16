@@ -99,6 +99,7 @@ async function claim(u: QaUser, categoryId: string, token: string, idem = crypto
         agree: true,
         nik: bio.nik ?? u.nik,
         fullName: bio.fullName ?? u.name,
+        phone: "081234567890",
         shirtSize: "L",
       }),
     });

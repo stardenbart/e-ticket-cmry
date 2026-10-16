@@ -2,15 +2,17 @@ import { NextResponse } from "next/server";
 import { clientIp, route } from "@/lib/http";
 import { requireAdmin } from "@/lib/auth";
 import { audit } from "@/lib/audit";
-import { exportEmployeesXlsx, queryEmployees } from "@/lib/admin/employees";
+import { employeeEvents, exportEmployeesXlsx, queryEmployees } from "@/lib/admin/employees";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/admin/employees/export?filter… — unduh .xlsx dengan kolom yang sama seperti tabel admin. */
+/** GET /api/admin/employees/export?eventId=&filter… — unduh .xlsx dengan kolom & filter yang sama seperti tabel admin. */
 export const GET = route(async (req) => {
   const u = await requireAdmin();
   const sp = req.nextUrl.searchParams;
-  const f = { q: sp.get("q") ?? undefined, category: sp.get("category") ?? undefined, dept: sp.get("dept") ?? undefined, status: sp.get("status") ?? undefined };
+  const events = await employeeEvents();
+  const eventId = events.find((e) => e.id === sp.get("eventId"))?.id ?? events[0]?.id ?? null;
+  const f = { q: sp.get("q") ?? undefined, category: sp.get("category") ?? undefined, dept: sp.get("dept") ?? undefined, status: sp.get("status") ?? undefined, eventId };
   const { rows } = await queryEmployees(f);
   const buf = await exportEmployeesXlsx(rows);
   await audit({ actorId: u.id, action: "employees.export", entity: "employees", after: { ...f, rows: rows.length }, ip: clientIp(req) });

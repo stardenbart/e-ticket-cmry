@@ -3,9 +3,9 @@ import { sql } from "@/lib/db";
 import { body, clientIp, json, route, ApiError } from "@/lib/http";
 import { requireAdmin } from "@/lib/auth";
 import { audit } from "@/lib/audit";
-import { normalizeEmployee, saveEmployee } from "@/lib/admin/employees";
+import { assertKtpFree, normalizeEmployee, saveEmployee } from "@/lib/admin/employees";
 
-const schema = z.object({ nik: z.string(), name: z.string(), dept: z.string().default(""), category: z.string().default("") });
+const schema = z.object({ nik: z.string(), nik_ktp: z.string().default(""), name: z.string(), dept: z.string().default(""), category: z.string().default("") });
 
 /** PUT /api/admin/employees/:nik — ubah data karyawan. */
 export const PUT = route<{ nik: string }>(async (req, ctx) => {
@@ -18,6 +18,7 @@ export const PUT = route<{ nik: string }>(async (req, ctx) => {
     const [taken] = await sql`SELECT 1 FROM employees WHERE nik = ${n.value.nik}`;
     if (taken) throw new ApiError(409, "DUPLICATE", "NIK baru sudah ada di daftar karyawan.");
   }
+  await assertKtpFree(n.value.nik_ktp, original);
   const r = await sql.begin((tx) => saveEmployee(n.value, { actorId: u.id, originalNik: original, ip: clientIp(req) }, tx));
   if ("notFound" in r) throw new ApiError(404, "NOT_FOUND", "Karyawan tidak ditemukan.");
   if ("error" in r) throw new ApiError(409, "LINKED", String(r.error));

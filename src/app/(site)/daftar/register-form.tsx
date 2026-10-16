@@ -6,12 +6,12 @@ import { useState } from "react";
 import { Alert, Button, Field, Input, Spinner } from "@/components/ui";
 import { api, ClientApiError } from "@/lib/client-api";
 import { PasswordInput } from "@/components/site/password-input";
-import { NameField, NikField, checkBiodata } from "@/components/site/nik-fields";
+import { NameField, NikField, PhoneField, checkBiodata } from "@/components/site/nik-fields";
 
-/** Daftar akun dengan NIK karyawan. NIK + nama dicek ke daftar karyawan eligible di server. */
+/** Daftar akun dengan NIK karyawan atau NIK KTP. NIK + nama dicek ke daftar karyawan eligible di server. */
 export function RegisterForm({ next }: { next: string }) {
   const router = useRouter();
-  const [f, setF] = useState({ nik: "", fullName: "", email: "", password: "", agree: false });
+  const [f, setF] = useState({ nik: "", fullName: "", phone: "", email: "", password: "", agree: false });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErr, setFieldErr] = useState<Record<string, string>>({});
@@ -20,7 +20,7 @@ export function RegisterForm({ next }: { next: string }) {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const fe: Record<string, string> = checkBiodata(f.nik, f.fullName);
+    const fe: Record<string, string> = checkBiodata(f.nik, f.fullName, f.phone);
     if (!/^\S+@\S+\.\S+$/.test(f.email)) fe.email = "Format email tidak valid.";
     if (!pwOk) fe.password = "Password minimal 8 karakter.";
     if (!f.agree) fe.agree = "Anda harus menyetujui S&K dan kebijakan privasi.";
@@ -50,6 +50,7 @@ export function RegisterForm({ next }: { next: string }) {
     <form onSubmit={submit} className="space-y-4" noValidate>
       <NikField value={f.nik} onChange={(nik) => setF({ ...f, nik })} error={fieldErr.nik} />
       <NameField value={f.fullName} onChange={(fullName) => setF({ ...f, fullName })} error={fieldErr.fullName} />
+      <PhoneField value={f.phone} onChange={(phone) => setF({ ...f, phone })} error={fieldErr.phone} />
       <Field label="Email" htmlFor="email" error={fieldErr.email} hint="Tiket QR dan kode lupa password dikirim ke email ini.">
         <Input id="email" type="email" autoComplete="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} placeholder="nama@email.com" />
       </Field>
@@ -67,7 +68,7 @@ export function RegisterForm({ next }: { next: string }) {
           <span>
             Saya menyetujui{" "}
             <Link href="/syarat" target="_blank" className="font-semibold text-cimory-blue underline">Syarat &amp; Ketentuan</Link> dan{" "}
-            <Link href="/privasi" target="_blank" className="font-semibold text-cimory-blue underline">Kebijakan Privasi</Link>, termasuk pemakaian NIK, nama, dan departemen untuk verifikasi peserta.
+            <Link href="/privasi" target="_blank" className="font-semibold text-cimory-blue underline">Kebijakan Privasi</Link>, termasuk pemakaian NIK, nama, nomor HP, dan departemen untuk verifikasi peserta.
           </span>
         </label>
         {fieldErr.agree && <p className="mt-1 text-sm text-cimory-red-dark">{fieldErr.agree}</p>}

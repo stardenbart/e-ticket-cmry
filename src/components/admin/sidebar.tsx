@@ -13,6 +13,8 @@ const ICONS: Record<string, string> = {
   audit: "M9 5h10M9 12h10M9 19h10M5 5h.01M5 12h.01M5 19h.01",
   users: "M16 19v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm10 9v-1a4 4 0 0 0-3-3.9M15 4.1a3 3 0 0 1 0 5.8",
   block: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM5.6 5.6l12.8 12.8",
+  account: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9a7 7 0 0 1 14 0M19 8h4M21 6v4",
+  home: "M10 19l-7-7 7-7M3 12h18",
 };
 
 export function AdminSidebar({ superAdmin, name, email }: { superAdmin: boolean; name: string; email: string }) {
@@ -23,6 +25,7 @@ export function AdminSidebar({ superAdmin, name, email }: { superAdmin: boolean;
     { href: "/admin", label: "Dashboard", icon: "dash", exact: true },
     { href: "/admin/events", label: "Daftar Event", icon: "event" },
     { href: "/admin/karyawan", label: "Data Karyawan", icon: "users" },
+    { href: "/admin/akun-peserta", label: "Akun Peserta", icon: "account" },
     { href: "/admin/audit", label: "Audit Log", icon: "audit" },
     ...(superAdmin
       ? [
@@ -47,7 +50,9 @@ export function AdminSidebar({ superAdmin, name, email }: { superAdmin: boolean;
           </svg>
         </button>
         <span className="font-bold">Panel Admin</span>
-        <span className="w-10" />
+        <Link href="/" className="rounded-lg px-2 py-1.5 text-xs font-semibold hover:bg-white/10" aria-label="Kembali ke halaman event">
+          ← Event
+        </Link>
       </header>
       <aside
         className={cx(
@@ -58,6 +63,17 @@ export function AdminSidebar({ superAdmin, name, email }: { superAdmin: boolean;
         <div className="bg-cimory-gradient px-5 py-5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-80">CMD Employee Gathering 2026</p>
           <p className="text-lg font-bold">Panel Admin</p>
+        </div>
+        <div className="px-3 pt-4">
+          <Link
+            href="/"
+            className="flex items-center justify-center gap-2 rounded-lg bg-white px-3 py-2.5 text-sm font-semibold text-cimory-blue shadow-sm transition hover:bg-white/90"
+          >
+            <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d={ICONS.home} />
+            </svg>
+            Kembali ke Halaman Event
+          </Link>
         </div>
         <nav className="flex-1 space-y-1 px-3 py-4">
           {items.map((i) => (
