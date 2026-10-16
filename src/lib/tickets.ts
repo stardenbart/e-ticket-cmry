@@ -175,7 +175,7 @@ export async function ticketPdf(t: TicketView): Promise<Uint8Array> {
   line("ID Tiket", t.id);
 
   page.drawRectangle({ x: 20, y: 24, width: width - 40, height: 40, color: rgb(1, 0.95, 0.95) });
-  page.drawText(clean(`Bawa ID card karyawan (NIK ${t.nik ?? "-"}) untuk dicocokkan di gate.`), { x: 30, y: 46, size: 9, font: bold, color: RED });
+  page.drawText(clean(`Bawa Kartu Karyawan (NIK ${t.nik ?? "-"}) untuk dicocokkan di gate.`), { x: 30, y: 46, size: 9, font: bold, color: RED });
   page.drawText("Jangan bagikan QR ini. Tiket tidak dapat dipindahtangankan.", { x: 30, y: 33, size: 8, font: reg, color: GREY });
 
   return doc.save();

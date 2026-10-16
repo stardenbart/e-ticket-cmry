@@ -1,6 +1,6 @@
 "use client";
 
-// Input biodata karyawan: NIK (format 04.xxxx / A1.xx.xxxx) dan nama HURUF KAPITAL sesuai KTP.
+// Input biodata karyawan: NIK (format 04.xxxx / A1.xx.xxxx) dan nama HURUF KAPITAL sesuai Kartu Karyawan.
 import { Field, Input, Select } from "@/components/ui";
 import { SHIRT_SIZES, cleanNik, nikCategory, validateName } from "@/lib/employee-shared";
 
@@ -40,17 +40,17 @@ export function NikField({ value, onChange, error, id = "nik" }: { value: string
 export function NameField({ value, onChange, error, id = "fullName", hint }: { value: string; onChange: (v: string) => void; error?: string; id?: string; hint?: React.ReactNode }) {
   return (
     <Field
-      label="Nama lengkap (HURUF KAPITAL, sesuai KTP)"
+      label="Nama lengkap (HURUF KAPITAL, sesuai Kartu Karyawan)"
       htmlFor={id}
       error={error}
-      hint={hint ?? "Tulis lengkap tanpa singkatan, persis seperti di KTP. Contoh: MUHAMMAD RIZKI PRATAMA"}
+      hint={hint ?? "Tulis lengkap tanpa singkatan, persis seperti di Kartu Karyawan. Contoh: MUHAMMAD RIZKI PRATAMA"}
     >
       <Input
         id={id}
         value={value}
         // Huruf otomatis menjadi kapital saat diketik.
         onChange={(e) => onChange(e.target.value.toUpperCase())}
-        placeholder="NAMA SESUAI KTP"
+        placeholder="NAMA SESUAI KARTU KARYAWAN"
         autoComplete="name"
         autoCapitalize="characters"
         spellCheck={false}

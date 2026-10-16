@@ -13,7 +13,7 @@ const schema = z.object({
   agree: z.literal(true, { message: "Setujui Syarat & Ketentuan terlebih dulu." }),
   // Biodata diisi ulang saat pemesanan dan dicek ke daftar karyawan eligible.
   nik: z.string().trim().min(1, "NIK wajib diisi.").max(20),
-  fullName: z.string().trim().min(1, "Nama wajib diisi sesuai KTP.").max(150),
+  fullName: z.string().trim().min(1, "Nama wajib diisi sesuai Kartu Karyawan.").max(150),
   shirtSize: z.enum(SHIRT_SIZES, { message: "Pilih ukuran baju." }),
 });
 

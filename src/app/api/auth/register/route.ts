@@ -12,7 +12,7 @@ import { checkEligibility, nikIdentityHash } from "@/lib/employees";
 
 const schema = z.object({
   nik: z.string().trim().min(1, "NIK wajib diisi.").max(20),
-  fullName: z.string().trim().min(1, "Nama wajib diisi sesuai KTP.").max(150),
+  fullName: z.string().trim().min(1, "Nama wajib diisi sesuai Kartu Karyawan.").max(150),
   email: emailSchema,
   password: passwordSchema,
   agree: z.literal(true, { message: "Anda harus menyetujui S&K dan kebijakan privasi." }),

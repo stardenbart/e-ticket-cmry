@@ -11,7 +11,8 @@ import type { AltCategory } from "@/lib/site/category-context";
 import { FlipCountdown } from "@/components/site/countdown";
 import { AltCategories } from "@/components/site/alt-categories";
 import { humanDuration } from "@/components/site/use-server-now";
-import { LightStick, MascotLive, MvImg } from "@/components/site/ornaments";
+import { LightStick, MvImg } from "@/components/site/ornaments";
+import { MascotVideo } from "@/components/site/mascot-video";
 
 type QS =
   | { state: "NOT_IN_QUEUE" }
@@ -140,7 +141,7 @@ export function WaitingRoom(props: { categoryId: string; categoryName: string; s
       {qs.state === "WAITING_PRE" && (
         <Card className="overflow-hidden">
           <div className="bg-cimory-gradient relative p-6 text-center text-white">
-            <MascotLive alt="Maskot MOO menunggu bersama Anda" className="mx-auto mb-1 w-40 sm:w-44" />
+            <MascotVideo alt="Maskot MOO menunggu bersama Anda" className="mx-auto mb-1 w-44 sm:w-52" />
             <p className="font-hud text-sm font-bold uppercase tracking-[0.2em] text-[#9afcff]">Anda sudah di antrean</p>
             <p className="mv-title mt-1 text-2xl font-extrabold">Penjualan Dibuka Dalam</p>
           </div>

@@ -18,11 +18,11 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
     q: "Apa yang harus disiapkan sebelum pemesanan dibuka?",
     a: (
       <>
-        <Link href="/daftar">Daftar akun</Link> dengan NIK, nama lengkap <b>HURUF KAPITAL sesuai KTP</b>, email aktif, dan password. Saat klaim, Anda mengisi ulang nama, NIK, dan ukuran baju &mdash; sistem mencocokkannya dengan daftar karyawan.
+        <Link href="/daftar">Daftar akun</Link> dengan NIK, nama lengkap <b>HURUF KAPITAL sesuai Kartu Karyawan</b>, email aktif, dan password. Saat klaim, Anda mengisi ulang nama, NIK, dan ukuran baju &mdash; sistem mencocokkannya dengan daftar karyawan.
       </>
     ),
   },
-  { q: "Nama saya ditolak padahal NIK benar?", a: "Nama harus sama dengan data karyawan (HURUF KAPITAL, sesuai KTP). Spasi ganda dan tanda baca seperti titik atau koma diabaikan, tetapi huruf atau kata yang berbeda tetap ditolak. Jika data karyawan Anda keliru, hubungi panitia." },
+  { q: "Nama saya ditolak padahal NIK benar?", a: "Nama harus sama dengan data karyawan (HURUF KAPITAL, sesuai Kartu Karyawan). Spasi ganda dan tanda baca seperti titik atau koma diabaikan, tetapi huruf atau kata yang berbeda tetap ditolak. Jika data karyawan Anda keliru, hubungi panitia." },
   { q: "Ukuran baju apa saja yang tersedia?", a: "2S, 3S, 4S, XS, S, M, L, XL, XXL, 3XL, 4XL, dan 5XL. Pilih saat klaim tiket." },
   {
     q: "Bagaimana antrean bekerja?",
@@ -31,9 +31,9 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
   { q: "Apakah membuka banyak tab menambah peluang?", a: "Tidak. Satu akun hanya punya satu posisi antrean. Membuka tab lain atau me-refresh tidak mengubah posisi Anda." },
   { q: "Bisakah saya punya lebih dari satu tiket?", a: "Tidak. Satu NIK hanya bisa memegang satu tiket, meskipun mendaftar dengan beberapa akun." },
   { q: "Email tiket tidak masuk, bagaimana?", a: "Cek folder spam/promosi. QR selalu tersedia di menu Tiket Saya, dan Anda bisa menekan Kirim ulang email (maksimal 3 kali per jam)." },
-  { q: "Bisakah tiket diberikan ke orang lain?", a: "Tidak. Tiket atas nama pemilik NIK dan dicocokkan dengan ID card karyawan di gate. Jika tidak bisa hadir, batalkan tiket sebelum batas waktu agar slot bisa dipakai rekan lain." },
-  { q: "Bagaimana cara masuk di hari acara?", a: "Tunjukkan QR dari Tiket Saya (gunakan Mode layar terang) atau dari email, lalu tunjukkan ID card karyawan. Petugas mencocokkan nama dan NIK. Satu QR hanya bisa dipakai sekali." },
-  { q: "Ponsel saya mati atau layar retak, bagaimana?", a: "Petugas dapat mencari tiket Anda berdasarkan nama atau NIK. Anda tetap wajib menunjukkan ID card karyawan." },
+  { q: "Bisakah tiket diberikan ke orang lain?", a: "Tidak. Tiket atas nama pemilik NIK dan dicocokkan dengan Kartu Karyawan di gate. Jika tidak bisa hadir, batalkan tiket sebelum batas waktu agar slot bisa dipakai rekan lain." },
+  { q: "Bagaimana cara masuk di hari acara?", a: "Tunjukkan QR dari Tiket Saya (gunakan Mode layar terang) atau dari email, lalu tunjukkan Kartu Karyawan. Petugas mencocokkan nama dan NIK. Satu QR hanya bisa dipakai sekali." },
+  { q: "Ponsel saya mati atau layar retak, bagaimana?", a: "Petugas dapat mencari tiket Anda berdasarkan nama atau NIK. Anda tetap wajib menunjukkan Kartu Karyawan." },
 ];
 
 export default function FaqPage() {

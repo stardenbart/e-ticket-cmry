@@ -35,7 +35,7 @@ export async function checkEligibility(
     return { ok: false, code: "NOT_ELIGIBLE", field: "nik", message: "NIK tidak terdaftar sebagai peserta eligible. Hubungi panitia bila menurut Anda ini keliru." };
   }
   if (employee.name_key !== nameKey(nm.name)) {
-    return { ok: false, code: "NAME_MISMATCH", field: "name", message: "Nama tidak sesuai dengan data karyawan untuk NIK ini. Tulis nama lengkap sesuai KTP (huruf kapital)." };
+    return { ok: false, code: "NAME_MISMATCH", field: "name", message: "Nama tidak sesuai dengan data karyawan untuk NIK ini. Tulis nama lengkap sesuai Kartu Karyawan (huruf kapital)." };
   }
   return { ok: true, employee };
 }

@@ -348,7 +348,7 @@ export async function templateXlsx() {
     "Isi sheet \"Data Karyawan\" mulai baris 2 (hapus 2 baris contoh). Kolom wajib: NIK, Nama Pegawai, Dept, Kategori.",
     "NIK karyawan CMD: 04.xxxx (contoh 04.0018 atau 04.12345). NIK karyawan OS: A1.xx.xxxx (contoh A1.23.4567). x = angka, jumlah digit boleh berbeda.",
     "Kolom NIK sudah berformat Teks — jangan diubah ke angka, agar \"04.\" tidak hilang.",
-    "Nama Pegawai: nama lengkap sesuai KTP. Disimpan dalam HURUF KAPITAL; peserta harus mengetik nama yang sama saat daftar & pemesanan.",
+    "Nama Pegawai: nama lengkap sesuai Kartu Karyawan. Disimpan dalam HURUF KAPITAL; peserta harus mengetik nama yang sama saat daftar & pemesanan.",
     "Kategori: CMD atau OS (boleh dikosongkan — akan diisi otomatis dari format NIK).",
     "File hasil Ekspor dari menu Data Karyawan juga bisa diimpor ulang; kolom selain 4 kolom di atas diabaikan.",
   ].forEach((t) => help.addRow([t]));

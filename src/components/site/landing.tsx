@@ -5,6 +5,7 @@ import type { EventRow } from "@/lib/events";
 import { fmtDate, fmtTime } from "@/lib/format";
 import { CalIcon, PinIcon } from "./event-card";
 import { CategoryPanel } from "./category-panel";
+import { MascotVideo } from "./mascot-video";
 import type { loadCategoryPanel } from "./event-panel-data";
 import { FrameTitle, MvImg } from "./ornaments";
 
@@ -170,7 +171,7 @@ export function Highlights() {
 const STEPS = [
   [
     "Daftar dengan NIK",
-    "Buat akun memakai NIK karyawan (CMD: 04.xxxx · OS: A1.xx.xxxx), nama sesuai KTP, email, dan password.",
+    "Buat akun memakai NIK karyawan (CMD: 04.xxxx · OS: A1.xx.xxxx), nama sesuai Kartu Karyawan, email, dan password.",
   ],
   [
     "Masuk Antrean",
@@ -182,7 +183,7 @@ const STEPS = [
   ],
   [
     "Datang ke Gate",
-    "QR dikirim ke email dan tersedia di Tiket Saya. Bawa ID card karyawan untuk dicocokkan.",
+    "QR dikirim ke email dan tersedia di Tiket Saya. Bawa Kartu Karyawan untuk dicocokkan.",
   ],
 ];
 
@@ -200,11 +201,7 @@ export async function HowItWorks() {
         </FrameTitle>
         <div className="grid items-center gap-10 lg:grid-cols-[320px_1fr]">
           <div className="mv-reveal relative mx-auto w-full max-w-[260px] text-center lg:max-w-none">
-            <MvImg
-              name="cowHead"
-              alt="Kepala sapi MOO berkacamata VR"
-              className="mx-auto h-auto w-full max-w-[280px]"
-            />
+            <MascotVideo alt="Maskot MOO berkacamata VR menari" className="mx-auto w-full max-w-[300px]" />
             <p className="font-hud mt-3 text-lg font-bold uppercase tracking-[0.14em] text-[#9afcff]">
               1 NIK · 1 Tiket
             </p>

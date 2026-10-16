@@ -9,7 +9,7 @@ export type Overlay =
   | { kind: "admitted"; ticket: ManifestTicket; offline: boolean }
   | { kind: "rejected"; ticket?: ManifestTicket; reason: string; offline: boolean };
 
-const REJECT_REASONS = ["Nama tidak cocok", "NIK tidak cocok dengan ID card", "Tidak membawa ID card karyawan", "ID card palsu / rusak", "Lainnya"];
+const REJECT_REASONS = ["Nama tidak cocok", "NIK tidak cocok dengan Kartu Karyawan", "Tidak membawa Kartu Karyawan", "Kartu Karyawan palsu / rusak", "Lainnya"];
 
 function CheckIcon() {
   return (
@@ -53,7 +53,7 @@ function TicketFacts({ t, showId }: { t: ManifestTicket; showId: boolean }) {
           t.nik ? (
             <>
               <div>
-                <dt className="text-xs font-semibold uppercase tracking-wider opacity-80">NIK (cek ID card)</dt>
+                <dt className="text-xs font-semibold uppercase tracking-wider opacity-80">NIK (cek Kartu Karyawan)</dt>
                 <dd className="font-mono text-3xl font-bold tracking-wider">{t.nik}</dd>
               </div>
               {t.dept && (
@@ -123,7 +123,7 @@ export function ResultScreen({
         <h2 id="res-title" className="mt-3 text-3xl font-extrabold">
           Perlu cek identitas
         </h2>
-        <p className="mt-1 max-w-sm text-white/90">Cocokkan nama{overlay.requireId ? " dan NIK" : ""} dengan ID card karyawan.</p>
+        <p className="mt-1 max-w-sm text-white/90">Cocokkan nama{overlay.requireId ? " dan NIK" : ""} dengan Kartu Karyawan.</p>
         <TicketFacts t={overlay.ticket} showId={overlay.requireId} />
         {!rejecting ? (
           <div className="mt-8 grid w-full max-w-md gap-3">

@@ -84,7 +84,7 @@ ${t.email_text ? `<p style="color:#334155">${esc(t.email_text)}</p>` : ""}
 <tr><td style="color:#64748B;padding:6px 0">ID tiket</td><td style="font-family:monospace;font-size:12px">${t.id}</td></tr>
 </table>
 <div style="background:#FEF2F2;border-left:4px solid #E63946;padding:12px 14px;margin:20px 0;border-radius:8px;font-size:14px">
-<b>Bawa ID card karyawan</b> (NIK ${esc(t.nik ?? "-")}). Nama dan NIK di tiket dicocokkan di gate. Jangan bagikan foto QR ini.</div>
+<b>Bawa Kartu Karyawan</b> (NIK ${esc(t.nik ?? "-")}). Nama dan NIK di tiket dicocokkan di gate. Jangan bagikan foto QR ini.</div>
 <p style="text-align:center"><a href="${ticketUrl}" style="display:inline-block;background:#1B3A6F;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600">Buka di Tiket Saya</a></p>`);
   return { subject, html, text: `${intro}\n${t.event_name} — ${when}\n${t.venue}\nKategori: ${t.category_name}\nLihat tiket: ${ticketUrl}` };
 }

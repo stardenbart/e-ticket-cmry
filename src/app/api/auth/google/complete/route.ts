@@ -9,7 +9,7 @@ import { GOOGLE_PENDING_COOKIE, dropPending, readPending } from "@/lib/google";
 
 const schema = z.object({
   nik: z.string().trim().min(1, "NIK wajib diisi.").max(20),
-  fullName: z.string().trim().min(1, "Nama wajib diisi sesuai KTP.").max(150),
+  fullName: z.string().trim().min(1, "Nama wajib diisi sesuai Kartu Karyawan.").max(150),
   agree: z.literal(true, { message: "Anda harus menyetujui S&K dan kebijakan privasi." }),
 });
 

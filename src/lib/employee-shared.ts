@@ -32,12 +32,12 @@ export function validateNik(raw: string): { ok: true; nik: string; category: Emp
   return { ok: true, nik, category };
 }
 
-/** Nama wajib huruf kapital sesuai KTP: hanya huruf A–Z, spasi, titik, koma, apostrof, tanda hubung. */
+/** Nama wajib huruf kapital sesuai Kartu Karyawan: hanya huruf A–Z, spasi, titik, koma, apostrof, tanda hubung. */
 export function validateName(raw: string): { ok: true; name: string } | { ok: false; message: string } {
   const name = raw.replace(/\s+/g, " ").trim();
-  if (name.length < 2) return { ok: false, message: "Nama wajib diisi sesuai KTP." };
+  if (name.length < 2) return { ok: false, message: "Nama wajib diisi sesuai Kartu Karyawan." };
   if (name.length > 150) return { ok: false, message: "Nama terlalu panjang." };
-  if (/[a-z]/.test(name)) return { ok: false, message: "Nama wajib ditulis HURUF KAPITAL semua, sesuai KTP." };
+  if (/[a-z]/.test(name)) return { ok: false, message: "Nama wajib ditulis HURUF KAPITAL semua, sesuai Kartu Karyawan." };
   if (!/^[A-Z .,'\-]+$/.test(name)) return { ok: false, message: "Nama hanya boleh berisi huruf, spasi, titik, koma, apostrof, atau tanda hubung." };
   return { ok: true, name };
 }

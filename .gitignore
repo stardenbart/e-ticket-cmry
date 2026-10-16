@@ -6,3 +6,7 @@ storage/uploads/*
 !storage/uploads/.gitkeep
 *.tsbuildinfo
 next-env.d.ts
+
+# Berkas mentah dari tim desain; versi terkompresi ada di public/media
+/public/backsound/
+/public/animation/

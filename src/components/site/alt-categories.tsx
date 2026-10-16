@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { AltCategory } from "@/lib/site/category-context";
-import { QuotaBar } from "./quota-bar";
 
 /** Kartu kategori alternatif yang masih tersedia di event yang sama. */
 export function AltCategories({ slug, items }: { slug: string; items: AltCategory[] }) {
@@ -16,7 +15,6 @@ export function AltCategories({ slug, items }: { slug: string; items: AltCategor
             {c.name}
           </p>
           {c.description && <p className="mb-2 text-sm text-muted">{c.description}</p>}
-          <QuotaBar remaining={c.remaining} quota={c.quota} compact />
           <p className="mt-2 text-sm font-semibold text-cimory-blue">Pilih kategori ini →</p>
         </Link>
       ))}

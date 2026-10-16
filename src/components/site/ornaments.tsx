@@ -113,20 +113,20 @@ export function GridFloor({ className }: { className?: string }) {
   );
 }
 
-/** Sinar laser yang menyapu dari bawah. Hanya transform + opacity agar tetap ringan; 2 sinar di HP, 4 di layar lebar. */
+/** Sinar laser yang menyapu dari bawah. Hanya transform agar tetap ringan. Di HP sinar lebih tebal/terang dan ayunannya lebih sempit supaya tetap di layar. */
 export function Lasers({ className }: { className?: string }) {
-  const beams: { left: string; c: "pink" | "cyan"; from: string; to: string; delay: string; wide?: boolean }[] = [
+  const beams: { left: string; c: "pink" | "cyan"; from: string; to: string; delay: string }[] = [
     { left: "8%", c: "cyan", from: "-30deg", to: "-8deg", delay: "0s" },
-    { left: "22%", c: "pink", from: "-18deg", to: "12deg", delay: "-2s", wide: true },
-    { left: "78%", c: "pink", from: "10deg", to: "-16deg", delay: "-1s", wide: true },
+    { left: "22%", c: "pink", from: "-18deg", to: "12deg", delay: "-2s" },
+    { left: "78%", c: "pink", from: "10deg", to: "-16deg", delay: "-1s" },
     { left: "92%", c: "cyan", from: "28deg", to: "6deg", delay: "-3s" },
   ];
   return (
-    <div aria-hidden className={cx("pointer-events-none absolute inset-x-0 top-0 bottom-[20%] overflow-hidden opacity-70", className)}>
+    <div aria-hidden className={cx("pointer-events-none absolute inset-x-0 top-0 bottom-[20%] overflow-hidden opacity-100 md:opacity-70", className)}>
       {beams.map((b, i) => (
         <span
           key={i}
-          className={cx("mv-laser", b.c, b.wide && "hidden md:block")}
+          className={cx("mv-laser", b.c)}
           style={{ left: b.left, "--from": b.from, "--to": b.to, animationDelay: b.delay } as CSSProperties}
         />
       ))}

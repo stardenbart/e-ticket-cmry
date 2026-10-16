@@ -116,7 +116,7 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
       </Card>
 
       <p className="mt-4 text-center text-sm text-muted">
-        Bawa <b>ID card karyawan</b> (NIK {t.nik ?? "—"}) ke gate. Tiket tidak dapat dipindahtangankan.{" "}
+        Bawa <b>Kartu Karyawan</b> (NIK {t.nik ?? "—"}) ke gate. Tiket tidak dapat dipindahtangankan.{" "}
         <Link href={`/event/${t.event_slug}`} className="font-semibold text-cimory-blue underline">
           Halaman event
         </Link>

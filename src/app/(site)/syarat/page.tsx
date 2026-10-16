@@ -10,7 +10,7 @@ export default function TermsPage() {
       <h2>1. Akun</h2>
       <ul>
         <li>Pendaftaran khusus karyawan yang ada di daftar karyawan, memakai NIK sendiri (CMD: 04.xxxx · OS: A1.xx.xxxx).</li>
-        <li>Nama ditulis dengan HURUF KAPITAL sesuai KTP dan harus sama dengan data karyawan.</li>
+        <li>Nama ditulis dengan HURUF KAPITAL sesuai Kartu Karyawan dan harus sama dengan data karyawan.</li>
         <li>Wajib memakai email aktif milik sendiri — tiket QR dikirim ke email tersebut. Email dari layanan sekali pakai tidak diterima.</li>
         <li>Anda bertanggung jawab menjaga kerahasiaan password. Panitia tidak pernah meminta password atau kode reset Anda.</li>
       </ul>
@@ -34,7 +34,7 @@ export default function TermsPage() {
       </ul>
       <h2>5. Masuk ke venue</h2>
       <ul>
-        <li>Bawa ID card karyawan. Petugas akan mencocokkan nama dan NIK dengan data di tiket.</li>
+        <li>Bawa Kartu Karyawan. Petugas akan mencocokkan nama dan NIK dengan data di tiket.</li>
         <li>Petugas berhak menolak masuk jika data tidak cocok. Satu QR hanya dapat dipakai untuk satu kali check-in.</li>
       </ul>
       <p>

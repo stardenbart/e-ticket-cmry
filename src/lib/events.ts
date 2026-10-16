@@ -83,7 +83,7 @@ export function cardBadge(e: Pick<EventRow, "status" | "end_at">, cats: (Categor
   const upcoming = cats.filter((c, i) => statuses[i] === "UPCOMING").sort((a, b) => a.open_at.getTime() - b.open_at.getTime());
   if (upcoming.length) return { key: "SOON", label: "Segera dibuka", opensAt: upcoming[0].open_at.toISOString() };
   if (statuses.length && statuses.every((x) => x === "SOLD_OUT" || x === "CLOSED") && cats.some((c) => c.remaining <= 0))
-    return { key: "SOLD_OUT", label: "Habis" };
+    return { key: "SOLD_OUT", label: "Kuota habis" };
   return { key: "CLOSED", label: "Ditutup" };
 }
 

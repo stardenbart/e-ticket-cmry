@@ -7,7 +7,6 @@ import { Alert, Badge, Button, ButtonLink, Spinner, cx } from "@/components/ui";
 import { Turnstile } from "@/components/turnstile";
 import { api, ClientApiError } from "@/lib/client-api";
 import { fmtDateTime } from "@/lib/format";
-import { QuotaBar } from "./quota-bar";
 import { FlipCountdown, TextCountdown } from "./countdown";
 import { useServerNow } from "./use-server-now";
 
@@ -57,7 +56,7 @@ export function CategoryPanel(props: {
     return () => window.removeEventListener("hashchange", open);
   }, []);
 
-  // Sisa kuota realtime lewat SSE (hanya informasi).
+  // Status kategori realtime lewat SSE (jumlah kuota tidak ditampilkan ke peserta; habis = otomatis ditutup).
   useEffect(() => {
     if (props.eventState !== "ACTIVE") return;
     const es = new EventSource(`/api/events/${eventId}/stream`);
@@ -141,9 +140,6 @@ export function CategoryPanel(props: {
               <dd className="font-semibold">{fmtDateTime(c.closeAt, timezone)}</dd>
             </div>
           </dl>
-          <div className="mt-3">
-            <QuotaBar remaining={c.remaining} quota={c.quota} />
-          </div>
           {!user.ticketId && props.eventState === "ACTIVE" && (
             <div className="mt-4">
               <CategoryAction c={c} queueCategoryId={user.queueCategoryId} onJoin={() => startJoin(c)} />
@@ -153,7 +149,7 @@ export function CategoryPanel(props: {
       ))}
       <p className="flex items-center gap-1.5 text-xs text-muted">
         <span className={cx("size-2 rounded-full", connected ? "bg-ok" : "bg-slate-300")} aria-hidden />
-        {connected ? "Sisa kuota diperbarui otomatis" : "Menghubungkan pembaruan kuota…"} · Gratis, 1 tiket per akun
+        {connected ? "Status diperbarui otomatis" : "Menghubungkan pembaruan status…"} · Gratis, 1 tiket per akun
       </p>
     </div>
   );
@@ -219,7 +215,7 @@ export function CategoryPanel(props: {
 function StatusBadge({ status }: { status: Status }) {
   if (status === "OPEN") return <Badge tone="green" icon={<span aria-hidden>●</span>}>Sedang dibuka</Badge>;
   if (status === "UPCOMING") return <Badge tone="amber" icon={<span aria-hidden>⏳</span>}>Segera dibuka</Badge>;
-  if (status === "SOLD_OUT") return <Badge tone="red" icon={<span aria-hidden>✕</span>}>Habis</Badge>;
+  if (status === "SOLD_OUT") return <Badge tone="red" icon={<span aria-hidden>✕</span>}>Kuota habis</Badge>;
   return <Badge tone="slate" icon={<span aria-hidden>■</span>}>Ditutup</Badge>;
 }
 

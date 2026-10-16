@@ -35,7 +35,7 @@ async function makeUsers(n: number, prefix: string): Promise<QaUser[]> {
   const rows = Array.from({ length: n }, (_, i) => {
     const seq = nikSeq++;
     const nik = `A1.${NIK_YY}.${String(seq).padStart(4, "0")}`;
-    // Nama sesuai aturan KTP: huruf saja (angka urut dikodekan jadi huruf, mis. 27 → "BB").
+    // Nama sesuai aturan Kartu Karyawan: huruf saja (angka urut dikodekan jadi huruf, mis. 27 → "BB").
     const name = `QA PESERTA ${toLetters(seq)}`;
     return { nik, name, email: `${prefix}${i}-${RUN}@qa.local` };
   });

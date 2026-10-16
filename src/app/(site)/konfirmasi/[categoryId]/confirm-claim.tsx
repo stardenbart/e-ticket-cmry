@@ -215,7 +215,7 @@ export function ConfirmClaim({ categoryId, slug, heldTicketId, summary, alternat
               <dt className="text-muted">Dikirim ke</dt>
               <dd className="truncate font-semibold">{summary.email}</dd>
             </div>
-            <p className="text-xs text-muted sm:col-span-2">Nama di tiket mengikuti data karyawan. Bawa ID card karyawan ke gate.</p>
+            <p className="text-xs text-muted sm:col-span-2">Nama di tiket mengikuti data karyawan. Bawa Kartu Karyawan ke gate.</p>
           </dl>
 
           <fieldset className="space-y-4 rounded-xl border border-line p-4">
@@ -324,7 +324,7 @@ function Success({ ticketId, summary }: { ticketId: string; summary: Summary }) 
         </a>
       </div>
       <p className="text-sm text-muted">
-        Bawa <b>ID card karyawan</b> (NIK {summary.nik}) ke gate. <Link href="/faq" className="underline">Info masuk gate</Link>
+        Bawa <b>Kartu Karyawan</b> (NIK {summary.nik}) ke gate. <Link href="/faq" className="underline">Info masuk gate</Link>
       </p>
     </div>
   );
