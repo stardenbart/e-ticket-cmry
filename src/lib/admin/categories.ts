@@ -93,7 +93,10 @@ export async function updateCategory(
     if (!cur) throw new ApiError(404, "NOT_FOUND", "Kategori tidak ditemukan.");
     if (cur.version !== version) throw conflict();
 
-    const open = zonedLocalToUtc(input.open_local, e.timezone);
+    // Form admin berpresisi menit, sedangkan open_at bisa berdetik (mis. digeser trigger saat kategori berantai
+    // terbuka). Menit yang sama = tidak diubah → pertahankan nilai tersimpan.
+    const openInput = zonedLocalToUtc(input.open_local, e.timezone);
+    const open = Math.floor(openInput.getTime() / 60_000) === Math.floor(cur.open_at.getTime() / 60_000) ? cur.open_at : openInput;
     const close = zonedLocalToUtc(input.close_local, e.timezone);
     const now = Date.now();
     if (open.getTime() !== cur.open_at.getTime()) {

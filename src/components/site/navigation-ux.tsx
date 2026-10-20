@@ -30,7 +30,14 @@ export function ScrollReset() {
       historyNav.current = false;
       return;
     }
-    if (window.location.hash) return;
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+      // Link ke #anchor (mis. kembali ke panel tiket setelah login): gulir setelah konten halaman tergambar.
+      const go = () => document.getElementById(decodeURIComponent(hash))?.scrollIntoView({ block: "start" });
+      requestAnimationFrame(go);
+      const t = setTimeout(go, 400);
+      return () => clearTimeout(t);
+    }
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [pathname]);
 
