@@ -47,28 +47,37 @@ export type CategoryRow = {
   admit_batch: number;
   admit_interval_sec: number;
   version: number;
+  /** Kategori prasyarat: kategori ini baru terbuka setelah kuota prasyarat habis. */
+  opens_after_category_id: string | null;
+  unlocked_at: Date | null;
 };
 
 /** Status kategori untuk UI. Sisa kuota hanya informasi; penentu klaim tetap transaksi DB. */
-export type CategoryStatus = "UPCOMING" | "OPEN" | "SOLD_OUT" | "CLOSED";
+export type CategoryStatus = "LOCKED" | "UPCOMING" | "OPEN" | "SOLD_OUT" | "CLOSED";
+
+type Lockable = Partial<Pick<CategoryRow, "opens_after_category_id" | "unlocked_at">>;
+
+/** Terkunci = punya prasyarat yang kuotanya belum habis (lihat migrasi 005). */
+export const isLocked = (c: Lockable) => !!c.opens_after_category_id && !c.unlocked_at;
 
 /** Status event turunan, sesuai PRD: Draft → Published → On Sale → Closed → Finished (+ Cancelled). */
 export type EventStatus = "DRAFT" | "PUBLISHED" | "ON_SALE" | "CLOSED" | "FINISHED" | "CANCELLED";
 
 export const QUEUE_LEAD_MS = 10 * 60 * 1000; // tombol Masuk Antrean aktif mulai T-10 menit
 
-export function categoryStatus(c: Pick<CategoryRow, "open_at" | "close_at" | "is_closed">, remaining: number, now = Date.now()): CategoryStatus {
+export function categoryStatus(c: Pick<CategoryRow, "open_at" | "close_at" | "is_closed"> & Lockable, remaining: number, now = Date.now()): CategoryStatus {
   if (c.is_closed || now >= c.close_at.getTime()) return "CLOSED";
+  if (isLocked(c)) return "LOCKED";
   if (now < c.open_at.getTime()) return "UPCOMING";
   if (remaining <= 0) return "SOLD_OUT";
   return "OPEN";
 }
 
-export function eventStatus(e: Pick<EventRow, "status" | "end_at">, cats: Pick<CategoryRow, "open_at" | "close_at" | "is_closed">[], now = Date.now()): EventStatus {
+export function eventStatus(e: Pick<EventRow, "status" | "end_at">, cats: (Pick<CategoryRow, "open_at" | "close_at" | "is_closed"> & Lockable)[], now = Date.now()): EventStatus {
   if (e.status === "DRAFT" || e.status === "CANCELLED") return e.status;
   if (now >= e.end_at.getTime()) return "FINISHED";
   const live = cats.filter((c) => !c.is_closed && now < c.close_at.getTime());
-  if (live.some((c) => now >= c.open_at.getTime())) return "ON_SALE";
+  if (live.some((c) => !isLocked(c) && now >= c.open_at.getTime())) return "ON_SALE";
   if (live.length > 0) return "PUBLISHED";
   return "CLOSED";
 }
@@ -84,6 +93,8 @@ export function cardBadge(e: Pick<EventRow, "status" | "end_at">, cats: (Categor
   if (statuses.includes("OPEN")) return { key: "OPEN", label: "Sedang dibuka" };
   const upcoming = cats.filter((c, i) => statuses[i] === "UPCOMING").sort((a, b) => a.open_at.getTime() - b.open_at.getTime());
   if (upcoming.length) return { key: "SOON", label: "Segera dibuka", opensAt: upcoming[0].open_at.toISOString() };
+  // Kategori terkunci menunggu prasyarat habis: belum ada jam buka pasti.
+  if (statuses.includes("LOCKED")) return { key: "SOON", label: "Segera dibuka" };
   if (statuses.length && statuses.every((x) => x === "SOLD_OUT" || x === "CLOSED") && cats.some((c) => c.remaining <= 0))
     return { key: "SOLD_OUT", label: "Kuota habis" };
   return { key: "CLOSED", label: "Ditutup" };

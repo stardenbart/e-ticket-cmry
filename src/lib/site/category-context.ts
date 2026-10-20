@@ -1,5 +1,5 @@
 import { sql } from "@/lib/db";
-import { getCategories, type EventRow } from "@/lib/events";
+import { getCategories, isLocked, type EventRow } from "@/lib/events";
 
 export type AltCategory = { id: string; name: string; description: string; remaining: number; quota: number; color: string; openAt: string; closeAt: string };
 
@@ -14,7 +14,7 @@ export async function loadCategoryContext(categoryId: string) {
   const cat = cats.find((c) => c.id === categoryId)!;
   const now = Date.now();
   const alternatives: AltCategory[] = cats
-    .filter((c) => c.id !== categoryId && !c.is_closed && c.close_at.getTime() > now && c.remaining > 0)
+    .filter((c) => c.id !== categoryId && !c.is_closed && !isLocked(c) && c.close_at.getTime() > now && c.remaining > 0)
     .map((c) => ({
       id: c.id,
       name: c.name,

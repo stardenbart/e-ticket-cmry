@@ -19,6 +19,7 @@ type Form = {
   color: string;
   admit_batch: number;
   admit_interval_sec: number;
+  opens_after_category_id: string | null;
 };
 
 const LOCK_MS = 10 * 60 * 1000;
@@ -27,6 +28,7 @@ function catState(c: AdminCategory, now = Date.now()) {
   const open = new Date(c.open_at).getTime();
   const close = new Date(c.close_at).getTime();
   if (c.is_closed || now >= close) return { label: "Ditutup", tone: "slate" as const };
+  if (c.opens_after_category_id && !c.unlocked_at) return { label: "Menunggu kategori lain habis", tone: "amber" as const };
   if (now >= open) return c.claimed >= c.quota ? { label: "Habis", tone: "red" as const } : { label: "Sedang dibuka", tone: "green" as const };
   if (now >= open - LOCK_MS) return { label: "Segera dibuka · jam terkunci", tone: "amber" as const };
   return { label: "Belum dibuka", tone: "blue" as const };
@@ -93,6 +95,12 @@ export function CategoriesTab({ data, reload, toast, onConflict }: { data: Event
                   <p className="text-xs text-muted">
                     Antrean: {c.admit_batch} orang / {c.admit_interval_sec} detik · urutan {c.sort_order}
                   </p>
+                  {c.opens_after_category_id && (
+                    <p className="mt-1 text-xs font-semibold text-warn">
+                      🔗 Dibuka otomatis setelah <b>{data.categories.find((p) => p.id === c.opens_after_category_id)?.name ?? "kategori lain"}</b> habis
+                      {c.unlocked_at ? ` — sudah terbuka sejak ${fmtDateTime(c.unlocked_at, e.timezone)}` : " — masih terkunci"}
+                    </p>
+                  )}
                 </div>
                 <div className="w-full max-w-60">
                   <QuotaBar claimed={c.claimed} quota={c.quota} />
@@ -149,6 +157,7 @@ function toForm(c: AdminCategory, tz: string): Form {
     color: c.color,
     admit_batch: c.admit_batch,
     admit_interval_sec: c.admit_interval_sec,
+    opens_after_category_id: c.opens_after_category_id,
   };
 }
 
@@ -182,6 +191,7 @@ function CategoryModal({
           color: "#1B3A6F",
           admit_batch: 50,
           admit_interval_sec: 5,
+          opens_after_category_id: null,
         },
   );
   const [busy, setBusy] = useState(false);
@@ -262,6 +272,27 @@ function CategoryModal({
             <Input id="c-close" type="datetime-local" required value={f.close_local} onChange={(x) => set("close_local", x.target.value)} />
           </Field>
         </div>
+        <Field
+          label="Buka setelah kuota kategori lain habis"
+          htmlFor="c-after"
+          hint="Opsional. Kategori ini terkunci sampai kuota kategori pilihan habis, lalu terbuka otomatis (tidak sebelum jam buka di atas). Pilih “Tidak” untuk membukanya sesuai jam buka saja."
+        >
+          <select
+            id="c-after"
+            className="w-full rounded-xl border border-line bg-white px-4 py-3"
+            value={f.opens_after_category_id ?? ""}
+            onChange={(x) => set("opens_after_category_id", x.target.value || null)}
+          >
+            <option value="">Tidak — buka sesuai jam buka</option>
+            {data.categories
+              .filter((o) => o.id !== cat?.id && !o.opens_after_category_id)
+              .map((o) => (
+                <option key={o.id} value={o.id}>
+                  Setelah “{o.name}” habis
+                </option>
+              ))}
+          </select>
+        </Field>
         <div className="grid gap-4 sm:grid-cols-4">
           <Field label="Urutan tampil" htmlFor="c-sort">
             <Input id="c-sort" type="number" min={0} value={f.sort_order} onChange={(x) => set("sort_order", Number(x.target.value) || 0)} />

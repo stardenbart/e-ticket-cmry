@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { sql, pgConstraint } from "../db";
+import { sql, pgConstraint, type Tx } from "../db";
 import { ApiError } from "../http";
 import { audit } from "../audit";
 import { setRemaining } from "../quota";
@@ -23,7 +23,27 @@ export const categoryFields = z.object({
   admit_batch: z.number().int().min(1).max(10_000).default(50),
   admit_interval_sec: z.number().int().min(1).max(600).default(5),
   is_closed: z.boolean().optional(),
+  /** Kategori berantai: buka otomatis setelah kuota kategori ini habis. null = kategori biasa. */
+  opens_after_category_id: z.string().uuid().nullable().default(null),
 });
+
+/**
+ * Validasi kategori prasyarat (event sama, bukan diri sendiri, tanpa rantai bertingkat) dan hitung status
+ * terbukanya: bila prasyarat sudah habis saat disimpan, kategori langsung terbuka.
+ */
+async function resolvePrerequisite(tx: Tx, eventId: string, selfId: string | null, prereqId: string | null) {
+  if (!prereqId) return { prereqId: null, soldOut: false };
+  if (prereqId === selfId) throw new ApiError(400, "VALIDATION", "Kategori tidak bisa menunggu dirinya sendiri.");
+  const [p] = await tx<{ quota: number; claimed: number; opens_after_category_id: string | null }[]>`
+    SELECT quota, claimed, opens_after_category_id FROM ticket_categories WHERE id = ${prereqId} AND event_id = ${eventId}`;
+  if (!p) throw new ApiError(400, "VALIDATION", "Kategori prasyarat tidak ditemukan di event ini.");
+  if (p.opens_after_category_id) throw new ApiError(400, "VALIDATION", "Kategori prasyarat sendiri masih menunggu kategori lain. Rantai bertingkat tidak didukung.");
+  if (selfId) {
+    const [dep] = await tx`SELECT 1 FROM ticket_categories WHERE opens_after_category_id = ${selfId} LIMIT 1`;
+    if (dep) throw new ApiError(400, "VALIDATION", "Kategori ini sudah menjadi prasyarat kategori lain. Rantai bertingkat tidak didukung.");
+  }
+  return { prereqId, soldOut: p.claimed >= p.quota };
+}
 
 function checkTimes(open: Date, close: Date, eventStart: Date) {
   if (close <= open) throw new ApiError(400, "VALIDATION", "Jam tutup order harus setelah jam buka.");
@@ -37,10 +57,12 @@ export async function createCategory(eventId: string, input: z.infer<typeof cate
     const open = zonedLocalToUtc(input.open_local, e.timezone);
     const close = zonedLocalToUtc(input.close_local, e.timezone);
     checkTimes(open, close, e.start_at);
+    const pre = await resolvePrerequisite(tx, eventId, null, input.opens_after_category_id);
     const [c] = await tx<CategoryRow[]>`
-      INSERT INTO ticket_categories (event_id, name, description, quota, open_at, close_at, sort_order, color, admit_batch, admit_interval_sec)
+      INSERT INTO ticket_categories (event_id, name, description, quota, open_at, close_at, sort_order, color, admit_batch, admit_interval_sec,
+                                     opens_after_category_id, unlocked_at)
       VALUES (${eventId}, ${input.name}, ${input.description}, ${input.quota}, ${open}, ${close}, ${input.sort_order}, ${input.color},
-              ${input.admit_batch}, ${input.admit_interval_sec})
+              ${input.admit_batch}, ${input.admit_interval_sec}, ${pre.prereqId}, ${pre.prereqId && pre.soldOut ? sql`now()` : null})
       RETURNING *`;
     await audit(
       { actorId, action: "category.create", entity: "category", entityId: c.id, after: { event_id: eventId, name: c.name, quota: c.quota, open_at: open, close_at: close }, ip },
@@ -83,6 +105,11 @@ export async function updateCategory(
     }
     checkTimes(open, close, e.start_at);
 
+    // Prasyarat berubah → hitung ulang status terbuka; tidak berubah → pertahankan (sekali terbuka tetap terbuka).
+    const prereqChanged = (input.opens_after_category_id ?? null) !== (cur.opens_after_category_id ?? null);
+    const pre = prereqChanged ? await resolvePrerequisite(tx, eventId, categoryId, input.opens_after_category_id) : null;
+    const unlockedAt = !prereqChanged ? cur.unlocked_at : pre!.prereqId && pre!.soldOut ? new Date() : null;
+
     const next = {
       name: input.name,
       description: input.description,
@@ -94,6 +121,7 @@ export async function updateCategory(
       admit_batch: input.admit_batch,
       admit_interval_sec: input.admit_interval_sec,
       is_closed: input.is_closed ?? cur.is_closed,
+      opens_after_category_id: input.opens_after_category_id ?? null,
     };
     const ch = diff(cur as unknown as Record<string, unknown>, next);
     if (!ch.changed) return { row: cur, changed: false };
@@ -105,6 +133,7 @@ export async function updateCategory(
           name = ${next.name}, description = ${next.description}, quota = ${next.quota},
           open_at = ${next.open_at}, close_at = ${next.close_at}, sort_order = ${next.sort_order}, color = ${next.color},
           admit_batch = ${next.admit_batch}, admit_interval_sec = ${next.admit_interval_sec}, is_closed = ${next.is_closed},
+          opens_after_category_id = ${next.opens_after_category_id}, unlocked_at = ${unlockedAt},
           version = version + 1
         WHERE id = ${categoryId} AND version = ${version} AND ${next.quota} >= claimed
         RETURNING *`;
@@ -118,7 +147,7 @@ export async function updateCategory(
       throw quotaError(now2?.claimed ?? cur.claimed);
     }
     const action =
-      "quota" in ch.after ? "category.quota_update" : "open_at" in ch.after || "close_at" in ch.after ? "category.schedule_update" : "is_closed" in ch.after ? "category.close_toggle" : "category.update";
+      "opens_after_category_id" in ch.after ? "category.chain_update" : "quota" in ch.after ? "category.quota_update" : "open_at" in ch.after || "close_at" in ch.after ? "category.schedule_update" : "is_closed" in ch.after ? "category.close_toggle" : "category.update";
     await audit({ actorId, action, entity: "category", entityId: categoryId, before: ch.before, after: ch.after, ip }, tx);
     return { row, changed: true };
   });

@@ -54,7 +54,7 @@ export default async function HomePage() {
 
   return (
     <div>
-      <HeroCarousel slides={slides} />
+      <HeroCarousel slides={slides} loggedIn={!!panelData?.panel.user.loggedIn} />
 
       {featuredRow && panelData ? (
         <>

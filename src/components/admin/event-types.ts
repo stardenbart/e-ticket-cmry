@@ -43,6 +43,8 @@ export type AdminCategory = {
   admit_interval_sec: number;
   version: number;
   ticket_count: number;
+  opens_after_category_id: string | null;
+  unlocked_at: string | null;
 };
 
 export type AdminStaff = { user_id: string; gates: string[]; valid_until: string; email: string; full_name: string; pending: boolean };

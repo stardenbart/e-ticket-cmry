@@ -20,9 +20,12 @@ export type PanelCategory = {
   closeAt: string;
   isClosed: boolean;
   color: string;
+  /** Terkunci sampai kuota kategori `lockedAfter` habis (kategori berantai). */
+  locked: boolean;
+  lockedAfter: string | null;
 };
 
-type Status = "UPCOMING" | "OPEN" | "SOLD_OUT" | "CLOSED";
+type Status = "LOCKED" | "UPCOMING" | "OPEN" | "SOLD_OUT" | "CLOSED";
 
 const QUEUE_LEAD_MS = 10 * 60 * 1000;
 
@@ -37,7 +40,7 @@ export function CategoryPanel(props: {
   const { eventId, slug, timezone, user } = props;
   const router = useRouter();
   const now = useServerNow(1000);
-  const [live, setLive] = useState<Record<string, { remaining: number; status: Status }>>({});
+  const [live, setLive] = useState<Record<string, { remaining: number; status: Status; openAt?: string }>>({});
   const [connected, setConnected] = useState(false);
   const [joining, setJoining] = useState<PanelCategory | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -64,8 +67,8 @@ export function CategoryPanel(props: {
     es.onerror = () => setConnected(false);
     es.onmessage = (ev) => {
       try {
-        const data = JSON.parse(ev.data) as { categories: { id: string; remaining: number; status: Status }[] };
-        setLive(Object.fromEntries(data.categories.map((c) => [c.id, { remaining: c.remaining, status: c.status }])));
+        const data = JSON.parse(ev.data) as { categories: { id: string; remaining: number; status: Status; openAt?: string }[] };
+        setLive(Object.fromEntries(data.categories.map((c) => [c.id, { remaining: c.remaining, status: c.status, openAt: c.openAt }])));
         setConnected(true);
       } catch {}
     };
@@ -76,14 +79,18 @@ export function CategoryPanel(props: {
     () =>
       props.categories.map((c) => {
         const remaining = live[c.id]?.remaining ?? c.remaining;
+        // Jam buka bisa bergeser saat kategori berantai terbuka → pakai nilai terbaru dari SSE.
+        const openAt = live[c.id]?.openAt ?? c.openAt;
+        const locked = live[c.id] ? live[c.id].status === "LOCKED" : c.locked;
         const t = now ?? Date.now();
         let status: Status;
         if (c.isClosed || live[c.id]?.status === "CLOSED" || t >= new Date(c.closeAt).getTime()) status = "CLOSED";
-        else if (t < new Date(c.openAt).getTime()) status = "UPCOMING";
+        else if (locked) status = "LOCKED";
+        else if (t < new Date(openAt).getTime()) status = "UPCOMING";
         else if (remaining <= 0) status = "SOLD_OUT";
         else status = "OPEN";
-        const queueOpen = status === "OPEN" || (status === "UPCOMING" && t >= new Date(c.openAt).getTime() - QUEUE_LEAD_MS);
-        return { ...c, remaining, status, queueOpen };
+        const queueOpen = status === "OPEN" || (status === "UPCOMING" && t >= new Date(openAt).getTime() - QUEUE_LEAD_MS);
+        return { ...c, openAt, remaining, status, queueOpen };
       }),
     [props.categories, live, now],
   );
@@ -133,7 +140,7 @@ export function CategoryPanel(props: {
           <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
             <div>
               <dt className="text-muted">Buka</dt>
-              <dd className="font-semibold">{fmtDateTime(c.openAt, timezone)}</dd>
+              <dd className="font-semibold">{c.status === "LOCKED" ? `Setelah ${c.lockedAfter ?? "kategori lain"} habis` : fmtDateTime(c.openAt, timezone)}</dd>
             </div>
             <div>
               <dt className="text-muted">Tutup</dt>
@@ -171,7 +178,17 @@ export function CategoryPanel(props: {
                 <>
                   <p className="truncate text-xs text-muted">{cats.length} kategori · Gratis</p>
                   <p className="truncate text-sm font-bold">
-                    {cheapest.status === "UPCOMING" ? <TextCountdown target={cheapest.openAt} prefix="Dibuka dalam" /> : cheapest.status === "OPEN" ? "Sedang dibuka" : cheapest.status === "SOLD_OUT" ? "Kuota habis" : "Ditutup"}
+                    {cheapest.status === "UPCOMING" ? (
+                      <TextCountdown target={cheapest.openAt} prefix="Dibuka dalam" />
+                    ) : cheapest.status === "OPEN" ? (
+                      "Sedang dibuka"
+                    ) : cheapest.status === "LOCKED" ? (
+                      `Menunggu ${cheapest.lockedAfter ?? "kategori lain"} habis`
+                    ) : cheapest.status === "SOLD_OUT" ? (
+                      "Kuota habis"
+                    ) : (
+                      "Ditutup"
+                    )}
                   </p>
                 </>
               ) : null}
@@ -213,6 +230,7 @@ export function CategoryPanel(props: {
 }
 
 function StatusBadge({ status }: { status: Status }) {
+  if (status === "LOCKED") return <Badge tone="amber" icon={<span aria-hidden>🔒</span>}>Menunggu</Badge>;
   if (status === "OPEN") return <Badge tone="green" icon={<span aria-hidden>●</span>}>Sedang dibuka</Badge>;
   if (status === "UPCOMING") return <Badge tone="amber" icon={<span aria-hidden>⏳</span>}>Segera dibuka</Badge>;
   if (status === "SOLD_OUT") return <Badge tone="red" icon={<span aria-hidden>✕</span>}>Kuota habis</Badge>;
@@ -228,6 +246,12 @@ function CategoryAction({ c, queueCategoryId, onJoin }: { c: PanelCategory & { s
     );
   }
   if (c.status === "CLOSED") return <Button disabled className="w-full">Pemesanan ditutup</Button>;
+  if (c.status === "LOCKED")
+    return (
+      <Button disabled variant="secondary" className="w-full">
+        🔒 Dibuka otomatis setelah {c.lockedAfter ?? "kategori lain"} habis
+      </Button>
+    );
   if (c.status === "SOLD_OUT") return <Button disabled className="w-full">Kuota habis</Button>;
   if (!c.queueOpen) {
     return (

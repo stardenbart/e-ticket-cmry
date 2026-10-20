@@ -257,6 +257,72 @@ async function main() {
         `klaim1=${r1.code} penuh=${full.code} batal=${cancel.status} claimed ${c1.claimed}→${c2.claimed}→${c3.claimed} klaim2=${r2.code} tiket lama=${old.status} (QR lama ditolak gate karena status ≠ ACTIVE)`);
     }
 
+    // ---- Skenario 13: kategori berantai — B baru terbuka saat kuota A habis (Electric Cow → Neon Festival) ----
+    {
+      const e = await makeEvent([
+        { name: "S13-A", quota: 20, openOffsetMs: -60_000, closeOffsetMs: 3600_000 },
+        { name: "S13-B", quota: 30, openOffsetMs: -60_000, closeOffsetMs: 3600_000 },
+      ]);
+      createdEvents.push(e.eventId);
+      const [A, B] = e.categoryIds;
+      await sql`UPDATE ticket_categories SET opens_after_category_id = ${A} WHERE id = ${B}`;
+      const users = await makeUsers(60, "s13u");
+      const queueJoin = (u: QaUser, cid: string) =>
+        fetch(`${BASE}/api/queue`, {
+          method: "POST",
+          headers: { "content-type": "application/json", cookie: u.cookie, origin: BASE },
+          body: JSON.stringify({ action: "join", categoryId: cid, turnstileToken: "XXXX.DUMMY.TOKEN.XXXX" }),
+        }).then(async (r) => ({ status: r.status, code: ((await r.json()) as { error?: { code: string } }).error?.code ?? "OK" }));
+      const streamStatus = async () => {
+        const ac = new AbortController();
+        const r = await fetch(`${BASE}/api/events/${e.eventId}/stream`, { signal: ac.signal });
+        const reader = r.body!.getReader();
+        let buf = "";
+        while (!buf.includes("data: ")) buf += new TextDecoder().decode((await reader.read()).value);
+        ac.abort();
+        const line = buf.split("\n").find((l) => l.startsWith("data: "))!;
+        const d = JSON.parse(line.slice(6)) as { categories: { id: string; status: string }[] };
+        return d.categories.find((c) => c.id === B)?.status;
+      };
+
+      // Sebelum A habis: B terkunci untuk antrean, klaim, dan SSE.
+      const qLocked = await queueJoin(users[59], B);
+      const cLocked = await claim(users[58], B, admission(users[58].id, B, e.eventId));
+      const sseLocked = await streamStatus();
+      const [b0] = await sql<{ open_at: Date }[]>`SELECT open_at FROM ticket_categories WHERE id = ${B}`;
+
+      // 60 orang rebutan 20 slot A.
+      const rs = await Promise.all(users.map((u) => claim(u, A, admission(u.id, A, e.eventId))));
+      const winners = rs.filter((r) => r.code === "SUCCESS").length;
+      const [b1] = await sql<{ unlocked_at: Date | null; open_at: Date }[]>`SELECT unlocked_at, open_at FROM ticket_categories WHERE id = ${B}`;
+      await new Promise((r) => setTimeout(r, 1_800)); // satu tick SSE
+      const sseOpen = await streamStatus();
+
+      // Yang kalah di A pindah ke B: 40 orang untuk 30 slot.
+      const losers = users.filter((_, i) => rs[i].code !== "SUCCESS");
+      const qOpen = await queueJoin(losers[0], B);
+      const rb = await Promise.all(losers.map((u) => claim(u, B, admission(u.id, B, e.eventId))));
+      const bWin = rb.filter((r) => r.code === "SUCCESS").length;
+      const bOut = rb.filter((r) => r.code === "SOLD_OUT").length;
+
+      // Tiket A dibatalkan → B tetap terbuka (tidak terkunci lagi).
+      const winnerIdx = rs.findIndex((r) => r.code === "SUCCESS");
+      await fetch(`${BASE}/api/tickets/${rs[winnerIdx].ticketId}`, {
+        method: "POST",
+        headers: { "content-type": "application/json", cookie: users[winnerIdx].cookie, origin: BASE },
+        body: JSON.stringify({ action: "cancel" }),
+      });
+      const [b2] = await sql<{ unlocked_at: Date | null }[]>`SELECT unlocked_at FROM ticket_categories WHERE id = ${B}`;
+
+      check(
+        "S13 kategori berantai: B terbuka otomatis saat A habis",
+        qLocked.code === "LOCKED" && cLocked.code === "CLOSED" && sseLocked === "LOCKED" &&
+          winners === 20 && !!b1.unlocked_at && b1.open_at.getTime() > b0.open_at.getTime() && sseOpen === "OPEN" &&
+          qOpen.status === 200 && bWin === 30 && bOut === 10 && !!b2.unlocked_at,
+        `sebelum: antrean=${qLocked.code} klaim=${cLocked.code} sse=${sseLocked} | A menang=${winners} → B unlocked=${!!b1.unlocked_at} open_at digeser=${b1.open_at.getTime() > b0.open_at.getTime()} sse=${sseOpen} | antrean B=${qOpen.status} klaim B menang=${bWin} habis=${bOut} | setelah batal A, B tetap terbuka=${!!b2.unlocked_at}`,
+      );
+    }
+
     const rec = await reconciliation();
     check("Rekonsiliasi PRD (harus kosong)", rec.length === 0, `kategori selisih=${rec.length}`);
   } finally {

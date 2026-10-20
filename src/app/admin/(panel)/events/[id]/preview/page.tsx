@@ -11,7 +11,7 @@ import { QuotaBar } from "@/components/admin/kit";
 export const metadata: Metadata = { title: "Preview Event" };
 export const dynamic = "force-dynamic";
 
-const STATUS_LABEL = { UPCOMING: ["Segera dibuka", "blue"], OPEN: ["Sedang dibuka", "green"], SOLD_OUT: ["Habis", "red"], CLOSED: ["Ditutup", "slate"] } as const;
+const STATUS_LABEL = { LOCKED: ["Menunggu kategori lain habis", "amber"], UPCOMING: ["Segera dibuka", "blue"], OPEN: ["Sedang dibuka", "green"], SOLD_OUT: ["Habis", "red"], CLOSED: ["Ditutup", "slate"] } as const;
 
 /** Pratinjau halaman publik event (read-only), termasuk untuk Draft. */
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {

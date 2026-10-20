@@ -1,7 +1,7 @@
 // Data panel kategori tiket (dipakai halaman detail event dan landing page beranda).
 import { sql } from "@/lib/db";
 import { currentUser, profileComplete } from "@/lib/auth";
-import { eventStatus, getCategories, type EventRow } from "@/lib/events";
+import { eventStatus, getCategories, isLocked, type EventRow } from "@/lib/events";
 import { activeQueueCategory } from "@/lib/queue";
 
 export async function loadCategoryPanel(e: EventRow) {
@@ -36,6 +36,9 @@ export async function loadCategoryPanel(e: EventRow) {
         closeAt: c.close_at.toISOString(),
         isClosed: c.is_closed,
         color: c.color,
+        // Kategori berantai: terkunci sampai kuota kategori prasyarat habis.
+        locked: isLocked(c),
+        lockedAfter: c.opens_after_category_id ? (cats.find((p) => p.id === c.opens_after_category_id)?.name ?? null) : null,
       })),
       user: { loggedIn: !!user, profileComplete: !!user && profileComplete(user), ticketId, queueCategoryId },
     },

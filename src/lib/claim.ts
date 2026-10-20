@@ -110,7 +110,8 @@ export async function claimTicket(opts: {
     // Jalur cepat: kategori sudah penuh menurut DB (baca tanpa lock) → tolak tanpa membuka transaksi
     // dan tanpa antre di row lock. Hanya bisa menolak; penerbitan tiket tetap lewat transaksi di bawah.
     const [pre] = await sql<{ quota: number; claimed: number; open: boolean }[]>`
-      SELECT quota, claimed, (NOT is_closed AND now() >= open_at AND now() < close_at) AS open
+      SELECT quota, claimed, (NOT is_closed AND now() >= open_at AND now() < close_at
+                              AND (opens_after_category_id IS NULL OR unlocked_at IS NOT NULL)) AS open
       FROM ticket_categories WHERE id = ${categoryId}`;
     if (pre && pre.open && pre.claimed >= pre.quota) {
       const out = result("SOLD_OUT");
@@ -141,11 +142,14 @@ export async function claimTicket(opts: {
             AND c.claimed < c.quota
             AND NOT c.is_closed
             AND now() >= c.open_at AND now() < c.close_at
+            -- Kategori berantai: belum terbuka selama prasyaratnya belum habis (migrasi 005).
+            AND (c.opens_after_category_id IS NULL OR c.unlocked_at IS NOT NULL)
           RETURNING c.event_id, c.quota, c.claimed`;
         if (!cat) {
           const [c] = await tx<{ quota: number; claimed: number; open: boolean }[]>`
             SELECT c.quota, c.claimed,
-                   (NOT c.is_closed AND now() >= c.open_at AND now() < c.close_at AND e.status = 'PUBLISHED') AS open
+                   (NOT c.is_closed AND now() >= c.open_at AND now() < c.close_at AND e.status = 'PUBLISHED'
+                    AND (c.opens_after_category_id IS NULL OR c.unlocked_at IS NOT NULL)) AS open
             FROM ticket_categories c JOIN events e ON e.id = c.event_id WHERE c.id = ${categoryId}`;
           if (c) quotaAfter = { quota: c.quota, claimed: c.claimed };
           throw new ClaimFail(c && c.open && c.claimed >= c.quota ? "SOLD_OUT" : "CLOSED");

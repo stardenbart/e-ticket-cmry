@@ -17,8 +17,10 @@ export type HeroSlide = {
  * Hero event utama (satu event → tanpa carousel). Sengaja ringan: foto panggung responsif
  * (900 px di HP), lantai grid statis, dan satu-satunya animasi = kepala maskot (desktop).
  */
-export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
+export function HeroCarousel({ slides, loggedIn = false }: { slides: HeroSlide[]; loggedIn?: boolean }) {
   const s = slides[0];
+  // Belum login → langsung ke halaman masuk, lalu kembali ke panel tiket (#tiket) setelah berhasil.
+  const claimHref = loggedIn ? "#tiket" : `/login?next=${encodeURIComponent("/#tiket")}`;
   return (
     <section aria-label="Event utama" className="relative -mt-20 overflow-hidden">
       {/* Latar hero memudar ke transparan di bagian bawah → menyatu halus dengan latar halaman (tanpa garis batas). */}
@@ -68,7 +70,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
               </p>
               <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
                 <Link
-                  href="#tiket"
+                  href={claimHref}
                   className="font-hud inline-flex h-12 items-center gap-2 rounded-full bg-[linear-gradient(100deg,#f714f7,#9b2cf5_50%,#0827b5)] px-7 text-lg font-bold uppercase tracking-[0.12em] text-white shadow-[0_0_18px_rgba(247,20,247,0.5)] transition hover:brightness-110"
                 >
                   Klaim Tiket

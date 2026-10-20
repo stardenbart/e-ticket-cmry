@@ -1,7 +1,7 @@
 import { sql } from "@/lib/db";
 import { getRemaining } from "@/lib/quota";
 import { serverNowMs } from "@/lib/redis";
-import { categoryStatus, type CategoryRow } from "@/lib/events";
+import { categoryStatus, isLocked, type CategoryRow } from "@/lib/events";
 
 export const dynamic = "force-dynamic";
 
@@ -13,8 +13,8 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   const { id } = await ctx.params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) return new Response("Not found", { status: 404 });
   const load = () =>
-    sql<Pick<CategoryRow, "id" | "quota" | "claimed" | "open_at" | "close_at" | "is_closed">[]>`
-      SELECT c.id, c.quota, c.claimed, c.open_at, c.close_at, c.is_closed
+    sql<Pick<CategoryRow, "id" | "quota" | "claimed" | "open_at" | "close_at" | "is_closed" | "opens_after_category_id" | "unlocked_at">[]>`
+      SELECT c.id, c.quota, c.claimed, c.open_at, c.close_at, c.is_closed, c.opens_after_category_id, c.unlocked_at
       FROM ticket_categories c JOIN events e ON e.id = c.event_id
       WHERE c.event_id = ${id} AND e.status <> 'DRAFT'`;
   let cats = await load();
@@ -29,11 +29,17 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
         try {
           // Metadata kategori (jam buka/tutup, ditutup admin) dimuat ulang tiap ~15 detik.
           if (++ticks % 10 === 0) cats = await load();
-          const [rem, now] = await Promise.all([getRemaining(cats), serverNowMs()]);
+          let [rem, now] = await Promise.all([getRemaining(cats), serverNowMs()]);
+          // Kategori berantai: begitu prasyarat habis, muat ulang segera agar status "terbuka" tampil dalam ~1,5 detik.
+          if (cats.some((c) => isLocked(c) && (rem[c.opens_after_category_id!] ?? 1) <= 0)) {
+            cats = await load();
+            rem = await getRemaining(cats);
+          }
           const data = cats.map((c) => ({
             id: c.id,
             quota: c.quota,
             remaining: rem[c.id] ?? 0,
+            openAt: c.open_at.toISOString(),
             status: categoryStatus(c, rem[c.id] ?? 0, now),
           }));
           controller.enqueue(enc.encode(`data: ${JSON.stringify({ now, categories: data })}\n\n`));

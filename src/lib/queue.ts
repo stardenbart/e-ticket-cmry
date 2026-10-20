@@ -4,7 +4,7 @@ import { redis, serverNowMs } from "./redis";
 import { signToken, verifyToken } from "./crypto";
 import { ApiError } from "./http";
 import { getRemaining } from "./quota";
-import { QUEUE_LEAD_MS, type CategoryRow } from "./events";
+import { QUEUE_LEAD_MS, isLocked, type CategoryRow } from "./events";
 
 // Waiting room per kategori, di Redis.
 //
@@ -20,7 +20,10 @@ import { QUEUE_LEAD_MS, type CategoryRow } from "./events";
 
 export const ADMISSION_TTL_SEC = 5 * 60;
 
-type Cat = Pick<CategoryRow, "id" | "event_id" | "open_at" | "close_at" | "is_closed" | "admit_batch" | "admit_interval_sec" | "quota" | "claimed">;
+type Cat = Pick<
+  CategoryRow,
+  "id" | "event_id" | "open_at" | "close_at" | "is_closed" | "admit_batch" | "admit_interval_sec" | "quota" | "claimed" | "opens_after_category_id" | "unlocked_at"
+> & { opens_after_name: string | null };
 
 export type AdmissionClaims = { uid: string; cid: string; eid: string; jti: string; exp: number };
 
@@ -50,8 +53,10 @@ const ttlFor = (cat: Cat, now: number) => Math.max(60, Math.ceil((cat.close_at.g
 
 export async function loadCategory(categoryId: string): Promise<Cat> {
   const [c] = await sql<Cat[]>`
-    SELECT c.id, c.event_id, c.open_at, c.close_at, c.is_closed, c.admit_batch, c.admit_interval_sec, c.quota, c.claimed
+    SELECT c.id, c.event_id, c.open_at, c.close_at, c.is_closed, c.admit_batch, c.admit_interval_sec, c.quota, c.claimed,
+           c.opens_after_category_id, c.unlocked_at, p.name AS opens_after_name
     FROM ticket_categories c JOIN events e ON e.id = c.event_id
+    LEFT JOIN ticket_categories p ON p.id = c.opens_after_category_id
     WHERE c.id = ${categoryId} AND e.status = 'PUBLISHED'`;
   if (!c) throw new ApiError(404, "NOT_FOUND", "Kategori tiket tidak ditemukan.");
   return c;
@@ -107,6 +112,8 @@ export async function joinQueue(userId: string, categoryId: string): Promise<Que
   const now = await serverNowMs();
   const openAt = cat.open_at.getTime();
   if (cat.is_closed || now >= cat.close_at.getTime()) throw new ApiError(409, "CLOSED", "Pemesanan kategori ini sudah ditutup.");
+  if (isLocked(cat))
+    throw new ApiError(409, "LOCKED", `Kategori ini dibuka otomatis setelah kuota ${cat.opens_after_name ?? "kategori sebelumnya"} habis. Pantau halaman ini — tombol antrean aktif begitu terbuka.`);
   if (now < openAt - QUEUE_LEAD_MS) throw new ApiError(409, "QUEUE_NOT_OPEN", "Antrean belum dibuka. Antrean dibuka 10 menit sebelum jam buka.");
   const rem = (await getRemaining([cat]))[cat.id];
   if (rem <= 0 && now >= openAt) throw new ApiError(409, "SOLD_OUT", "Kuota kategori ini sudah habis.");
@@ -167,6 +174,8 @@ export async function queueStatus(userId: string, categoryId: string, preloaded?
     await redis.del(K.active(cat.event_id, userId));
     return { state: "CLOSED" };
   }
+  // Kategori berantai yang belum terbuka: tidak ada yang bisa berada di antreannya.
+  if (isLocked(cat)) return { state: "NOT_IN_QUEUE" };
 
   const inPre = await redis.sismember(K.pre(cat.id), userId);
   if (now < openAt) {
