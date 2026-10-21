@@ -386,7 +386,26 @@ export default function ScannerApp() {
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-base font-bold text-white">{selection ? selection.eventName : "Scanner Gate"}</p>
-          <p className="truncate text-sm text-white/70">{selection ? selection.gate : user ? user.name : ""}</p>
+          {selection ? (
+            <div className="flex items-center gap-2">
+              <p className="truncate text-sm text-white/70">{selection.gate}</p>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!confirm(`Ganti event/gate? Anda sekarang di ${selection.gate}.${pending > 0 ? `
+${pending} scan yang belum tersinkron akan dikirim dulu.` : ""}`)) return;
+                  // Kirim dulu scan yang belum tersinkron agar tidak tertinggal saat pindah gate.
+                  if (pending > 0) await syncNow();
+                  await changeEvent();
+                }}
+                className="shrink-0 rounded-full border border-white/30 px-2.5 py-0.5 text-xs font-semibold text-white hover:bg-white/10"
+              >
+                Ganti gate
+              </button>
+            </div>
+          ) : (
+            <p className="truncate text-sm text-white/70">{user ? user.name : ""}</p>
+          )}
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1 text-xs font-semibold">
           <span
