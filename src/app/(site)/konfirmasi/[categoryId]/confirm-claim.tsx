@@ -10,6 +10,7 @@ import { MvImg } from "@/components/site/ornaments";
 import { uuidv4 } from "@/lib/uuid";
 import { NameField, NikField, PhoneField, ShirtSizeField, checkBiodata } from "@/components/site/nik-fields";
 import { ShirtGuide } from "@/components/site/shirt-guide";
+import { TermsGate } from "@/components/site/terms-gate";
 
 type Summary = {
   eventName: string;
@@ -49,7 +50,6 @@ export function ConfirmClaim({ categoryId, slug, heldTicketId, summary, alternat
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [netError, setNetError] = useState<string | null>(null);
-  const [showTerms, setShowTerms] = useState(false);
   // Biodata diisi ulang saat pemesanan dan dicek ke daftar karyawan eligible.
   // Terisi otomatis dari data akun; peserta cukup memilih ukuran baju (nama/NIK tetap bisa dikoreksi).
   const [bio, setBio] = useState({ fullName: summary.holderName, nik: summary.nik === "-" ? "" : summary.nik, phone: summary.phone, shirtSize: "" });
@@ -232,18 +232,7 @@ export function ConfirmClaim({ categoryId, slug, heldTicketId, summary, alternat
             <PhoneField value={bio.phone} onChange={(phone) => setBio({ ...bio, phone })} error={fieldErr.phone} />
           </fieldset>
 
-          <div>
-            <label className="flex items-start gap-3 text-sm">
-              <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-cimory-blue" />
-              <span>
-                Saya menyetujui Syarat &amp; Ketentuan event ini dan memahami bahwa tiket atas nama saya tidak dapat dipindahtangankan.{" "}
-                <button type="button" onClick={() => setShowTerms((s) => !s)} className="font-semibold text-cimory-blue underline">
-                  {showTerms ? "Sembunyikan S&K" : "Baca S&K"}
-                </button>
-              </span>
-            </label>
-            {showTerms && <div className="rich-text mt-3 max-h-60 overflow-y-auto rounded-xl border border-line p-4 text-sm" dangerouslySetInnerHTML={{ __html: summary.termsHtml || "<p>-</p>" }} />}
-          </div>
+          <TermsGate html={summary.termsHtml} agreed={agree} onAgree={setAgree} />
 
           {netError && <Alert tone="amber">{netError}</Alert>}
 
@@ -260,7 +249,7 @@ export function ConfirmClaim({ categoryId, slug, heldTicketId, summary, alternat
               {busy ? "Memproses klaim…" : "Klaim Tiket"}
             </button>
           )}
-          {!agree && !expired && <p className="text-center text-xs text-muted">Centang persetujuan S&amp;K untuk mengaktifkan tombol.</p>}
+          {!agree && !expired && <p className="text-center text-xs text-muted">Baca S&amp;K sampai bawah lalu centang persetujuan untuk mengaktifkan tombol.</p>}
         </div>
       </Card>
     </div>
