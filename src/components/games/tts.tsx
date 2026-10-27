@@ -3,7 +3,7 @@
 // TTS Mooniverse. Jawaban dicek di server: benar → kotak terkunci (+10), salah → bisa diubah lagi.
 // Satu kesempatan: keluar halaman / aplikasi = skor & waktu dikunci; bisa menyerah kapan saja.
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { api, ClientApiError } from "@/lib/client-api";
 import { useServerNow } from "@/components/site/use-server-now";
 
@@ -36,10 +36,10 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
   const [inputs, setInputs] = useState<Record<string, string>>({});
   const [wrong, setWrong] = useState<Record<string, boolean>>({});
   const [checking, setChecking] = useState<string | null>(null);
-  const [selected, setSelected] = useState<string>(puzzle.entries[0]?.key ?? "");
+  const [selected, setSelected] = useState<string>("");
   const [err, setErr] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
-  const refs = useRef<Record<string, HTMLInputElement | null>>({});
+  const inputRef = useRef<HTMLInputElement>(null);
   const now = useServerNow(1000);
   const active = run?.status === "ACTIVE";
 
@@ -106,7 +106,6 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
     try {
       const r = await api<{ run: Run }>("/api/games/tts/start", { method: "POST", json: {} });
       setRun(r.run);
-      setTimeout(() => refs.current[puzzle.entries[0].key]?.focus(), 50);
     } catch (e) {
       setErr(e instanceof ClientApiError ? e.message : "Gagal memulai. Coba lagi.");
     } finally {
@@ -122,11 +121,13 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
         setRun(r.run);
         setWrong((w) => ({ ...w, [e.key]: !r.correct }));
         if (r.correct) {
-          // Lanjut ke soal berikutnya yang belum terjawab.
-          const next = puzzle.entries.find((x) => x.key !== e.key && !r.run.solved.includes(x.key));
+          // Lanjut ke soal berikutnya (urutan nomor) yang belum terjawab.
+          const i = puzzle.entries.findIndex((x) => x.key === e.key);
+          const order = [...puzzle.entries.slice(i + 1), ...puzzle.entries.slice(0, i)];
+          const next = order.find((x) => !r.run.solved.includes(x.key));
           if (next) {
             setSelected(next.key);
-            setTimeout(() => refs.current[next.key]?.focus(), 30);
+            setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 30);
           }
         }
       } catch (x) {
@@ -142,6 +143,7 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
   );
 
   function onType(e: Entry, raw: string) {
+    if (checking === e.key) return;
     const v = raw.toUpperCase().replace(/[^A-Z]/g, "").slice(0, e.length);
     setInputs((s) => ({ ...s, [e.key]: v }));
     setWrong((w) => ({ ...w, [e.key]: false }));
@@ -160,20 +162,32 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
 
   const elapsed = run ? (run.durationMs ?? (now ? now - new Date(run.startedAt).getTime() : 0)) : 0;
 
+  // Pilih soal; fokus ke kolom jawaban (keyboard HP langsung muncul) bila masih bisa dijawab.
+  function select(key: string) {
+    setSelected(key);
+    if (run?.status === "ACTIVE" && !run.solved.includes(key)) setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 30);
+  }
+  const curIdx = puzzle.entries.findIndex((e) => e.key === selected);
+  const cur = curIdx >= 0 ? puzzle.entries[curIdx] : null;
+  const go = (step: number) => {
+    const n = puzzle.entries.length;
+    const i = curIdx < 0 ? (step > 0 ? 0 : n - 1) : (curIdx + step + n) % n;
+    select(puzzle.entries[i].key);
+  };
+
   const clickCell = (cell: string) => {
     const hits = puzzle.entries.filter((e) => entryCells[e.key].includes(cell));
     if (!hits.length) return;
     // Klik kedua di kotak persilangan berpindah arah.
     const cur = hits.findIndex((h) => h.key === selected);
     const pick = hits[(cur + 1) % hits.length] ?? hits[0];
-    setSelected(pick.key);
-    refs.current[pick.key]?.focus();
+    select(pick.key);
   };
 
   if (!run) {
     return (
       <div className="space-y-4">
-        <PuzzleGrid puzzle={puzzle} display={{}} selected={new Set()} onCell={() => {}} />
+        <PuzzleGrid puzzle={puzzle} display={{}} selected={new Set()} solved={new Set()} onCell={() => {}} />
         <div className="rounded-xl border border-[#19e6ff]/40 bg-[#0f0730]/90 p-5 text-white">
           <p className="font-hud text-sm font-bold uppercase tracking-[0.14em] text-[#19e6ff]">Aturan</p>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-[#dbe4ff]">
@@ -240,60 +254,140 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
         </div>
       )}
 
-      <PuzzleGrid puzzle={puzzle} display={display} selected={done ? new Set() : selectedCells} onCell={done ? () => {} : clickCell} />
+      <PuzzleGrid puzzle={puzzle} display={display} selected={selectedCells} solved={solved} onCell={clickCell} />
 
       {err && <p className="text-sm font-semibold text-amber-300">{err}</p>}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {(["A", "D"] as const).map((dir) => (
-          <section key={dir} className="rounded-xl border border-white/10 bg-[#0f0730]/80 p-4">
-            <h2 className="font-hud mb-3 text-sm font-bold uppercase tracking-[0.16em] text-[#19e6ff]">{dir === "A" ? "Mendatar" : "Menurun"}</h2>
-            <ol className="space-y-3">
-              {puzzle.entries
-                .filter((e) => e.dir === dir)
-                .map((e) => {
-                  const ok = solved.has(e.key);
-                  const pattern = entryCells[e.key].map((c) => run.letters[c] ?? "_").join(" ");
-                  return (
-                    <li key={e.key} className={`rounded-lg p-2 ${selected === e.key && !done ? "bg-[#19e6ff]/10 ring-1 ring-[#19e6ff]/50" : ""}`}>
-                      <p className="text-sm text-white">
-                        <b className="text-[#ff2e9f]">{e.num}.</b> {e.clue} <span className="text-white/50">({e.length})</span>
-                      </p>
-                      <div className="mt-1.5 flex items-center gap-2">
-                        <input
-                          ref={(el) => {
-                            refs.current[e.key] = el;
-                          }}
-                          aria-label={`Jawaban ${e.num} ${dir === "A" ? "mendatar" : "menurun"}`}
-                          value={ok ? entryCells[e.key].map((c) => run.letters[c]).join("") : (inputs[e.key] ?? "")}
-                          onChange={(x) => onType(e, x.target.value)}
-                          onFocus={() => setSelected(e.key)}
-                          disabled={ok || done || checking === e.key}
-                          maxLength={e.length}
-                          autoCapitalize="characters"
-                          autoComplete="off"
-                          spellCheck={false}
-                          placeholder={pattern}
-                          className={`min-w-0 flex-1 rounded-lg border bg-[#07031a] px-3 py-2 font-mono text-base uppercase tracking-[0.3em] text-white outline-none placeholder:tracking-[0.15em] placeholder:text-white/30 focus:border-[#19e6ff] ${
-                            ok ? "border-green-400/70 text-green-300" : wrong[e.key] ? "border-red-400" : "border-white/20"
-                          }`}
-                        />
-                        <span className="w-16 shrink-0 text-xs font-semibold">
-                          {ok ? <span className="text-green-300">✓ Benar</span> : checking === e.key ? <span className="text-white/60">Cek…</span> : wrong[e.key] ? <span className="text-red-300">Belum tepat</span> : null}
-                        </span>
-                      </div>
-                    </li>
-                  );
-                })}
-            </ol>
-          </section>
-        ))}
-      </div>
+      <ClueCard
+        entry={cur}
+        index={curIdx}
+        total={puzzle.entries.length}
+        solvedCount={solved.size}
+        ok={cur ? solved.has(cur.key) : false}
+        value={cur ? (inputs[cur.key] ?? "") : ""}
+        lockedLetters={cur ? entryCells[cur.key].map((c) => run.letters[c] ?? "") : []}
+        wrong={cur ? !!wrong[cur.key] : false}
+        checking={cur ? checking === cur.key : false}
+        done={done}
+        inputRef={inputRef}
+        onType={(v) => cur && onType(cur, v)}
+        onPrev={() => go(-1)}
+        onNext={() => go(1)}
+      />
     </div>
   );
 }
 
-function PuzzleGrid({ puzzle, display, selected, onCell }: { puzzle: Puzzle; display: Record<string, { ch: string; locked: boolean }>; selected: Set<string>; onCell: (cell: string) => void }) {
+function ClueCard(p: {
+  entry: Entry | null;
+  index: number;
+  total: number;
+  solvedCount: number;
+  ok: boolean;
+  value: string;
+  lockedLetters: string[];
+  wrong: boolean;
+  checking: boolean;
+  done: boolean;
+  inputRef: RefObject<HTMLInputElement | null>;
+  onType: (v: string) => void;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  const e = p.entry;
+  const nav = "grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#19e6ff]/50 text-lg font-bold text-[#19e6ff] hover:bg-[#19e6ff]/10";
+  return (
+    <section className="rounded-xl border border-[#19e6ff]/40 bg-[#0f0730]/90 p-4 text-white" aria-live="polite">
+      <div className="flex items-center gap-3">
+        <button type="button" onClick={p.onPrev} aria-label="Soal sebelumnya" className={nav}>
+          ‹
+        </button>
+        <div className="min-w-0 flex-1 text-center">
+          {e ? (
+            <p className="font-hud text-sm font-bold uppercase tracking-[0.14em] text-[#19e6ff]">
+              <span className="text-[#ff2e9f]">{e.num}</span> {e.dir === "A" ? "Mendatar" : "Menurun"} · {e.length} huruf
+            </p>
+          ) : (
+            <p className="font-hud text-sm font-bold uppercase tracking-[0.14em] text-[#19e6ff]">Pilih soal</p>
+          )}
+          <p className="text-xs text-white/60">
+            {e ? `Soal ${p.index + 1} dari ${p.total} · ` : ""}
+            {p.solvedCount}/{p.total} terjawab
+          </p>
+        </div>
+        <button type="button" onClick={p.onNext} aria-label="Soal berikutnya" className={nav}>
+          ›
+        </button>
+      </div>
+
+      {!e ? (
+        <p className="mt-4 text-center text-sm text-[#dbe4ff]">Ketuk salah satu kotak putih pada TTS di atas untuk menampilkan soalnya, atau gunakan tombol ‹ ›.</p>
+      ) : (
+        <>
+          <p className="mt-3 text-[15px] leading-relaxed text-[#eef2ff]">{e.clue}</p>
+          <label className="relative mt-4 block">
+            <span className="sr-only">
+              Jawaban {e.num} {e.dir === "A" ? "mendatar" : "menurun"}
+            </span>
+            <span className="mx-auto grid max-w-[520px] gap-1" style={{ gridTemplateColumns: `repeat(${e.length}, minmax(0, 2.5rem))`, justifyContent: "center" }} aria-hidden>
+              {Array.from({ length: e.length }, (_, i) => {
+                const typed = p.value[i];
+                const lock = p.lockedLetters[i];
+                const ch = p.ok ? lock : (typed ?? "");
+                const active = !p.ok && !p.done && i === Math.min(p.value.length, e.length - 1);
+                return (
+                  <span
+                    key={i}
+                    className={`grid aspect-square place-items-center rounded-md border-2 font-mono text-base font-black sm:text-xl ${
+                      p.ok
+                        ? "border-green-400 bg-[#86efac] text-[#052e16]"
+                        : p.wrong
+                          ? "border-red-400 bg-[#eef2f7] text-[#0b1220]"
+                          : active
+                            ? "border-[#19e6ff] bg-[#eef2f7] text-[#0b1220] shadow-[0_0_10px_rgba(25,230,255,.7)]"
+                            : "border-transparent bg-[#eef2f7] text-[#0b1220]"
+                    }`}
+                  >
+                    {ch || (lock ? <span className="text-[#94a3b8]">{lock}</span> : "")}
+                  </span>
+                );
+              })}
+            </span>
+            <input
+              ref={p.inputRef}
+              key={e.key}
+              value={p.ok ? "" : p.value}
+              onChange={(x) => p.onType(x.target.value)}
+              disabled={p.ok || p.done}
+              maxLength={e.length}
+              autoCapitalize="characters"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              className="absolute inset-0 h-full w-full cursor-text opacity-0"
+              style={{ fontSize: 16 }}
+            />
+          </label>
+          <p className="mt-3 min-h-5 text-center text-sm font-semibold">
+            {p.ok ? (
+              <span className="text-green-300">✓ Benar — terkunci</span>
+            ) : p.checking ? (
+              <span className="text-white/60">Mengecek…</span>
+            ) : p.wrong ? (
+              <span className="text-red-300">Belum tepat, coba lagi</span>
+            ) : p.done ? (
+              <span className="text-white/60">Permainan sudah selesai</span>
+            ) : (
+              <span className="text-white/60">Ketik jawaban — otomatis dicek saat semua kotak terisi</span>
+            )}
+          </p>
+        </>
+      )}
+    </section>
+  );
+}
+
+function PuzzleGrid({ puzzle, display, selected, onCell }: { puzzle: Puzzle; display: Record<string, { ch: string; locked: boolean }>; selected: Set<string>; solved: Set<string>; onCell: (cell: string) => void }) {
   return (
     <div className="overflow-x-auto rounded-[14px] bg-[#07031a] p-2 shadow-[0_0_28px_rgba(255,46,159,.45),0_0_60px_rgba(157,77,255,.3)]">
       <div className="mx-auto grid w-full min-w-[300px] max-w-[560px] gap-[3px]" style={{ gridTemplateColumns: `repeat(${puzzle.cols}, minmax(0, 1fr))` }}>
@@ -310,7 +404,7 @@ function PuzzleGrid({ puzzle, display, selected, onCell }: { puzzle: Puzzle; dis
                 onClick={() => onCell(key)}
                 aria-label={`Kotak baris ${r + 1} kolom ${c + 1}${d ? `, huruf ${d.ch}` : ""}`}
                 className={`relative grid aspect-square place-items-center rounded-[3px] font-mono text-[11px] font-black sm:text-base ${
-                  d?.locked ? "bg-[#86efac] text-[#052e16]" : selected.has(key) ? "bg-[#19e6ff] text-[#07031a]" : "bg-[#eef2f7] text-[#0b1220]"
+                  selected.has(key) ? (d?.locked ? "bg-[#4ade80] text-[#052e16] ring-2 ring-[#19e6ff]" : "bg-[#19e6ff] text-[#07031a]") : d?.locked ? "bg-[#86efac] text-[#052e16]" : "bg-[#eef2f7] text-[#0b1220]"
                 }`}
               >
                 {num && <span className="absolute left-[2px] top-0 text-[7px] font-bold leading-none text-[#334155] sm:text-[9px]">{num}</span>}

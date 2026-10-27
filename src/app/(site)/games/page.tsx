@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Games" };
 
 const GAMES = [
-  { href: "/games/tts", key: "tts", title: "TTS Mooniverse", desc: "Teka-teki silang 10 soal. Satu kesempatan — skor 100 tercepat jadi juara." },
+  { href: "/games/tts", key: "tts", title: "TTS Mooniverse", desc: "Teka-teki silang 10 soal tebak benda. Satu kesempatan — skor 100 tercepat jadi juara." },
   { href: "/games/snake", key: "snake", title: "Ular Retro", desc: "Makan sebanyak-banyaknya, tembus dinding, kumpulkan bonus & info acara." },
   { href: "/games/flappy", key: "flappy", title: "Flappy Cow", desc: "Terbangkan kepala sapi melewati tiang neon dan hindari lightstick." },
   { href: "/games/dino", key: "dino", title: "Dino Cow", desc: "Sapi berlari dan melompati penghalang neon. Makin lama makin cepat." },
@@ -29,7 +29,7 @@ export default async function GamesPage() {
     return a.plays ? `Skor terakhir ${a.latest} · ${a.plays}× main` : "Belum dimainkan";
   };
   return (
-    <div className="mx-auto max-w-5xl px-4 pb-16 pt-12 sm:pt-16">
+    <div className="mx-auto max-w-5xl px-4 pb-16 sm:pt-4">
       <PageHero title="Mooniverse Games" subtitle="Main, kumpulkan skor, dan rebut posisi teratas leaderboard!" />
       {!u && (
         <p className="mb-6 rounded-xl border border-[#19e6ff]/40 bg-[#0f0730]/80 p-4 text-sm text-white">
