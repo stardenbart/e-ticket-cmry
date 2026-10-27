@@ -9,10 +9,11 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Games" };
 
 const GAMES = [
-  { href: "/games/tts", key: "tts", title: "TTS Mooniverse", icon: "🧩", desc: "Teka-teki silang 10 soal. Satu kesempatan — skor 100 tercepat jadi juara." },
-  { href: "/games/snake", key: "snake", title: "Ular Retro", icon: "🐍", desc: "Makan sebanyak-banyaknya, tembus dinding, kumpulkan bonus & info acara." },
-  { href: "/games/flappy", key: "flappy", title: "Flappy Cow", icon: "🐮", desc: "Terbangkan kepala sapi melewati pipa neon. Kejar skor tertinggi!" },
-  { href: "/games/dino", key: "dino", title: "Dino Cow", icon: "🏃", desc: "Sapi berlari dan melompati jerami & krat susu. Makin lama makin cepat." },
+  { href: "/games/tts", key: "tts", title: "TTS Mooniverse", desc: "Teka-teki silang 10 soal. Satu kesempatan — skor 100 tercepat jadi juara." },
+  { href: "/games/snake", key: "snake", title: "Ular Retro", desc: "Makan sebanyak-banyaknya, tembus dinding, kumpulkan bonus & info acara." },
+  { href: "/games/flappy", key: "flappy", title: "Flappy Cow", desc: "Terbangkan kepala sapi melewati tiang neon dan hindari lightstick." },
+  { href: "/games/dino", key: "dino", title: "Dino Cow", desc: "Sapi berlari dan melompati penghalang neon. Makin lama makin cepat." },
+  { href: "/games/race", key: "race", title: "Balap Sapi", desc: "Pindah jalur, ambil botol susu, dan hindari penghalang di jalan neon." },
 ] as const;
 
 export default async function GamesPage() {
@@ -31,8 +32,8 @@ export default async function GamesPage() {
     <div className="mx-auto max-w-5xl px-4 pb-16 pt-12 sm:pt-16">
       <PageHero title="Mooniverse Games" subtitle="Main, kumpulkan skor, dan rebut posisi teratas leaderboard!" />
       {!u && (
-        <p className="mb-6 rounded-xl border border-[#9afcff]/40 bg-[#031726]/80 p-4 text-sm text-white">
-          <Link href="/login?next=%2Fgames" className="font-bold text-[#9afcff] underline">
+        <p className="mb-6 rounded-xl border border-[#19e6ff]/40 bg-[#0f0730]/80 p-4 text-sm text-white">
+          <Link href="/login?next=%2Fgames" className="font-bold text-[#19e6ff] underline">
             Masuk
           </Link>{" "}
           dulu untuk bermain dan mencatat skor ke leaderboard.
@@ -43,15 +44,12 @@ export default async function GamesPage() {
           <Link
             key={g.key}
             href={g.href}
-            className="group rounded-2xl border border-[#9afcff]/30 bg-[#031726]/85 p-5 text-white transition hover:-translate-y-0.5 hover:border-[#f714f7]/70 hover:shadow-[0_0_24px_rgba(247,20,247,0.25)]"
+            className="group rounded-2xl border border-[#19e6ff]/30 bg-[#0f0730]/85 p-5 text-white transition hover:-translate-y-0.5 hover:border-[#ff2e9f]/70 hover:shadow-[0_0_24px_rgba(255,46,159,0.25)]"
           >
-            <p className="text-3xl" aria-hidden>
-              {g.icon}
-            </p>
-            <h2 className="mv-title mt-2 text-xl">{g.title}</h2>
+            <h2 className="mv-title text-xl">{g.title}</h2>
             <p className="mt-1 text-sm text-[#dbe4ff]">{g.desc}</p>
-            {label(g.key) && <p className="mt-3 text-xs font-semibold text-[#9afcff]">{label(g.key)}</p>}
-            <p className="font-hud mt-3 text-sm font-bold uppercase tracking-[0.14em] text-[#f714f7] group-hover:underline">Main →</p>
+            {label(g.key) && <p className="mt-3 text-xs font-semibold text-[#19e6ff]">{label(g.key)}</p>}
+            <p className="font-hud mt-3 text-sm font-bold uppercase tracking-[0.14em] text-[#ff2e9f] group-hover:underline">Main →</p>
           </Link>
         ))}
       </div>

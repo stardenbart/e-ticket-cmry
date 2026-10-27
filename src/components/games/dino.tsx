@@ -1,17 +1,19 @@
 "use client";
 
-// Dino Cow: lari ala dino Google, tapi pemainnya sapi Mooniverse. Lompati jerami & krat susu.
+// Dino Cow — tema Neon City: sapi berlari ala dino Google, melompati penghalang neon.
 // Skor bertambah seiring jarak; kecepatan naik perlahan.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { ArcadeShell, COW_HEAD, loadImage, setupCanvas, type ArcadeHooks } from "./arcade-shell";
+import { CYAN, PINK, VIO, glow, makeScene, roundRect, txt } from "./neon-scene";
+import { NeonFrame } from "./neon-frame";
 
 const W = 640;
-const H = 220;
-const GROUND_Y = 186;
-const COW_X = 64;
-const COW = 46;
+const H = 300;
+const GROUND = 236;
+const COW_X = 70;
+const COW = 50;
 const GRAVITY = 2300;
-const JUMP = -760;
+const JUMP = -780;
 
 export function DinoGame({ best }: { best: number }) {
   return (
@@ -21,201 +23,209 @@ export function DinoGame({ best }: { best: number }) {
       initialBest={best}
       howTo={
         <ul className="list-disc space-y-1 pl-5">
-          <li>Ketuk layar / klik / tekan spasi atau panah atas untuk melompat.</li>
-          <li>Lompati jerami dan krat susu. Skor bertambah selama sapi terus berlari.</li>
-          <li>Makin lama makin cepat — menabrak rintangan = game over.</li>
+          <li>Ketuk layar atau tekan spasi / panah atas untuk melompat.</li>
+          <li>Lompati penghalang neon. Skor bertambah selama sapi terus berlari.</li>
+          <li>Makin lama makin cepat — menabrak penghalang = game over.</li>
         </ul>
       }
     >
-      {(hooks) => <DinoCanvas hooks={hooks} />}
+      {(hooks) => <DinoCanvas hooks={hooks} best={best} />}
     </ArcadeShell>
   );
 }
 
-type Ob = { x: number; w: number; h: number; kind: "hay" | "crate" };
+type Ob = { x: number; w: number; h: number; c: string; tall: boolean };
 
-function DinoCanvas({ hooks }: { hooks: ArcadeHooks }) {
+function DinoCanvas({ hooks, best }: { hooks: ArcadeHooks; best: number }) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const [phase, setPhase] = useState<"ready" | "play" | "over">("ready");
-  const [score, setScore] = useState(0);
-  const g = useRef({ y: GROUND_Y - COW, vy: 0, obs: [] as Ob[], spawn: 1, dist: 0, speed: 330, last: 0, raf: 0, running: false, t: 0, shown: 0 });
-  const img = useRef<HTMLImageElement | null>(null);
-
-  const scoreOf = (dist: number) => Math.floor(dist / 40);
-
-  const draw = () => {
-    const c = canvas.current;
-    if (!c) return;
-    const ctx = c.getContext("2d")!;
-    const s = g.current;
-    ctx.fillStyle = "#020a17";
-    ctx.fillRect(0, 0, W, H);
-    // gedung neon di latar
-    ctx.fillStyle = "rgba(154,252,255,0.07)";
-    for (let i = 0; i < 12; i++) {
-      const x = ((i * 90 - s.dist * 0.2) % (W + 90) + W + 90) % (W + 90) - 90;
-      ctx.fillRect(x, 70 + ((i * 37) % 60), 60, GROUND_Y - 70 - ((i * 37) % 60));
-    }
-    // tanah
-    ctx.strokeStyle = "#9afcff";
-    ctx.lineWidth = 2;
-    ctx.shadowColor = "#9afcff";
-    ctx.shadowBlur = 8;
-    ctx.beginPath();
-    ctx.moveTo(0, GROUND_Y + 0.5);
-    ctx.lineTo(W, GROUND_Y + 0.5);
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = "rgba(154,252,255,0.35)";
-    for (let i = 0; i < 20; i++) ctx.fillRect(((i * 47 - s.dist) % W + W) % W, GROUND_Y + 8 + (i % 3) * 6, 10, 2);
-    // rintangan
-    for (const o of s.obs) {
-      ctx.shadowBlur = 12;
-      if (o.kind === "hay") {
-        ctx.shadowColor = "#facc15";
-        ctx.fillStyle = "#a16207";
-        ctx.strokeStyle = "#facc15";
-      } else {
-        ctx.shadowColor = "#f714f7";
-        ctx.fillStyle = "#3b0a52";
-        ctx.strokeStyle = "#f714f7";
-      }
-      ctx.lineWidth = 2;
-      ctx.fillRect(o.x, GROUND_Y - o.h, o.w, o.h);
-      ctx.strokeRect(o.x, GROUND_Y - o.h, o.w, o.h);
-      ctx.shadowBlur = 0;
-      ctx.beginPath();
-      if (o.kind === "hay") {
-        ctx.moveTo(o.x, GROUND_Y - o.h / 2);
-        ctx.lineTo(o.x + o.w, GROUND_Y - o.h / 2);
-      } else {
-        ctx.moveTo(o.x + o.w / 2, GROUND_Y - o.h);
-        ctx.lineTo(o.x + o.w / 2, GROUND_Y);
-      }
-      ctx.stroke();
-    }
-    // sapi (sedikit memantul saat berlari)
-    const bob = s.y >= GROUND_Y - COW - 0.5 && s.running ? Math.sin(s.t * 22) * 2 : 0;
-    if (img.current?.complete) ctx.drawImage(img.current, COW_X, s.y + bob, COW, COW * 0.92);
-    else {
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(COW_X, s.y, COW, COW);
-    }
-    // skor
-    ctx.fillStyle = "#fff";
-    ctx.font = "bold 18px ui-monospace, monospace";
-    ctx.textAlign = "right";
-    ctx.fillText(String(scoreOf(s.dist)).padStart(5, "0"), W - 14, 28);
-  };
-
-  const loop = (t: number) => {
-    const s = g.current;
-    if (!s.running) return;
-    const dt = Math.min(0.033, (t - (s.last || t)) / 1000);
-    s.last = t;
-    s.t += dt;
-    s.speed = Math.min(720, 330 + s.t * 9);
-    s.dist += s.speed * dt;
-    s.vy += GRAVITY * dt;
-    s.y = Math.min(GROUND_Y - COW, s.y + s.vy * dt);
-    if (s.y >= GROUND_Y - COW) s.vy = 0;
-    s.spawn -= dt;
-    if (s.spawn <= 0) {
-      const crate = Math.random() < 0.4;
-      s.obs.push({ x: W + 10, w: crate ? 26 : 22 + Math.random() * 20, h: crate ? 44 + Math.random() * 14 : 26 + Math.random() * 18, kind: crate ? "crate" : "hay" });
-      s.spawn = (0.75 + Math.random() * 0.9) * (330 / s.speed) + 0.35;
-    }
-    for (const o of s.obs) o.x -= s.speed * dt;
-    s.obs = s.obs.filter((o) => o.x + o.w > -10);
-    // tabrakan dengan hitbox sedikit lebih kecil dari gambar (lebih adil)
-    const cx1 = COW_X + 8;
-    const cx2 = COW_X + COW - 8;
-    const cy2 = s.y + COW - 6;
-    const hit = s.obs.some((o) => cx2 > o.x && cx1 < o.x + o.w && cy2 > GROUND_Y - o.h);
-    const sc = scoreOf(s.dist);
-    if (sc !== s.shown) {
-      s.shown = sc;
-      setScore(sc);
-    }
-    draw();
-    if (hit) return end();
-    s.raf = requestAnimationFrame(loop);
-  };
-
-  function start() {
-    const s = g.current;
-    Object.assign(s, { y: GROUND_Y - COW, vy: 0, obs: [], spawn: 1.1, dist: 0, speed: 330, last: 0, running: true, t: 0, shown: 0 });
-    setScore(0);
-    setPhase("play");
-    hooks.onStart();
-    s.raf = requestAnimationFrame(loop);
-  }
-
-  function end() {
-    const s = g.current;
-    if (!s.running) return;
-    s.running = false;
-    cancelAnimationFrame(s.raf);
-    setPhase("over");
-    hooks.onEnd(scoreOf(s.dist), { seconds: Math.round(s.t) });
-  }
-
-  const jump = () => {
-    const s = g.current;
-    if (s.running && s.y >= GROUND_Y - COW - 0.5) s.vy = JUMP;
-  };
+  const hooksRef = useRef(hooks);
+  hooksRef.current = hooks;
 
   useEffect(() => {
-    img.current = loadImage(COW_HEAD);
-    img.current.onload = () => draw();
-    if (canvas.current) {
-      setupCanvas(canvas.current, W, H);
-      draw();
-    }
-    const key = (e: KeyboardEvent) => {
-      if (e.key === " " || e.key === "ArrowUp" || e.key === "w") {
-        e.preventDefault();
-        if (g.current.running) jump();
-        else start();
+    const cv = canvas.current!;
+    const ctx = setupCanvas(cv, W, H);
+    const scene = makeScene(W, GROUND, false);
+    const cowImg = loadImage(COW_HEAD);
+    let rec = best;
+    let y = GROUND - COW;
+    let vy = 0;
+    let obs: Ob[] = [];
+    let spawn = 1.1;
+    let dist = 0;
+    let speed = 330;
+    let t = 0;
+    let state: "ready" | "play" | "dead" = "ready";
+    let deadAt = 0;
+    let raf = 0;
+    let last = performance.now();
+    const score = () => Math.floor(dist / 40);
+
+    const reset = () => {
+      y = GROUND - COW;
+      vy = 0;
+      obs = [];
+      spawn = 1.1;
+      dist = 0;
+      speed = 330;
+      state = "ready";
+    };
+    const die = () => {
+      state = "dead";
+      deadAt = performance.now();
+      const s = score();
+      if (s > rec) rec = s;
+      hooksRef.current.onEnd(s, { seconds: Math.round(t) });
+    };
+    const act = () => {
+      if (state === "ready") {
+        state = "play";
+        t = 0;
+        hooksRef.current.onStart();
+      }
+      if (state === "play") {
+        if (y >= GROUND - COW - 0.5) vy = JUMP;
+      } else if (state === "dead" && performance.now() - deadAt > 450) reset();
+    };
+
+    const update = (dt: number) => {
+      t += dt;
+      if (state !== "play") {
+        if (state === "ready") dist += 120 * dt;
+        return;
+      }
+      speed = Math.min(720, 330 + t * 9);
+      dist += speed * dt;
+      vy += GRAVITY * dt;
+      y = Math.min(GROUND - COW, y + vy * dt);
+      if (y >= GROUND - COW) vy = 0;
+      spawn -= dt;
+      if (spawn <= 0) {
+        const tall = Math.random() < 0.4;
+        obs.push({ x: W + 10, w: tall ? 26 : 24 + Math.random() * 22, h: tall ? 48 + Math.random() * 14 : 26 + Math.random() * 18, c: Math.random() < 0.5 ? PINK : CYAN, tall });
+        spawn = (0.75 + Math.random() * 0.9) * (330 / speed) + 0.35;
+      }
+      for (const o of obs) o.x -= speed * dt;
+      obs = obs.filter((o) => o.x + o.w > -10);
+      const cx1 = COW_X + 9;
+      const cx2 = COW_X + COW - 9;
+      const cy2 = y + COW - 7;
+      if (obs.some((o) => cx2 > o.x && cx1 < o.x + o.w && cy2 > GROUND - o.h)) die();
+    };
+
+    const draw = () => {
+      scene.draw(ctx, t, dist * 0.12, dist * 0.3, 400, 30, H);
+      // tanah: grid perspektif synthwave
+      ctx.fillStyle = "#0a0520";
+      ctx.fillRect(0, GROUND, W, H - GROUND);
+      ctx.strokeStyle = "rgba(25,230,255,.4)";
+      ctx.lineWidth = 1;
+      for (const d of [8, 20, 36, 56]) {
+        ctx.beginPath();
+        ctx.moveTo(0, GROUND + d);
+        ctx.lineTo(W, GROUND + d);
+        ctx.stroke();
+      }
+      const sh = dist % 60;
+      for (let i = -12; i <= 12; i++) {
+        const o = i * 60 - sh;
+        ctx.beginPath();
+        ctx.moveTo(W / 2 + o * 0.5, GROUND);
+        ctx.lineTo(W / 2 + o * 2.2, H);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = PINK;
+      ctx.lineWidth = 3;
+      glow(ctx, PINK, 14);
+      ctx.beginPath();
+      ctx.moveTo(0, GROUND);
+      ctx.lineTo(W, GROUND);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      // penghalang neon (gaya Balap Sapi)
+      for (const o of obs) {
+        ctx.fillStyle = "#1a0b3f";
+        ctx.strokeStyle = o.c;
+        ctx.lineWidth = 2.5;
+        glow(ctx, o.c, 12);
+        ctx.fillRect(o.x, GROUND - o.h, o.w, o.h);
+        ctx.strokeRect(o.x, GROUND - o.h, o.w, o.h);
+        ctx.beginPath();
+        ctx.moveTo(o.x, GROUND - o.h * 0.6);
+        ctx.lineTo(o.x + o.w, GROUND - o.h * 0.6);
+        ctx.moveTo(o.x, GROUND - o.h * 0.3);
+        ctx.lineTo(o.x + o.w, GROUND - o.h * 0.3);
+        ctx.stroke();
+        ctx.fillStyle = o.c;
+        ctx.beginPath();
+        ctx.arc(o.x + o.w / 2, GROUND - o.h - 5, 4, 0, 7);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+      // sapi
+      const bob = state !== "dead" && y >= GROUND - COW - 0.5 ? Math.sin(t * 20) * 2 : 0;
+      ctx.fillStyle = "rgba(0,0,0,.45)";
+      ctx.beginPath();
+      ctx.ellipse(COW_X + COW / 2, GROUND + 4, 24, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      glow(ctx, PINK, 12);
+      if (cowImg.complete && cowImg.naturalWidth) ctx.drawImage(cowImg, COW_X, y + bob, COW, COW * 0.92);
+      ctx.shadowBlur = 0;
+      if (state !== "ready") txt(ctx, String(score()), W / 2, 40, 40, "#fff", CYAN);
+      if (state === "ready") {
+        txt(ctx, "Dino Cow", W / 2, 70, 40, "#fff", PINK);
+        txt(ctx, "Neon City", W / 2, 106, 22, CYAN, CYAN);
+        txt(ctx, "Ketuk layar atau tekan spasi untuk melompat", W / 2, 148, 16, "#fff", VIO);
+        txt(ctx, "Ketuk untuk mulai", W / 2, 182, 20, PINK, PINK);
+        if (rec) txt(ctx, `Rekor: ${rec}`, W / 2, 210, 15, "#fff", CYAN);
+      }
+      if (state === "dead") {
+        ctx.fillStyle = "rgba(10,4,32,.93)";
+        ctx.strokeStyle = CYAN;
+        ctx.lineWidth = 3;
+        glow(ctx, CYAN, 16);
+        roundRect(ctx, W / 2 - 140, 40, 280, 170, 16);
+        ctx.fill();
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        txt(ctx, "Mooo! Game over", W / 2, 76, 26, "#fff", PINK);
+        txt(ctx, `Skor: ${score()}`, W / 2, 118, 24, "#fff");
+        txt(ctx, `Rekor: ${rec}`, W / 2, 152, 20, CYAN, CYAN);
+        txt(ctx, "Ketuk untuk main lagi", W / 2, 186, 15, "#fff");
       }
     };
-    window.addEventListener("keydown", key);
-    const s = g.current;
+
+    const loop = (now: number) => {
+      const dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      update(dt);
+      draw();
+      raf = requestAnimationFrame(loop);
+    };
+    const onDown = (e: PointerEvent) => {
+      e.preventDefault();
+      act();
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code === "Space" || e.code === "ArrowUp" || e.code === "KeyW") {
+        e.preventDefault();
+        if (!e.repeat) act();
+      }
+    };
+    cv.addEventListener("pointerdown", onDown);
+    window.addEventListener("keydown", onKey);
+    reset();
+    raf = requestAnimationFrame(loop);
     return () => {
-      window.removeEventListener("keydown", key);
-      s.running = false;
-      cancelAnimationFrame(s.raf);
+      cancelAnimationFrame(raf);
+      cv.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("keydown", onKey);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <div className="flex flex-col items-center">
-      <p className="sr-only" aria-live="polite">
-        Skor {score}
-      </p>
-      <div className="relative w-full">
-        <canvas
-          ref={canvas}
-          className="aspect-[640/220] w-full touch-none rounded-xl border border-[#9afcff]/40 shadow-[0_0_24px_rgba(154,252,255,0.2)]"
-          onPointerDown={(e) => {
-            e.preventDefault();
-            jump();
-          }}
-        />
-        {phase !== "play" && (
-          <div className="absolute inset-0 grid place-items-center rounded-xl bg-[#020a17]/60">
-            <button
-              type="button"
-              onClick={start}
-              className="font-hud rounded-full bg-[linear-gradient(100deg,#f714f7,#9b2cf5_50%,#05a5ef)] px-7 py-3 text-lg font-bold uppercase tracking-[0.12em] text-white shadow-[0_0_18px_rgba(247,20,247,0.5)]"
-            >
-              {phase === "ready" ? "Mulai" : "Main lagi"}
-            </button>
-          </div>
-        )}
-      </div>
-      <p className="mt-2 text-xs text-[#cbd5e1] sm:hidden">Ketuk area permainan untuk melompat.</p>
-    </div>
+    <NeonFrame wide>
+      <canvas ref={canvas} aria-label="Game Dino Cow" className="aspect-[640/300] w-full touch-manipulation" />
+    </NeonFrame>
   );
 }

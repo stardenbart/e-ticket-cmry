@@ -1,4 +1,4 @@
--- Games Mooniverse: TTS (teka-teki silang) + 3 game arkade (snake, flappy, dino).
+-- Games Mooniverse: TTS (teka-teki silang) + 4 game arkade (snake, flappy, dino, race = Balap Sapi).
 --
 -- Satu baris = satu kali main.
 --   TTS     : hanya SATU kesempatan per akun (unique index). Jawaban dicek di server; skor 10 per jawaban
@@ -9,7 +9,7 @@
 CREATE TABLE game_runs (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id      uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  game         text NOT NULL CHECK (game IN ('tts', 'snake', 'flappy', 'dino')),
+  game         text NOT NULL CHECK (game IN ('tts', 'snake', 'flappy', 'dino', 'race')),
   status       text NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'FINISHED', 'SURRENDERED', 'LOCKED', 'INVALID')),
   score        int  NOT NULL DEFAULT 0 CHECK (score >= 0),
   started_at   timestamptz NOT NULL DEFAULT now(),

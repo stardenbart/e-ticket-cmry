@@ -3,7 +3,7 @@ import { sql } from "../db";
 import { ApiError } from "../http";
 import { ENTRIES, POINTS_PER_ENTRY, cellsOf, entryKey, findEntry, normalizeAnswer } from "./tts-puzzle";
 
-export const ARCADE_GAMES = ["snake", "flappy", "dino"] as const;
+export const ARCADE_GAMES = ["snake", "flappy", "dino", "race"] as const;
 export type ArcadeGame = (typeof ARCADE_GAMES)[number];
 export type Game = "tts" | ArcadeGame;
 
@@ -134,11 +134,13 @@ export async function ttsEnd(userId: string, how: "SURRENDERED" | "LOCKED") {
  *   snake  : 10/makanan + bonus 50 tiap 5 makanan; makanan paling cepat ~0,5 detik
  *   flappy : 1 per pipa; pipa muncul ~tiap 1,3 detik
  *   dino   : ±10 poin/detik, makin cepat seiring waktu
+ *   race   : ±5 m/detik + 10 per botol susu (baris botol bisa rapat saat kecepatan tinggi)
  */
 const MAX_RATE: Record<ArcadeGame, { perSec: number; slack: number }> = {
   snake: { perSec: 45, slack: 100 },
   flappy: { perSec: 1.2, slack: 3 },
   dino: { perSec: 30, slack: 60 },
+  race: { perSec: 110, slack: 150 },
 };
 
 export async function arcadeStart(userId: string, game: ArcadeGame) {
@@ -180,9 +182,11 @@ export type LeaderRow = {
   snake_best: number;
   flappy_best: number;
   dino_best: number;
+  race_best: number;
   snake_pts: number;
   flappy_pts: number;
   dino_pts: number;
+  race_pts: number;
   total: number;
   first_at: Date;
   rank: number;
@@ -190,8 +194,8 @@ export type LeaderRow = {
 
 /**
  * Total = skor TTS (maks 100) + poin tiap game arkade (maks 100 per game).
- * Poin arkade = 100 × skor terbaik pemain ÷ skor terbaik tertinggi di game itu, sehingga ketiga game
- * berbobot sama walau skalanya berbeda (dino ratusan, flappy puluhan). Total maks 400.
+ * Poin arkade = 100 × skor terbaik pemain ÷ skor terbaik tertinggi di game itu, sehingga keempat game
+ * berbobot sama walau skalanya berbeda (dino ratusan, flappy puluhan). Total maks 500.
  * Seri diurutkan: waktu TTS lebih cepat → selesai lebih dulu.
  */
 export async function leaderboard(opts: { limit?: number; userId?: string } = {}) {
@@ -211,9 +215,11 @@ export async function leaderboard(opts: { limit?: number; userId?: string } = {}
         COALESCE(max(b.best) FILTER (WHERE b.game = 'snake'), 0) AS snake_best,
         COALESCE(max(b.best) FILTER (WHERE b.game = 'flappy'), 0) AS flappy_best,
         COALESCE(max(b.best) FILTER (WHERE b.game = 'dino'), 0) AS dino_best,
+        COALESCE(max(b.best) FILTER (WHERE b.game = 'race'), 0) AS race_best,
         COALESCE(round(100.0 * max(b.best) FILTER (WHERE b.game = 'snake') / NULLIF(max(tp.top) FILTER (WHERE tp.game = 'snake'), 0)), 0)::int AS snake_pts,
         COALESCE(round(100.0 * max(b.best) FILTER (WHERE b.game = 'flappy') / NULLIF(max(tp.top) FILTER (WHERE tp.game = 'flappy'), 0)), 0)::int AS flappy_pts,
         COALESCE(round(100.0 * max(b.best) FILTER (WHERE b.game = 'dino') / NULLIF(max(tp.top) FILTER (WHERE tp.game = 'dino'), 0)), 0)::int AS dino_pts,
+        COALESCE(round(100.0 * max(b.best) FILTER (WHERE b.game = 'race') / NULLIF(max(tp.top) FILTER (WHERE tp.game = 'race'), 0)), 0)::int AS race_pts,
         LEAST(COALESCE(t.finished_at, 'infinity'), COALESCE(min(b.first_at), 'infinity')) AS first_at
       FROM players p
       LEFT JOIN tts t ON t.user_id = p.user_id
@@ -222,8 +228,8 @@ export async function leaderboard(opts: { limit?: number; userId?: string } = {}
       GROUP BY p.user_id, t.score, t.duration_ms, t.status, t.finished_at
     ),
     ranked AS (
-      SELECT a.*, (a.tts_score + a.snake_pts + a.flappy_pts + a.dino_pts)::int AS total,
-        (rank() OVER (ORDER BY (a.tts_score + a.snake_pts + a.flappy_pts + a.dino_pts) DESC, a.tts_ms ASC NULLS LAST, a.first_at ASC))::int AS rank
+      SELECT a.*, (a.tts_score + a.snake_pts + a.flappy_pts + a.dino_pts + a.race_pts)::int AS total,
+        (rank() OVER (ORDER BY (a.tts_score + a.snake_pts + a.flappy_pts + a.dino_pts + a.race_pts) DESC, a.tts_ms ASC NULLS LAST, a.first_at ASC))::int AS rank
       FROM agg a
     )
     SELECT r.*, u.full_name AS name, e.dept

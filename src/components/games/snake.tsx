@@ -1,16 +1,25 @@
 "use client";
 
-// Ular retro: menembus dinding (muncul di sisi seberang), +10 per makanan, bonus +50 tiap 5 makanan.
-// Setiap makanan memunculkan satu poin informasi acara / S&K.
-import { useEffect, useRef, useState } from "react";
+// Ular Retro — tema Neon City. Menembus dinding (muncul di sisi seberang), +10 per makanan,
+// bonus +50 tiap 5 makanan; saat bonus muncul satu poin informasi acara / S&K.
+import { useEffect, useRef } from "react";
 import { ArcadeShell, setupCanvas, type ArcadeHooks } from "./arcade-shell";
+import { CYAN, FONT, PINK, VIO, glow, makeScene, roundRect, txt } from "./neon-scene";
+import { NeonFrame } from "./neon-frame";
 
-const N = 20; // kotak per sisi
+const W = 360;
+const H = 560;
+const N = 17; // kotak per sisi
+const CELL = 20;
+const BX = (W - N * CELL) / 2;
+const BY = 112;
 const BONUS_EVERY = 5;
 const BONUS = 50;
+const INFO_SEC = 6;
 
 type P = { x: number; y: number };
-const DIRS: Record<string, P> = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
+type Dir = "up" | "down" | "left" | "right";
+const DIRS: Record<Dir, P> = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
 
 export function SnakeGame({ best, infos }: { best: number; infos: string[] }) {
   return (
@@ -20,223 +29,292 @@ export function SnakeGame({ best, infos }: { best: number; infos: string[] }) {
       initialBest={best}
       howTo={
         <ul className="list-disc space-y-1 pl-5">
-          <li>Arahkan ular dengan tombol panah / WASD, geser (swipe) di layar, atau tombol arah di bawah.</li>
-          <li>Setiap makanan +10 poin dan memunculkan satu info acara. Tiap {BONUS_EVERY} makanan dapat bonus +{BONUS}.</li>
+          <li>Arahkan ular dengan panah / WASD, geser (swipe) di layar, atau tombol arah di bawah.</li>
+          <li>Setiap makanan +10 poin. Tiap {BONUS_EVERY} makanan dapat bonus +{BONUS} sekaligus info seputar acara.</li>
           <li>Menabrak dinding tidak apa-apa — ular muncul di sisi seberang. Game over hanya jika menabrak badannya sendiri.</li>
         </ul>
       }
     >
-      {(hooks) => <SnakeCanvas hooks={hooks} infos={infos} />}
+      {(hooks) => <SnakeCanvas hooks={hooks} infos={infos} best={best} />}
     </ArcadeShell>
   );
 }
 
-function SnakeCanvas({ hooks, infos }: { hooks: ArcadeHooks; infos: string[] }) {
-  const wrap = useRef<HTMLDivElement>(null);
+/** Pecah teks menjadi baris yang muat di lebar tertentu. */
+function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number) {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let line = "";
+  for (const w of words) {
+    const test = line ? `${line} ${w}` : w;
+    if (ctx.measureText(test).width > maxW && line) {
+      lines.push(line);
+      line = w;
+    } else line = test;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function SnakeCanvas({ hooks, infos, best }: { hooks: ArcadeHooks; infos: string[]; best: number }) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const [phase, setPhase] = useState<"ready" | "play" | "over">("ready");
-  const [score, setScore] = useState(0);
-  const [info, setInfo] = useState<{ text: string; bonus: boolean; n: number } | null>(null);
-  const g = useRef({ snake: [] as P[], dir: DIRS.right, next: DIRS.right, food: { x: 0, y: 0 }, eaten: 0, score: 0, stepMs: 140, acc: 0, last: 0, size: 300, raf: 0, running: false });
-
-  const placeFood = () => {
-    const s = g.current;
-    let f: P;
-    do f = { x: Math.floor(Math.random() * N), y: Math.floor(Math.random() * N) };
-    while (s.snake.some((p) => p.x === f.x && p.y === f.y));
-    s.food = f;
-  };
-
-  const draw = () => {
-    const c = canvas.current;
-    if (!c) return;
-    const s = g.current;
-    const ctx = c.getContext("2d")!;
-    const cell = s.size / N;
-    ctx.fillStyle = "#020a17";
-    ctx.fillRect(0, 0, s.size, s.size);
-    ctx.strokeStyle = "rgba(154,252,255,0.06)";
-    for (let i = 1; i < N; i++) {
-      ctx.beginPath();
-      ctx.moveTo(i * cell, 0);
-      ctx.lineTo(i * cell, s.size);
-      ctx.moveTo(0, i * cell);
-      ctx.lineTo(s.size, i * cell);
-      ctx.stroke();
-    }
-    // makanan
-    ctx.shadowColor = "#f714f7";
-    ctx.shadowBlur = 14;
-    ctx.fillStyle = "#f714f7";
-    ctx.beginPath();
-    ctx.arc((s.food.x + 0.5) * cell, (s.food.y + 0.5) * cell, cell * 0.36, 0, Math.PI * 2);
-    ctx.fill();
-    // ular
-    ctx.shadowColor = "#9afcff";
-    s.snake.forEach((p, i) => {
-      ctx.shadowBlur = i === 0 ? 16 : 6;
-      ctx.fillStyle = i === 0 ? "#ffffff" : i % 2 ? "#9afcff" : "#5ee7f0";
-      const pad = i === 0 ? 1 : 2;
-      ctx.fillRect(p.x * cell + pad, p.y * cell + pad, cell - pad * 2, cell - pad * 2);
-    });
-    ctx.shadowBlur = 0;
-  };
-
-  const step = () => {
-    const s = g.current;
-    s.dir = s.next;
-    const head = s.snake[0];
-    const nh = { x: (head.x + s.dir.x + N) % N, y: (head.y + s.dir.y + N) % N };
-    // Menabrak badan sendiri (ekor yang akan bergeser tidak dihitung).
-    if (s.snake.slice(0, -1).some((p) => p.x === nh.x && p.y === nh.y)) return end();
-    s.snake.unshift(nh);
-    if (nh.x === s.food.x && nh.y === s.food.y) {
-      s.eaten++;
-      s.score += 10;
-      const bonus = s.eaten % BONUS_EVERY === 0;
-      if (bonus) s.score += BONUS;
-      s.stepMs = Math.max(70, s.stepMs - 3);
-      setScore(s.score);
-      if (infos.length) setInfo({ text: infos[(s.eaten - 1) % infos.length], bonus, n: s.eaten });
-      placeFood();
-    } else {
-      s.snake.pop();
-    }
-  };
-
-  const loop = (t: number) => {
-    const s = g.current;
-    if (!s.running) return;
-    if (!s.last) s.last = t;
-    s.acc += t - s.last;
-    s.last = t;
-    while (s.acc >= s.stepMs && s.running) {
-      s.acc -= s.stepMs;
-      step();
-    }
-    draw();
-    s.raf = requestAnimationFrame(loop);
-  };
-
-  function start() {
-    const s = g.current;
-    const mid = Math.floor(N / 2);
-    Object.assign(s, { snake: [{ x: mid, y: mid }, { x: mid - 1, y: mid }, { x: mid - 2, y: mid }], dir: DIRS.right, next: DIRS.right, eaten: 0, score: 0, stepMs: 140, acc: 0, last: 0, running: true });
-    placeFood();
-    setScore(0);
-    setInfo(null);
-    setPhase("play");
-    hooks.onStart();
-    s.raf = requestAnimationFrame(loop);
-  }
-
-  function end() {
-    const s = g.current;
-    if (!s.running) return;
-    s.running = false;
-    cancelAnimationFrame(s.raf);
-    setPhase("over");
-    hooks.onEnd(s.score, { foods: s.eaten, length: s.snake.length });
-  }
-
-  const turn = (d: keyof typeof DIRS) => {
-    const s = g.current;
-    const nd = DIRS[d];
-    // Tidak boleh berbalik arah 180°.
-    if (s.dir.x + nd.x === 0 && s.dir.y + nd.y === 0) return;
-    s.next = nd;
-  };
+  const hooksRef = useRef(hooks);
+  hooksRef.current = hooks;
+  const turnRef = useRef<(d: Dir) => void>(() => {});
 
   useEffect(() => {
-    const resize = () => {
-      const w = Math.min(wrap.current?.clientWidth ?? 320, 480);
-      g.current.size = Math.floor(w / N) * N;
-      if (canvas.current) {
-        setupCanvas(canvas.current, g.current.size, g.current.size);
-        canvas.current.style.width = canvas.current.style.height = `${g.current.size}px`;
+    const cv = canvas.current!;
+    const ctx = setupCanvas(cv, W, H);
+    const scene = makeScene(W, 100, false);
+    let rec = best;
+    let snake: P[] = [];
+    let dir = DIRS.right;
+    let next = DIRS.right;
+    let food: P = { x: 0, y: 0 };
+    let eaten = 0;
+    let score = 0;
+    let stepMs = 150;
+    let acc = 0;
+    let state: "ready" | "play" | "dead" = "ready";
+    let deadAt = 0;
+    let t = 0;
+    let info: { text: string; until: number; n: number } | null = null;
+    let flash = 0;
+    let raf = 0;
+    let last = performance.now();
+
+    const placeFood = () => {
+      let f: P;
+      do f = { x: (Math.random() * N) | 0, y: (Math.random() * N) | 0 };
+      while (snake.some((p) => p.x === f.x && p.y === f.y));
+      food = f;
+    };
+    const reset = () => {
+      const m = (N / 2) | 0;
+      snake = [{ x: m, y: m }, { x: m - 1, y: m }, { x: m - 2, y: m }];
+      dir = next = DIRS.right;
+      eaten = score = 0;
+      stepMs = 150;
+      acc = 0;
+      info = null;
+      state = "ready";
+      placeFood();
+    };
+    const begin = () => {
+      if (state === "ready") {
+        state = "play";
+        hooksRef.current.onStart();
+      } else if (state === "dead" && performance.now() - deadAt > 450) reset();
+    };
+    const die = () => {
+      state = "dead";
+      deadAt = performance.now();
+      if (score > rec) rec = score;
+      hooksRef.current.onEnd(score, { foods: eaten, length: snake.length });
+    };
+    turnRef.current = (d: Dir) => {
+      if (state !== "play") return begin();
+      const nd = DIRS[d];
+      if (dir.x + nd.x === 0 && dir.y + nd.y === 0) return; // tidak boleh berbalik 180°
+      next = nd;
+    };
+
+    const step = () => {
+      dir = next;
+      const head = snake[0];
+      const nh = { x: (head.x + dir.x + N) % N, y: (head.y + dir.y + N) % N };
+      if (snake.slice(0, -1).some((p) => p.x === nh.x && p.y === nh.y)) return die();
+      snake.unshift(nh);
+      if (nh.x === food.x && nh.y === food.y) {
+        eaten++;
+        score += 10;
+        flash = 0.25;
+        if (eaten % BONUS_EVERY === 0) {
+          score += BONUS;
+          const n = eaten / BONUS_EVERY;
+          if (infos.length) info = { text: infos[(n - 1) % infos.length], until: t + INFO_SEC, n };
+        }
+        stepMs = Math.max(75, stepMs - 3);
+        placeFood();
+      } else snake.pop();
+    };
+
+    const update = (dt: number) => {
+      t += dt;
+      flash = Math.max(0, flash - dt);
+      if (state !== "play") return;
+      acc += dt * 1000;
+      while (acc >= stepMs && state === "play") {
+        acc -= stepMs;
+        step();
       }
+    };
+
+    const draw = () => {
+      scene.draw(ctx, t, t * 6, t * 14, 210, -30, H);
+      ctx.fillStyle = "#07031a";
+      ctx.fillRect(0, 100, W, H - 100);
+      ctx.strokeStyle = PINK;
+      ctx.lineWidth = 3;
+      glow(ctx, PINK, 14);
+      ctx.beginPath();
+      ctx.moveTo(0, 100);
+      ctx.lineTo(W, 100);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      // papan
+      ctx.fillStyle = "#0f0730";
+      ctx.fillRect(BX, BY, N * CELL, N * CELL);
+      ctx.strokeStyle = "rgba(157,77,255,.18)";
+      ctx.lineWidth = 1;
+      for (let i = 1; i < N; i++) {
+        ctx.beginPath();
+        ctx.moveTo(BX + i * CELL, BY);
+        ctx.lineTo(BX + i * CELL, BY + N * CELL);
+        ctx.moveTo(BX, BY + i * CELL);
+        ctx.lineTo(BX + N * CELL, BY + i * CELL);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = CYAN;
+      ctx.lineWidth = 2;
+      glow(ctx, CYAN, 12);
+      ctx.strokeRect(BX, BY, N * CELL, N * CELL);
+      // makanan: botol susu
+      const fx = BX + food.x * CELL + CELL / 2;
+      const fy = BY + food.y * CELL + CELL / 2 + Math.sin(t * 6) * 1.5;
+      ctx.fillStyle = "#fffdf7";
+      ctx.strokeStyle = PINK;
+      glow(ctx, PINK, 14);
+      roundRect(ctx, fx - 5, fy - 7, 10, 14, 3);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = PINK;
+      ctx.fillRect(fx - 3.5, fy - 10, 7, 3);
+      // ular
+      snake.forEach((p, i) => {
+        const c = i === 0 ? "#ffffff" : i % 2 ? CYAN : VIO;
+        ctx.fillStyle = c;
+        glow(ctx, i === 0 ? PINK : c, i === 0 ? 16 : 8);
+        roundRect(ctx, BX + p.x * CELL + 2, BY + p.y * CELL + 2, CELL - 4, CELL - 4, 4);
+        ctx.fill();
+      });
+      ctx.shadowBlur = 0;
+      if (flash > 0) {
+        ctx.globalAlpha = flash * 2;
+        txt(ctx, "+10", fx, fy - 18, 14, CYAN, CYAN);
+        ctx.globalAlpha = 1;
+      }
+      // HUD
+      txt(ctx, String(score), W / 2, 44, 40, "#fff", CYAN);
+      txt(ctx, `Makanan: ${eaten}`, 62, 18, 13, "#fff", PINK);
+      // info bonus (hanya saat dapat bonus)
+      if (info && t < info.until) {
+        const a = Math.min(1, (info.until - t) * 2, (t - (info.until - INFO_SEC)) * 4);
+        ctx.globalAlpha = Math.max(0, a);
+        ctx.fillStyle = "rgba(10,4,32,.95)";
+        ctx.strokeStyle = PINK;
+        ctx.lineWidth = 2;
+        glow(ctx, PINK, 12);
+        roundRect(ctx, 10, 466, W - 20, 86, 12);
+        ctx.fill();
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        txt(ctx, `Bonus +${BONUS}!`, W / 2, 482, 15, PINK, PINK);
+        ctx.font = `bold 12px ${FONT}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#fff";
+        wrap(ctx, info.text, W - 44)
+          .slice(0, 4)
+          .forEach((ln, i) => ctx.fillText(ln, W / 2, 502 + i * 15));
+        ctx.globalAlpha = 1;
+      }
+      if (state === "ready") {
+        ctx.fillStyle = "rgba(10,4,32,.72)";
+        ctx.fillRect(BX, BY, N * CELL, N * CELL);
+        txt(ctx, "Ular Retro", W / 2, 200, 40, "#fff", PINK);
+        txt(ctx, "Neon City", W / 2, 238, 24, CYAN, CYAN);
+        txt(ctx, "Geser layar atau tekan panah", W / 2, 300, 16, "#fff", VIO);
+        txt(ctx, "Tembus dinding, jangan gigit ekor!", W / 2, 324, 14, CYAN, CYAN);
+        txt(ctx, "Ketuk untuk mulai", W / 2, 380, 20, PINK, PINK);
+        if (rec) txt(ctx, `Rekor: ${rec}`, W / 2, 412, 16, "#fff", CYAN);
+      }
+      if (state === "dead") {
+        ctx.fillStyle = "rgba(10,4,32,.93)";
+        ctx.strokeStyle = CYAN;
+        ctx.lineWidth = 3;
+        glow(ctx, CYAN, 16);
+        roundRect(ctx, 60, 190, 240, 190, 16);
+        ctx.fill();
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        txt(ctx, "Mooo! Game over", W / 2, 228, 26, "#fff", PINK);
+        txt(ctx, `Skor: ${score}`, W / 2, 274, 24, "#fff");
+        txt(ctx, `${eaten} botol susu`, W / 2, 304, 15, CYAN, CYAN);
+        txt(ctx, `Rekor: ${rec}`, W / 2, 332, 20, CYAN, CYAN);
+        txt(ctx, "Ketuk untuk main lagi", W / 2, 362, 15, "#fff");
+      }
+    };
+
+    const loop = (now: number) => {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      update(dt);
       draw();
+      raf = requestAnimationFrame(loop);
     };
-    resize();
-    window.addEventListener("resize", resize);
-    const key = (e: KeyboardEvent) => {
-      const m: Record<string, keyof typeof DIRS> = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right" };
-      const d = m[e.key];
-      if (d && g.current.running) {
+
+    let touch: { x: number; y: number } | null = null;
+    const onDown = (e: PointerEvent) => {
+      e.preventDefault();
+      touch = { x: e.clientX, y: e.clientY };
+      if (state !== "play") begin();
+    };
+    const onUp = (e: PointerEvent) => {
+      if (!touch || state !== "play") return;
+      const dx = e.clientX - touch.x;
+      const dy = e.clientY - touch.y;
+      touch = null;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
+      turnRef.current(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : dy > 0 ? "down" : "up");
+    };
+    const onKey = (e: KeyboardEvent) => {
+      const m: Record<string, Dir> = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", KeyW: "up", KeyS: "down", KeyA: "left", KeyD: "right" };
+      const d = m[e.code];
+      if (d) {
         e.preventDefault();
-        turn(d);
-      } else if ((e.key === " " || e.key === "Enter") && !g.current.running) {
+        if (state === "play") turnRef.current(d);
+      } else if (e.code === "Space" || e.code === "Enter") {
         e.preventDefault();
-        start();
+        if (!e.repeat) begin();
       }
     };
-    window.addEventListener("keydown", key);
-    const s = g.current;
+    cv.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("keydown", onKey);
+    reset();
+    raf = requestAnimationFrame(loop);
     return () => {
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("keydown", key);
-      s.running = false;
-      cancelAnimationFrame(s.raf);
+      cancelAnimationFrame(raf);
+      cv.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("keydown", onKey);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Geser (swipe) di canvas
-  const touch = useRef<{ x: number; y: number } | null>(null);
-
   return (
-    <div ref={wrap} className="flex flex-col items-center">
-      <div className="mb-2 flex w-full items-center justify-between text-white">
-        <p className="font-hud text-sm font-bold uppercase tracking-[0.14em] text-[#9afcff]">Skor</p>
-        <p className="font-digits text-2xl font-black tabular-nums">{score}</p>
-      </div>
-      <div className="relative">
-        <canvas
-          ref={canvas}
-          className="touch-none rounded-xl border border-[#9afcff]/40 shadow-[0_0_24px_rgba(154,252,255,0.2)]"
-          onTouchStart={(e) => (touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
-          onTouchEnd={(e) => {
-            const t0 = touch.current;
-            if (!t0) return;
-            const dx = e.changedTouches[0].clientX - t0.x;
-            const dy = e.changedTouches[0].clientY - t0.y;
-            if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
-            turn(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : dy > 0 ? "down" : "up");
-          }}
-        />
-        {phase !== "play" && (
-          <div className="absolute inset-0 grid place-items-center rounded-xl bg-[#020a17]/70">
-            <button
-              type="button"
-              onClick={start}
-              className="font-hud rounded-full bg-[linear-gradient(100deg,#f714f7,#9b2cf5_50%,#05a5ef)] px-7 py-3 text-lg font-bold uppercase tracking-[0.12em] text-white shadow-[0_0_18px_rgba(247,20,247,0.5)]"
-            >
-              {phase === "ready" ? "Mulai" : "Main lagi"}
-            </button>
-          </div>
-        )}
-        {info && phase === "play" && (
-          <div key={info.n} className="pointer-events-none absolute inset-x-2 bottom-2 animate-fade-up rounded-lg border border-[#f714f7]/50 bg-[#031726]/95 px-3 py-2 text-xs text-white shadow-lg sm:text-sm">
-            {info.bonus && <p className="font-hud font-bold uppercase tracking-wider text-[#f714f7]">Bonus +{BONUS}! 🎉</p>}
-            <p>
-              <span className="font-bold text-[#9afcff]">Info:</span> {info.text}
-            </p>
-          </div>
-        )}
-      </div>
-      {info && phase === "over" && (
-        <p className="mt-3 w-full rounded-lg border border-white/10 bg-[#031726]/80 px-3 py-2 text-sm text-[#dbe4ff]">
-          <span className="font-bold text-[#9afcff]">Info terakhir:</span> {info.text}
-        </p>
-      )}
-      {/* Tombol arah untuk layar sentuh */}
-      <div className="mt-4 grid grid-cols-3 gap-2 sm:hidden" aria-label="Tombol arah">
+    <div>
+      <NeonFrame>
+        <canvas ref={canvas} aria-label="Game Ular Retro" className="aspect-[360/560] w-full touch-none" />
+      </NeonFrame>
+      <div className="mx-auto mt-4 grid w-max grid-cols-3 gap-2 sm:hidden" aria-label="Tombol arah">
         <span />
-        <PadBtn label="Atas" onPress={() => turn("up")}>▲</PadBtn>
+        <PadBtn label="Atas" onPress={() => turnRef.current("up")}>▲</PadBtn>
         <span />
-        <PadBtn label="Kiri" onPress={() => turn("left")}>◀</PadBtn>
-        <PadBtn label="Bawah" onPress={() => turn("down")}>▼</PadBtn>
-        <PadBtn label="Kanan" onPress={() => turn("right")}>▶</PadBtn>
+        <PadBtn label="Kiri" onPress={() => turnRef.current("left")}>◀</PadBtn>
+        <PadBtn label="Bawah" onPress={() => turnRef.current("down")}>▼</PadBtn>
+        <PadBtn label="Kanan" onPress={() => turnRef.current("right")}>▶</PadBtn>
       </div>
     </div>
   );
@@ -251,7 +329,7 @@ function PadBtn({ label, onPress, children }: { label: string; onPress: () => vo
         e.preventDefault();
         onPress();
       }}
-      className="grid size-14 place-items-center rounded-xl border border-[#9afcff]/40 bg-[#031726] text-xl text-[#9afcff] active:bg-[#9afcff]/20"
+      className="grid size-14 place-items-center rounded-xl border border-[#ff2e9f]/50 bg-[#07031a] text-xl text-[#19e6ff] shadow-[0_0_14px_rgba(255,46,159,.35)] active:bg-[#9d4dff]/30"
     >
       {children}
     </button>

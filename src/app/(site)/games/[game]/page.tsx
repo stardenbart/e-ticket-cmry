@@ -8,10 +8,11 @@ import { FEATURED_SLUG } from "@/components/site/config";
 import { SnakeGame } from "@/components/games/snake";
 import { FlappyGame } from "@/components/games/flappy";
 import { DinoGame } from "@/components/games/dino";
+import { RaceGame } from "@/components/games/race";
 
 export const dynamic = "force-dynamic";
 
-const TITLES: Record<string, string> = { snake: "Ular Retro", flappy: "Flappy Cow", dino: "Dino Cow" };
+const TITLES: Record<string, string> = { snake: "Ular Retro", flappy: "Flappy Cow", dino: "Dino Cow", race: "Balap Sapi" };
 
 export async function generateMetadata({ params }: { params: Promise<{ game: string }> }): Promise<Metadata> {
   const { game } = await params;
@@ -40,5 +41,6 @@ export default async function ArcadePage({ params }: { params: Promise<{ game: s
   const best = (await myScores(u.id)).arcade[game].best;
   if (game === "snake") return <SnakeGame best={best} infos={await eventInfos()} />;
   if (game === "flappy") return <FlappyGame best={best} />;
+  if (game === "race") return <RaceGame best={best} />;
   return <DinoGame best={best} />;
 }

@@ -22,7 +22,7 @@ export function ArcadeShell({
   initialBest,
   children,
 }: {
-  game: "snake" | "flappy" | "dino";
+  game: "snake" | "flappy" | "dino" | "race";
   title: string;
   howTo: React.ReactNode;
   initialBest: number;
@@ -72,13 +72,13 @@ export function ArcadeShell({
     <div className="mx-auto max-w-3xl px-4 pb-16 pt-24 sm:pt-28">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <Link href="/games" className="text-sm font-semibold text-[#9afcff] hover:underline">
+          <Link href="/games" className="text-sm font-semibold text-[#19e6ff] hover:underline">
             ← Semua game
           </Link>
           <h1 className="mv-title mt-1 text-2xl sm:text-3xl">{title}</h1>
         </div>
-        <div className="rounded-xl border border-[#9afcff]/40 bg-[#031726]/80 px-4 py-2 text-right">
-          <p className="font-hud text-[11px] font-bold uppercase tracking-[0.16em] text-[#9afcff]">Skor terbaik</p>
+        <div className="rounded-xl border border-[#19e6ff]/40 bg-[#0f0730]/80 px-4 py-2 text-right">
+          <p className="font-hud text-[11px] font-bold uppercase tracking-[0.16em] text-[#19e6ff]">Skor terbaik</p>
           <p className="font-digits text-2xl font-black tabular-nums text-white">{best}</p>
         </div>
       </div>
@@ -88,15 +88,15 @@ export function ArcadeShell({
       <div className="mt-4 space-y-3" aria-live="polite">
         {saving && <p className="text-sm text-[#cbd5e1]">Menyimpan skor…</p>}
         {result && !saving && (
-          <div className="rounded-xl border border-[#9afcff]/40 bg-[#031726]/90 p-4 text-white">
-            <p className="font-hud text-sm font-bold uppercase tracking-[0.14em] text-[#9afcff]">Game over</p>
+          <div className="rounded-xl border border-[#19e6ff]/40 bg-[#0f0730]/90 p-4 text-white">
+            <p className="font-hud text-sm font-bold uppercase tracking-[0.14em] text-[#19e6ff]">Game over</p>
             <p className="mt-1 text-lg">
               Skor <b className="font-digits">{result.score}</b>
               {result.accepted && result.score >= result.best && result.score > 0 ? " — rekor baru Anda! 🎉" : ` · terbaik ${result.best}`}
             </p>
             <p className="mt-1 text-sm text-[#cbd5e1]">
               Skor terbaik dihitung ke leaderboard.{" "}
-              <Link href="/games#leaderboard" className="font-semibold text-[#9afcff] underline">
+              <Link href="/games#leaderboard" className="font-semibold text-[#19e6ff] underline">
                 Lihat leaderboard
               </Link>
             </p>
@@ -105,8 +105,8 @@ export function ArcadeShell({
         {err && <p className="text-sm font-semibold text-amber-300">{err}</p>}
       </div>
 
-      <div className="mt-6 rounded-xl border border-white/10 bg-[#031726]/70 p-4 text-sm text-[#dbe4ff]">
-        <p className="font-hud mb-2 text-xs font-bold uppercase tracking-[0.16em] text-[#9afcff]">Cara main</p>
+      <div className="mt-6 rounded-xl border border-white/10 bg-[#0f0730]/70 p-4 text-sm text-[#dbe4ff]">
+        <p className="font-hud mb-2 text-xs font-bold uppercase tracking-[0.16em] text-[#19e6ff]">Cara main</p>
         {howTo}
       </div>
     </div>

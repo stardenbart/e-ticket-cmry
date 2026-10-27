@@ -13,7 +13,7 @@ export default async function TtsPage() {
   const run = ttsView(await ttsRun(u.id));
   return (
     <div className="mx-auto max-w-4xl px-4 pb-16 pt-24 sm:pt-28">
-      <Link href="/games" className="text-sm font-semibold text-[#9afcff] hover:underline">
+      <Link href="/games" className="text-sm font-semibold text-[#19e6ff] hover:underline">
         ← Semua game
       </Link>
       <h1 className="mv-title mb-4 mt-1 text-2xl sm:text-3xl">TTS Mooniverse</h1>

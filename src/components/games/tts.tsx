@@ -174,8 +174,8 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
     return (
       <div className="space-y-4">
         <PuzzleGrid puzzle={puzzle} display={{}} selected={new Set()} onCell={() => {}} />
-        <div className="rounded-xl border border-[#9afcff]/40 bg-[#031726]/90 p-5 text-white">
-          <p className="font-hud text-sm font-bold uppercase tracking-[0.14em] text-[#9afcff]">Aturan</p>
+        <div className="rounded-xl border border-[#19e6ff]/40 bg-[#0f0730]/90 p-5 text-white">
+          <p className="font-hud text-sm font-bold uppercase tracking-[0.14em] text-[#19e6ff]">Aturan</p>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-[#dbe4ff]">
             <li>{puzzle.entries.length} soal, masing-masing 10 poin (maks {puzzle.maxScore}). Pemenang: skor tertinggi, lalu waktu tercepat.</li>
             <li>Jawaban benar langsung terkunci. Jawaban salah boleh diubah tanpa pengurangan poin.</li>
@@ -189,7 +189,7 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
             type="button"
             onClick={start}
             disabled={starting}
-            className="font-hud mt-4 w-full rounded-full bg-[linear-gradient(100deg,#f714f7,#9b2cf5_50%,#05a5ef)] px-7 py-3 text-lg font-bold uppercase tracking-[0.12em] text-white shadow-[0_0_18px_rgba(247,20,247,0.5)] disabled:opacity-60"
+            className="font-hud mt-4 w-full rounded-full bg-[linear-gradient(100deg,#ff2e9f,#9d4dff_50%,#19e6ff)] px-7 py-3 text-lg font-bold uppercase tracking-[0.12em] text-white shadow-[0_0_18px_rgba(255,46,159,0.5)] disabled:opacity-60"
           >
             {starting ? "Memulai…" : "Mulai TTS"}
           </button>
@@ -208,16 +208,16 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
 
   return (
     <div className="space-y-4">
-      <div className="sticky top-16 z-20 flex items-center justify-between gap-3 rounded-xl border border-[#9afcff]/40 bg-[#031726]/95 px-4 py-2 text-white backdrop-blur">
+      <div className="sticky top-16 z-20 flex items-center justify-between gap-3 rounded-xl border border-[#19e6ff]/40 bg-[#0f0730]/95 px-4 py-2 text-white backdrop-blur">
         <div>
-          <p className="font-hud text-[11px] font-bold uppercase tracking-[0.16em] text-[#9afcff]">Skor</p>
+          <p className="font-hud text-[11px] font-bold uppercase tracking-[0.16em] text-[#19e6ff]">Skor</p>
           <p className="font-digits text-xl font-black tabular-nums">
             {run.score}
             <span className="text-sm text-white/60">/{puzzle.maxScore}</span>
           </p>
         </div>
         <div className="text-center">
-          <p className="font-hud text-[11px] font-bold uppercase tracking-[0.16em] text-[#9afcff]">Waktu</p>
+          <p className="font-hud text-[11px] font-bold uppercase tracking-[0.16em] text-[#19e6ff]">Waktu</p>
           <p className="font-digits text-xl font-black tabular-nums">{fmtDuration(elapsed)}</p>
         </div>
         {!done ? (
@@ -225,14 +225,14 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
             Menyerah
           </button>
         ) : (
-          <Link href="/games#leaderboard" className="rounded-full border border-[#9afcff]/60 px-4 py-1.5 text-sm font-semibold text-[#9afcff]">
+          <Link href="/games#leaderboard" className="rounded-full border border-[#19e6ff]/60 px-4 py-1.5 text-sm font-semibold text-[#19e6ff]">
             Leaderboard
           </Link>
         )}
       </div>
 
       {done && (
-        <div className="rounded-xl border border-[#f714f7]/50 bg-[#031726]/90 p-4 text-white" role="status">
+        <div className="rounded-xl border border-[#ff2e9f]/50 bg-[#0f0730]/90 p-4 text-white" role="status">
           <p className="font-bold">{STATUS[run.status] ?? "Selesai"}</p>
           <p className="mt-1 text-sm text-[#dbe4ff]">
             Hasil akhir: <b>{run.score}</b> poin dalam <b>{fmtDuration(run.durationMs ?? 0)}</b>.
@@ -246,8 +246,8 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
 
       <div className="grid gap-4 md:grid-cols-2">
         {(["A", "D"] as const).map((dir) => (
-          <section key={dir} className="rounded-xl border border-white/10 bg-[#031726]/80 p-4">
-            <h2 className="font-hud mb-3 text-sm font-bold uppercase tracking-[0.16em] text-[#9afcff]">{dir === "A" ? "Mendatar" : "Menurun"}</h2>
+          <section key={dir} className="rounded-xl border border-white/10 bg-[#0f0730]/80 p-4">
+            <h2 className="font-hud mb-3 text-sm font-bold uppercase tracking-[0.16em] text-[#19e6ff]">{dir === "A" ? "Mendatar" : "Menurun"}</h2>
             <ol className="space-y-3">
               {puzzle.entries
                 .filter((e) => e.dir === dir)
@@ -255,9 +255,9 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
                   const ok = solved.has(e.key);
                   const pattern = entryCells[e.key].map((c) => run.letters[c] ?? "_").join(" ");
                   return (
-                    <li key={e.key} className={`rounded-lg p-2 ${selected === e.key && !done ? "bg-[#9afcff]/10 ring-1 ring-[#9afcff]/50" : ""}`}>
+                    <li key={e.key} className={`rounded-lg p-2 ${selected === e.key && !done ? "bg-[#19e6ff]/10 ring-1 ring-[#19e6ff]/50" : ""}`}>
                       <p className="text-sm text-white">
-                        <b className="text-[#f714f7]">{e.num}.</b> {e.clue} <span className="text-white/50">({e.length})</span>
+                        <b className="text-[#ff2e9f]">{e.num}.</b> {e.clue} <span className="text-white/50">({e.length})</span>
                       </p>
                       <div className="mt-1.5 flex items-center gap-2">
                         <input
@@ -274,7 +274,7 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
                           autoComplete="off"
                           spellCheck={false}
                           placeholder={pattern}
-                          className={`min-w-0 flex-1 rounded-lg border bg-[#020a17] px-3 py-2 font-mono text-base uppercase tracking-[0.3em] text-white outline-none placeholder:tracking-[0.15em] placeholder:text-white/30 focus:border-[#9afcff] ${
+                          className={`min-w-0 flex-1 rounded-lg border bg-[#07031a] px-3 py-2 font-mono text-base uppercase tracking-[0.3em] text-white outline-none placeholder:tracking-[0.15em] placeholder:text-white/30 focus:border-[#19e6ff] ${
                             ok ? "border-green-400/70 text-green-300" : wrong[e.key] ? "border-red-400" : "border-white/20"
                           }`}
                         />
@@ -295,7 +295,7 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
 
 function PuzzleGrid({ puzzle, display, selected, onCell }: { puzzle: Puzzle; display: Record<string, { ch: string; locked: boolean }>; selected: Set<string>; onCell: (cell: string) => void }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-white/10 bg-[#031726]/70 p-2">
+    <div className="overflow-x-auto rounded-[14px] bg-[#07031a] p-2 shadow-[0_0_28px_rgba(255,46,159,.45),0_0_60px_rgba(157,77,255,.3)]">
       <div className="mx-auto grid w-full min-w-[300px] max-w-[560px] gap-[3px]" style={{ gridTemplateColumns: `repeat(${puzzle.cols}, minmax(0, 1fr))` }}>
         {puzzle.open.flatMap((row, r) =>
           row.map((isOpen, c) => {
@@ -310,7 +310,7 @@ function PuzzleGrid({ puzzle, display, selected, onCell }: { puzzle: Puzzle; dis
                 onClick={() => onCell(key)}
                 aria-label={`Kotak baris ${r + 1} kolom ${c + 1}${d ? `, huruf ${d.ch}` : ""}`}
                 className={`relative grid aspect-square place-items-center rounded-[3px] font-mono text-[11px] font-black sm:text-base ${
-                  d?.locked ? "bg-[#86efac] text-[#052e16]" : selected.has(key) ? "bg-[#9afcff] text-[#020a17]" : "bg-[#eef2f7] text-[#0b1220]"
+                  d?.locked ? "bg-[#86efac] text-[#052e16]" : selected.has(key) ? "bg-[#19e6ff] text-[#07031a]" : "bg-[#eef2f7] text-[#0b1220]"
                 }`}
               >
                 {num && <span className="absolute left-[2px] top-0 text-[7px] font-bold leading-none text-[#334155] sm:text-[9px]">{num}</span>}
