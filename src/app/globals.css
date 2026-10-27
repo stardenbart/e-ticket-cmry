@@ -78,3 +78,21 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Mode fokus game (lihat components/games/game-focus.ts): hanya area game yang bisa disentuh. */
+html.game-lock body {
+  pointer-events: none;
+}
+html.game-lock .game-zone {
+  pointer-events: auto;
+}
+html.game-lock header,
+html.game-lock footer {
+  opacity: 0.35;
+  transition: opacity 0.2s;
+}
+html.game-noscroll,
+html.game-noscroll body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}

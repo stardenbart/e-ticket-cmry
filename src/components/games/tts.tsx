@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { api, ClientApiError } from "@/lib/client-api";
 import { useServerNow } from "@/components/site/use-server-now";
+import { useGameFocus } from "./game-focus";
 
 type Entry = { key: string; num: number; dir: "A" | "D"; row: number; col: number; length: number; clue: string };
 type Puzzle = { rows: number; cols: number; open: boolean[][]; numbers: Record<string, number>; entries: Entry[]; maxScore: number };
@@ -40,8 +41,10 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
   const [err, setErr] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const zone = useRef<HTMLDivElement>(null);
   const now = useServerNow(1000);
   const active = run?.status === "ACTIVE";
+  useGameFocus(active, zone);
 
   const solved = useMemo(() => new Set(run?.solved ?? []), [run]);
   const entryCells = useMemo(() => Object.fromEntries(puzzle.entries.map((e) => [e.key, cellsOf(e)])), [puzzle]);
@@ -221,7 +224,7 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
   };
 
   return (
-    <div className="space-y-4">
+    <div ref={zone} className="space-y-4">
       <div className="sticky top-16 z-20 flex items-center justify-between gap-3 rounded-xl border border-[#19e6ff]/40 bg-[#0f0730]/95 px-4 py-2 text-white backdrop-blur">
         <div>
           <p className="font-hud text-[11px] font-bold uppercase tracking-[0.16em] text-[#19e6ff]">Skor</p>

@@ -3,10 +3,11 @@
 // Moordle: tebak kata 5 huruf bertema konser & susu — satu kata per hari, satu kesempatan per hari.
 // Tebakan dievaluasi di server; skor harian 60 (tebakan ke-1) … 10 (ke-6), gagal 0. Waktu ikut dihitung.
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api, ClientApiError } from "@/lib/client-api";
 import { useServerNow } from "@/components/site/use-server-now";
 import { fmtDuration } from "./tts";
+import { useGameFocus } from "./game-focus";
 
 type Mark = "c" | "p" | "a";
 type Today = {
@@ -50,6 +51,8 @@ export function MoordleGame({ initial, initialStats, lock }: { initial: Today; i
   const now = useServerNow(1000);
 
   const active = today.status === "ACTIVE";
+  const zone = useRef<HTMLDivElement>(null);
+  useGameFocus(active, zone);
   const done = !!today.status && !active;
   const closed = lock.locked && !done;
 
@@ -143,7 +146,7 @@ export function MoordleGame({ initial, initialStats, lock }: { initial: Today; i
   const untilNext = now ? Math.max(0, new Date(today.nextResetAt).getTime() - now) : 0;
 
   return (
-    <div className="relative mx-auto flex max-w-[440px] flex-col items-center text-white">
+    <div ref={zone} className="relative mx-auto flex max-w-[440px] flex-col items-center text-white">
       <div className="flex w-full items-center justify-between gap-2">
         <button type="button" onClick={() => setModal("help")} className="rounded-[10px] border-[1.5px] border-[#9d4dff] bg-white/[.08] px-2.5 py-1.5 text-[13px] hover:shadow-[0_0_10px_#9d4dff]">
           Cara main

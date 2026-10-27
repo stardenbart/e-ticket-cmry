@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 import { api, ClientApiError } from "@/lib/client-api";
+import { useGameFocus } from "./game-focus";
 
 export type ArcadeHooks = {
   /** Panggil saat ronde dimulai. */
@@ -33,8 +34,12 @@ export function ArcadeShell({
   const [result, setResult] = useState<Result>(null);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const zone = useRef<HTMLDivElement>(null);
+  useGameFocus(playing, zone);
 
   const onStart = useCallback(() => {
+    setPlaying(true);
     setResult(null);
     setErr(null);
     runId.current = api<{ runId: string }>(`/api/games/arcade/${game}/start`, { method: "POST", json: {} })
@@ -47,6 +52,7 @@ export function ArcadeShell({
 
   const onEnd = useCallback(
     async (score: number, meta?: Record<string, number>) => {
+      setPlaying(false);
       setSaving(true);
       const id = await runId.current;
       runId.current = null;
@@ -86,7 +92,7 @@ export function ArcadeShell({
         </div>
       </div>
 
-      {children({ onStart, onEnd })}
+      <div ref={zone}>{children({ onStart, onEnd })}</div>
 
       <div className="mt-4 space-y-3" aria-live="polite">
         {saving && <p className="text-sm text-[#cbd5e1]">Menyimpan skor…</p>}
