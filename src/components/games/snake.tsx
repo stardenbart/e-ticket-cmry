@@ -109,7 +109,7 @@ function SnakeCanvas({ hooks, infos, best }: { hooks: ArcadeHooks; infos: string
     const die = () => {
       state = "dead";
       deadAt = performance.now();
-      if (score > rec) rec = score;
+      rec = score; // skor yang dihitung = permainan terakhir
       hooksRef.current.onEnd(score, { foods: eaten, length: snake.length });
     };
     turnRef.current = (d: Dir) => {
@@ -237,7 +237,7 @@ function SnakeCanvas({ hooks, infos, best }: { hooks: ArcadeHooks; infos: string
         txt(ctx, "Geser layar atau tekan panah", W / 2, 300, 16, "#fff", VIO);
         txt(ctx, "Tembus dinding, jangan gigit ekor!", W / 2, 324, 14, CYAN, CYAN);
         txt(ctx, "Ketuk untuk mulai", W / 2, 380, 20, PINK, PINK);
-        if (rec) txt(ctx, `Rekor: ${rec}`, W / 2, 412, 16, "#fff", CYAN);
+        if (rec) txt(ctx, `Skor tercatat: ${rec}`, W / 2, 412, 16, "#fff", CYAN);
       }
       if (state === "dead") {
         ctx.fillStyle = "rgba(10,4,32,.93)";
@@ -251,7 +251,7 @@ function SnakeCanvas({ hooks, infos, best }: { hooks: ArcadeHooks; infos: string
         txt(ctx, "Mooo! Game over", W / 2, 228, 26, "#fff", PINK);
         txt(ctx, `Skor: ${score}`, W / 2, 274, 24, "#fff");
         txt(ctx, `${eaten} botol susu`, W / 2, 304, 15, CYAN, CYAN);
-        txt(ctx, `Rekor: ${rec}`, W / 2, 332, 20, CYAN, CYAN);
+        txt(ctx, `Skor tercatat: ${rec}`, W / 2, 332, 20, CYAN, CYAN);
         txt(ctx, "Ketuk untuk main lagi", W / 2, 362, 15, "#fff");
       }
     };

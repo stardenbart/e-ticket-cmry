@@ -88,7 +88,7 @@ function FlappyCanvas({ hooks, best }: { hooks: ArcadeHooks; best: number }) {
       if (state !== "play") return;
       state = "dead";
       deadAt = performance.now();
-      if (score > rec) rec = score;
+      rec = score; // skor yang dihitung = permainan terakhir
       hooksRef.current.onEnd(score, { pipes: score });
     };
     const flap = () => {
@@ -297,7 +297,7 @@ function FlappyCanvas({ hooks, best }: { hooks: ArcadeHooks; best: number }) {
         txt(ctx, "Ketuk layar atau tekan spasi", W / 2, 350, 18, "#fff", VIO);
         txt(ctx, "untuk mulai terbang", W / 2, 374, 18, "#fff", VIO);
         txt(ctx, "Awas lightstick dari kanan!", W / 2, 414, 16, PINK, PINK);
-        if (rec) txt(ctx, `Rekor: ${rec}`, W / 2, 446, 16, "#fff", CYAN);
+        if (rec) txt(ctx, `Skor tercatat: ${rec}`, W / 2, 446, 16, "#fff", CYAN);
       }
       if (state === "dead") {
         ctx.fillStyle = "rgba(10,4,32,.93)";
@@ -310,7 +310,7 @@ function FlappyCanvas({ hooks, best }: { hooks: ArcadeHooks; best: number }) {
         ctx.shadowBlur = 0;
         txt(ctx, "Mooo! Game over", W / 2, 210, 26, "#fff", PINK);
         txt(ctx, `Skor: ${score}`, W / 2, 260, 24, "#fff");
-        txt(ctx, `Rekor: ${rec}`, W / 2, 295, 20, CYAN, CYAN);
+        txt(ctx, `Skor tercatat: ${rec}`, W / 2, 295, 20, CYAN, CYAN);
         txt(ctx, "Ketuk untuk main lagi", W / 2, 336, 15, "#fff");
       }
     };

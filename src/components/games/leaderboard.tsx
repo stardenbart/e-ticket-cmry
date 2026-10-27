@@ -11,14 +11,10 @@ type Row = {
   tts_score: number;
   tts_ms: number | null;
   tts_status: string | null;
-  snake_best: number;
-  flappy_best: number;
-  dino_best: number;
-  race_best: number;
-  snake_pts: number;
-  flappy_pts: number;
-  dino_pts: number;
-  race_pts: number;
+  snake: number;
+  flappy: number;
+  dino: number;
+  race: number;
   total: number;
   rank: number;
 };
@@ -99,10 +95,10 @@ export function Leaderboard() {
                     <span className="text-white/40">–</span>
                   )}
                 </td>
-                <Pts pts={r.snake_pts} best={r.snake_best} />
-                <Pts pts={r.flappy_pts} best={r.flappy_best} />
-                <Pts pts={r.dino_pts} best={r.dino_best} />
-                <Pts pts={r.race_pts} best={r.race_best} />
+                <Pts v={r.snake} />
+                <Pts v={r.flappy} />
+                <Pts v={r.dino} />
+                <Pts v={r.race} />
                 <td className="px-3 py-2 text-right text-base font-black tabular-nums text-[#19e6ff]">{r.total}</td>
               </tr>
             ))}
@@ -113,17 +109,6 @@ export function Leaderboard() {
   );
 }
 
-function Pts({ pts, best }: { pts: number; best: number }) {
-  return (
-    <td className="px-3 py-2 text-right tabular-nums">
-      {best > 0 ? (
-        <>
-          <b>{pts}</b>
-          <p className="text-xs text-white/60">skor {best}</p>
-        </>
-      ) : (
-        <span className="text-white/40">–</span>
-      )}
-    </td>
-  );
+function Pts({ v }: { v: number }) {
+  return <td className="px-3 py-2 text-right font-semibold tabular-nums">{v > 0 ? v : <span className="text-white/40">–</span>}</td>;
 }

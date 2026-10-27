@@ -107,7 +107,7 @@ function RaceCanvas({ hooks, best }: { hooks: ArcadeHooks; best: number }) {
       state = "dead";
       deadAt = performance.now();
       const s = score();
-      if (s > rec) rec = s;
+      rec = s; // skor yang dihitung = permainan terakhir
       hooksRef.current.onEnd(s, { meters: Math.floor(dist), bottles: coins });
     };
 
@@ -300,7 +300,7 @@ function RaceCanvas({ hooks, best }: { hooks: ArcadeHooks; best: number }) {
         txt(ctx, "sisi layar untuk pindah jalur", W / 2, 348, 16, "#fff", VIO);
         txt(ctx, "Ambil botol susu, hindari penghalang", W / 2, 382, 14, CYAN, CYAN);
         txt(ctx, "Ketuk untuk mulai", W / 2, 440, 20, PINK, PINK);
-        if (rec) txt(ctx, `Rekor: ${rec}`, W / 2, 475, 16, "#fff", CYAN);
+        if (rec) txt(ctx, `Skor tercatat: ${rec}`, W / 2, 475, 16, "#fff", CYAN);
       }
       if (state === "dead") {
         ctx.fillStyle = "rgba(10,4,32,.93)";
@@ -314,7 +314,7 @@ function RaceCanvas({ hooks, best }: { hooks: ArcadeHooks; best: number }) {
         txt(ctx, "Mooo! Game over", W / 2, 190, 26, "#fff", PINK);
         txt(ctx, `Skor: ${score()}`, W / 2, 238, 24, "#fff");
         txt(ctx, `${Math.floor(dist)} m  |  ${coins} botol susu`, W / 2, 270, 15, CYAN, CYAN);
-        txt(ctx, `Rekor: ${rec}`, W / 2, 302, 20, "#fff", CYAN);
+        txt(ctx, `Skor tercatat: ${rec}`, W / 2, 302, 20, "#fff", CYAN);
         txt(ctx, "Ketuk untuk main lagi", W / 2, 336, 15, "#fff");
       }
     };

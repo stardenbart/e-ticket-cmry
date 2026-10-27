@@ -38,7 +38,7 @@ export default async function ArcadePage({ params }: { params: Promise<{ game: s
   const { game } = await params;
   if (!isArcade(game)) notFound();
   const u = await requirePageUser();
-  const best = (await myScores(u.id)).arcade[game].best;
+  const best = (await myScores(u.id)).arcade[game].latest;
   if (game === "snake") return <SnakeGame best={best} infos={await eventInfos()} />;
   if (game === "flappy") return <FlappyGame best={best} />;
   if (game === "race") return <RaceGame best={best} />;

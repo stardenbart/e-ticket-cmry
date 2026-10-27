@@ -13,7 +13,7 @@ export type ArcadeHooks = {
   onEnd: (score: number, meta?: Record<string, number>) => void;
 };
 
-type Result = { score: number; best: number; accepted: boolean } | null;
+type Result = { score: number; latest: number; accepted: boolean } | null;
 
 export function ArcadeShell({
   game,
@@ -50,17 +50,17 @@ export function ArcadeShell({
       if (!id) {
         setSaving(false);
         setErr("Skor tidak tersimpan (koneksi bermasalah saat mulai). Main lagi untuk mencatat skor.");
-        setResult({ score, best, accepted: false });
+        setResult({ score, latest: best, accepted: false });
         return;
       }
       try {
-        const r = await api<{ accepted: boolean; score: number; best: number }>(`/api/games/arcade/${game}/finish`, { method: "POST", json: { runId: id, score, meta } });
-        setBest(r.best);
-        setResult({ score, best: r.best, accepted: r.accepted });
+        const r = await api<{ accepted: boolean; score: number; latest: number }>(`/api/games/arcade/${game}/finish`, { method: "POST", json: { runId: id, score, meta } });
+        setBest(r.latest);
+        setResult({ score, latest: r.latest, accepted: r.accepted });
         if (!r.accepted) setErr("Skor ini tidak wajar untuk durasi permainannya, jadi tidak dihitung.");
       } catch {
         setErr("Skor gagal dikirim. Periksa koneksi lalu main lagi.");
-        setResult({ score, best, accepted: false });
+        setResult({ score, latest: best, accepted: false });
       } finally {
         setSaving(false);
       }
@@ -78,7 +78,7 @@ export function ArcadeShell({
           <h1 className="mv-title mt-1 text-2xl sm:text-3xl">{title}</h1>
         </div>
         <div className="rounded-xl border border-[#19e6ff]/40 bg-[#0f0730]/80 px-4 py-2 text-right">
-          <p className="font-hud text-[11px] font-bold uppercase tracking-[0.16em] text-[#19e6ff]">Skor terbaik</p>
+          <p className="font-hud text-[11px] font-bold uppercase tracking-[0.16em] text-[#19e6ff]">Skor dihitung</p>
           <p className="font-digits text-2xl font-black tabular-nums text-white">{best}</p>
         </div>
       </div>
@@ -92,10 +92,10 @@ export function ArcadeShell({
             <p className="font-hud text-sm font-bold uppercase tracking-[0.14em] text-[#19e6ff]">Game over</p>
             <p className="mt-1 text-lg">
               Skor <b className="font-digits">{result.score}</b>
-              {result.accepted && result.score >= result.best && result.score > 0 ? " — rekor baru Anda! 🎉" : ` · terbaik ${result.best}`}
+              {result.accepted ? " — tercatat sebagai skor Anda di leaderboard." : ""}
             </p>
             <p className="mt-1 text-sm text-[#cbd5e1]">
-              Skor terbaik dihitung ke leaderboard.{" "}
+              Yang dihitung adalah skor permainan terakhir, walau lebih rendah dari sebelumnya.{" "}
               <Link href="/games#leaderboard" className="font-semibold text-[#19e6ff] underline">
                 Lihat leaderboard
               </Link>

@@ -73,7 +73,7 @@ function DinoCanvas({ hooks, best }: { hooks: ArcadeHooks; best: number }) {
       state = "dead";
       deadAt = performance.now();
       const s = score();
-      if (s > rec) rec = s;
+      rec = s; // skor yang dihitung = permainan terakhir
       hooksRef.current.onEnd(s, { seconds: Math.round(t) });
     };
     const act = () => {
@@ -176,7 +176,7 @@ function DinoCanvas({ hooks, best }: { hooks: ArcadeHooks; best: number }) {
         txt(ctx, "Neon City", W / 2, 106, 22, CYAN, CYAN);
         txt(ctx, "Ketuk layar atau tekan spasi untuk melompat", W / 2, 148, 16, "#fff", VIO);
         txt(ctx, "Ketuk untuk mulai", W / 2, 182, 20, PINK, PINK);
-        if (rec) txt(ctx, `Rekor: ${rec}`, W / 2, 210, 15, "#fff", CYAN);
+        if (rec) txt(ctx, `Skor tercatat: ${rec}`, W / 2, 210, 15, "#fff", CYAN);
       }
       if (state === "dead") {
         ctx.fillStyle = "rgba(10,4,32,.93)";
@@ -189,7 +189,7 @@ function DinoCanvas({ hooks, best }: { hooks: ArcadeHooks; best: number }) {
         ctx.shadowBlur = 0;
         txt(ctx, "Mooo! Game over", W / 2, 76, 26, "#fff", PINK);
         txt(ctx, `Skor: ${score()}`, W / 2, 118, 24, "#fff");
-        txt(ctx, `Rekor: ${rec}`, W / 2, 152, 20, CYAN, CYAN);
+        txt(ctx, `Skor tercatat: ${rec}`, W / 2, 152, 20, CYAN, CYAN);
         txt(ctx, "Ketuk untuk main lagi", W / 2, 186, 15, "#fff");
       }
     };

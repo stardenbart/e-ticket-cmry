@@ -26,7 +26,7 @@ export default async function GamesPage() {
       return mine.tts.status === "ACTIVE" ? `Sedang dimainkan · ${mine.tts.score}/100` : `Skor ${mine.tts.score}/100 · dikunci`;
     }
     const a = mine.arcade[key as "snake"];
-    return a.plays ? `Skor terbaik ${a.best} · ${a.plays}× main` : "Belum dimainkan";
+    return a.plays ? `Skor terakhir ${a.latest} · ${a.plays}× main` : "Belum dimainkan";
   };
   return (
     <div className="mx-auto max-w-5xl px-4 pb-16 pt-12 sm:pt-16">
