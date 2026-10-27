@@ -136,7 +136,7 @@ export function MediaTab({ data, reload, toast }: { data: EventPayload; reload: 
         />
         <ImageSlot
           title="Chart ukuran baju"
-          hint="Tabel ukuran (2S–5XL). Pastikan teks terbaca jelas; disimpan dengan kualitas lebih tinggi."
+          hint="Tabel ukuran (S–5XL). Pastikan teks terbaca jelas; disimpan dengan kualitas lebih tinggi."
           url={e.size_chart_url}
           aspect="aspect-[4/3] max-w-md"
           fit="contain"

@@ -83,6 +83,7 @@ export function UserMenu({ user }: { user: U }) {
           <div className="md:hidden">
             <Link href={FEATURED_PATH} className={item} role="menuitem">Event</Link>
             <Link href="/tiket-saya" className={item} role="menuitem">Tiket Saya</Link>
+            <Link href="/games" className={item} role="menuitem">Games</Link>
             <Link href="/faq" className={item} role="menuitem">FAQ</Link>
           </div>
           {user ? (

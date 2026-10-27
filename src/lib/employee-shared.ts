@@ -10,7 +10,8 @@ export const NIK_PATTERNS: Record<EmployeeCategory, RegExp> = {
 
 export const NIK_HINT = "Format NIK: 04.xxxx untuk karyawan CMD, A1.xx.xxxx untuk karyawan OS (x = angka; jumlah digit boleh berbeda).";
 
-export const SHIRT_SIZES = ["2S", "3S", "4S", "XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL", "5XL"] as const;
+/** Ukuran yang bisa dipilih saat klaim (mulai S). Tiket lama berukuran 2S–XS tetap sah di database. */
+export const SHIRT_SIZES = ["S", "M", "L", "XL", "XXL", "3XL", "4XL", "5XL"] as const;
 export type ShirtSize = (typeof SHIRT_SIZES)[number];
 
 /** NIK KTP (Nomor Induk Kependudukan): 16 digit angka. */

@@ -23,7 +23,7 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
     ),
   },
   { q: "Nama saya ditolak padahal NIK benar?", a: "Nama harus sama dengan data karyawan (HURUF KAPITAL, sesuai Kartu Karyawan). Spasi ganda dan tanda baca seperti titik atau koma diabaikan, tetapi huruf atau kata yang berbeda tetap ditolak. Jika data karyawan Anda keliru, hubungi panitia." },
-  { q: "Ukuran baju apa saja yang tersedia?", a: "2S, 3S, 4S, XS, S, M, L, XL, XXL, 3XL, 4XL, dan 5XL. Pilih saat klaim tiket." },
+  { q: "Ukuran baju apa saja yang tersedia?", a: "S, M, L, XL, XXL, 3XL, 4XL, dan 5XL. Pilih saat klaim tiket." },
   {
     q: "Bagaimana antrean bekerja?",
     a: "Tombol Masuk Antrean aktif 10 menit sebelum pemesanan dibuka. Semua yang masuk sebelum jam buka diacak urutannya tepat saat dibuka, jadi tidak perlu berlomba di detik terakhir. Saat giliran tiba, Anda punya 5 menit untuk mengisi data dan menekan Klaim Tiket.",

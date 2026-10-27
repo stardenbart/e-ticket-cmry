@@ -10,6 +10,7 @@ const NAV = [
   { href: "/", label: "Beranda", match: (p: string) => p === "/" },
   { href: FEATURED_PATH, label: "Event", match: (p: string) => p.startsWith("/event") },
   { href: "/tiket-saya", label: "Tiket Saya", match: (p: string) => p.startsWith("/tiket-saya") },
+  { href: "/games", label: "Games", match: (p: string) => p.startsWith("/games") },
   { href: "/faq", label: "FAQ", match: (p: string) => p.startsWith("/faq") },
 ];
 
