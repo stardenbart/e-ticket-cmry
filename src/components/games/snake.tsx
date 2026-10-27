@@ -56,6 +56,26 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number) {
   return lines;
 }
 
+/** Pilih ukuran huruf terbesar (12 → 8 px) agar teks muat di kotak; sisa teks dipotong dengan "…". */
+function fitText(ctx: CanvasRenderingContext2D, text: string, maxW: number, maxH: number) {
+  for (let size = 12; size >= 8; size--) {
+    ctx.font = `bold ${size}px ${FONT}`;
+    const lh = Math.round(size * 1.3);
+    const lines = wrap(ctx, text, maxW);
+    if (lines.length * lh <= maxH || size === 8) {
+      const max = Math.floor(maxH / lh);
+      if (lines.length > max) {
+        lines.length = max;
+        let last = lines[max - 1];
+        while (last && ctx.measureText(`${last}…`).width > maxW) last = last.slice(0, -1);
+        lines[max - 1] = `${last.trimEnd()}…`;
+      }
+      return { lines, size, lh };
+    }
+  }
+  return { lines: [text], size: 8, lh: 10 };
+}
+
 function SnakeCanvas({ hooks, infos, best }: { hooks: ArcadeHooks; infos: string[]; best: number }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const hooksRef = useRef(hooks);
@@ -215,18 +235,19 @@ function SnakeCanvas({ hooks, infos, best }: { hooks: ArcadeHooks; infos: string
         ctx.strokeStyle = PINK;
         ctx.lineWidth = 2;
         glow(ctx, PINK, 12);
-        roundRect(ctx, 10, 466, W - 20, 86, 12);
+        roundRect(ctx, 8, 458, W - 16, 98, 12);
         ctx.fill();
         ctx.stroke();
         ctx.shadowBlur = 0;
-        txt(ctx, `Bonus +${BONUS}!`, W / 2, 482, 15, PINK, PINK);
-        ctx.font = `bold 12px ${FONT}`;
+        txt(ctx, `Bonus +${BONUS}!`, W / 2, 472, 15, PINK, PINK);
+        // Teks info panjang: kecilkan huruf sampai muat di kotak (area teks 486–552).
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillStyle = "#fff";
-        wrap(ctx, info.text, W - 44)
-          .slice(0, 4)
-          .forEach((ln, i) => ctx.fillText(ln, W / 2, 502 + i * 15));
+        const { lines, size, lh } = fitText(ctx, info.text, W - 36, 64);
+        ctx.font = `bold ${size}px ${FONT}`;
+        const y0 = 519 - ((lines.length - 1) * lh) / 2;
+        lines.forEach((ln, i) => ctx.fillText(ln, W / 2, y0 + i * lh));
         ctx.globalAlpha = 1;
       }
       if (state === "ready") {
@@ -305,10 +326,13 @@ function SnakeCanvas({ hooks, infos, best }: { hooks: ArcadeHooks; infos: string
 
   return (
     <div>
-      <NeonFrame>
-        <canvas ref={canvas} aria-label="Game Ular Retro" className="aspect-[360/560] w-full touch-none" />
-      </NeonFrame>
-      <div className="mx-auto mt-4 grid w-max grid-cols-3 gap-2 sm:hidden" aria-label="Tombol arah">
+      {/* HP: lebar papan dibatasi tinggi layar agar papan + tombol arah tampil bersamaan. */}
+      <div className="mx-auto w-full max-w-[max(220px,calc((100dvh-300px)*0.643))] sm:max-w-none">
+        <NeonFrame>
+          <canvas ref={canvas} aria-label="Game Ular Retro" className="aspect-[360/560] w-full touch-none" />
+        </NeonFrame>
+      </div>
+      <div className="mx-auto mt-3 grid w-max grid-cols-3 gap-1.5 sm:hidden" aria-label="Tombol arah">
         <span />
         <PadBtn label="Atas" onPress={() => turnRef.current("up")}>▲</PadBtn>
         <span />
@@ -329,7 +353,7 @@ function PadBtn({ label, onPress, children }: { label: string; onPress: () => vo
         e.preventDefault();
         onPress();
       }}
-      className="grid size-14 place-items-center rounded-xl border border-[#ff2e9f]/50 bg-[#07031a] text-xl text-[#19e6ff] shadow-[0_0_14px_rgba(255,46,159,.35)] active:bg-[#9d4dff]/30"
+      className="grid size-[52px] place-items-center rounded-xl border border-[#ff2e9f]/50 bg-[#07031a] text-xl text-[#19e6ff] shadow-[0_0_14px_rgba(255,46,159,.35)] active:bg-[#9d4dff]/30"
     >
       {children}
     </button>
