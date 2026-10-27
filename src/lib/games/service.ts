@@ -222,8 +222,8 @@ export async function leaderboard(opts: { limit?: number; userId?: string } = {}
       GROUP BY p.user_id, t.score, t.duration_ms, t.status, t.finished_at
     ),
     ranked AS (
-      SELECT a.*, (a.tts_score + a.snake_pts + a.flappy_pts + a.dino_pts) AS total,
-        rank() OVER (ORDER BY (a.tts_score + a.snake_pts + a.flappy_pts + a.dino_pts) DESC, a.tts_ms ASC NULLS LAST, a.first_at ASC) AS rank
+      SELECT a.*, (a.tts_score + a.snake_pts + a.flappy_pts + a.dino_pts)::int AS total,
+        (rank() OVER (ORDER BY (a.tts_score + a.snake_pts + a.flappy_pts + a.dino_pts) DESC, a.tts_ms ASC NULLS LAST, a.first_at ASC))::int AS rank
       FROM agg a
     )
     SELECT r.*, u.full_name AS name, e.dept
