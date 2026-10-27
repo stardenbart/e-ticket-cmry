@@ -300,7 +300,7 @@ function PuzzleGrid({ puzzle, display, selected, onCell }: { puzzle: Puzzle; dis
         {puzzle.open.flatMap((row, r) =>
           row.map((isOpen, c) => {
             const key = `${r},${c}`;
-            if (!isOpen) return <div key={key} className="aspect-square rounded-[3px] bg-[#0b1220]" aria-hidden />;
+            if (!isOpen) return <div key={key} className="aspect-square rounded-[3px] bg-[#2b2f36]" aria-hidden />;
             const d = display[key];
             const num = puzzle.numbers[key];
             return (
@@ -310,10 +310,10 @@ function PuzzleGrid({ puzzle, display, selected, onCell }: { puzzle: Puzzle; dis
                 onClick={() => onCell(key)}
                 aria-label={`Kotak baris ${r + 1} kolom ${c + 1}${d ? `, huruf ${d.ch}` : ""}`}
                 className={`relative grid aspect-square place-items-center rounded-[3px] font-mono text-[11px] font-black sm:text-base ${
-                  d?.locked ? "bg-green-200 text-green-900" : selected.has(key) ? "bg-[#9afcff] text-[#020a17]" : "bg-slate-100 text-slate-900"
+                  d?.locked ? "bg-[#86efac] text-[#052e16]" : selected.has(key) ? "bg-[#9afcff] text-[#020a17]" : "bg-[#eef2f7] text-[#0b1220]"
                 }`}
               >
-                {num && <span className="absolute left-[2px] top-0 text-[7px] font-bold leading-none text-slate-600 sm:text-[9px]">{num}</span>}
+                {num && <span className="absolute left-[2px] top-0 text-[7px] font-bold leading-none text-[#334155] sm:text-[9px]">{num}</span>}
                 {d?.ch ?? ""}
               </button>
             );
