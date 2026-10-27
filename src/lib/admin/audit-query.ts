@@ -2,7 +2,7 @@ import { sql } from "../db";
 import type { Role } from "../auth";
 
 /** Entitas audit yang boleh dilihat Event Admin. Super Admin melihat semuanya (global). */
-export const EVENT_ADMIN_ENTITIES = ["event", "category", "ticket", "gate_staff", "checkin", "user"];
+export const EVENT_ADMIN_ENTITIES = ["event", "category", "ticket", "gate_staff", "checkin", "user", "games"];
 
 export type AuditRow = {
   id: string;

@@ -4,12 +4,16 @@ import { currentUser } from "@/lib/auth";
 import { myScores } from "@/lib/games/service";
 import { PageHero } from "@/components/site/ornaments";
 import { Leaderboard } from "@/components/games/leaderboard";
+import { GamesLockNotice } from "@/components/games/lock-notice";
+import { gamesLockStatus } from "@/lib/games/lock";
+import { moordleRun } from "@/lib/games/moordle";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Games" };
 
 const GAMES = [
   { href: "/games/tts", key: "tts", title: "TTS Mooniverse", desc: "Teka-teki silang 10 soal tebak benda. Satu kesempatan — skor 100 tercepat jadi juara." },
+  { href: "/games/moordle", key: "moordle", title: "Moordle", desc: "Tebak kata harian bertema konser & susu. Satu kesempatan per hari — makin cepat tertebak, makin besar poinnya." },
   { href: "/games/snake", key: "snake", title: "Ular Retro", desc: "Makan sebanyak-banyaknya, tembus dinding, kumpulkan bonus & info acara." },
   { href: "/games/flappy", key: "flappy", title: "Flappy Cow", desc: "Terbangkan kepala sapi melewati tiang neon dan hindari lightstick." },
   { href: "/games/dino", key: "dino", title: "Dino Cow", desc: "Sapi berlari dan melompati penghalang neon. Makin lama makin cepat." },
@@ -18,12 +22,17 @@ const GAMES = [
 
 export default async function GamesPage() {
   const u = await currentUser();
-  const mine = u ? await myScores(u.id) : null;
+  const [mine, md, lock] = await Promise.all([u ? myScores(u.id) : null, u ? moordleRun(u.id) : undefined, gamesLockStatus()]);
   const label = (key: string) => {
     if (!mine) return null;
     if (key === "tts") {
       if (!mine.tts) return "Belum dimainkan";
       return mine.tts.status === "ACTIVE" ? `Sedang dimainkan · ${mine.tts.score}/100` : `Skor ${mine.tts.score}/100 · dikunci`;
+    }
+    if (key === "moordle") {
+      if (!md) return "Hari ini: belum dimainkan";
+      if (md.status === "ACTIVE") return `Hari ini: sedang dimainkan (${md.state.guesses.length}/6)`;
+      return md.state.won ? `Hari ini: tertebak di percobaan ke-${md.state.guesses.length} · +${md.score}` : "Hari ini: belum tertebak · 0";
     }
     const a = mine.arcade[key as "snake"];
     return a.plays ? `Skor terakhir ${a.latest} · ${a.plays}× main` : "Belum dimainkan";
@@ -31,6 +40,7 @@ export default async function GamesPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 pb-16 sm:pt-4">
       <PageHero title="Mooniverse Games" subtitle="Main, kumpulkan skor, dan rebut posisi teratas leaderboard!" />
+      <GamesLockNotice lock={lock} />
       {!u && (
         <p className="mb-6 rounded-xl border border-[#19e6ff]/40 bg-[#0f0730]/80 p-4 text-sm text-white">
           <Link href="/login?next=%2Fgames" className="font-bold text-[#19e6ff] underline">

@@ -15,6 +15,7 @@ const ICONS: Record<string, string> = {
   block: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM5.6 5.6l12.8 12.8",
   account: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9a7 7 0 0 1 14 0M19 8h4M21 6v4",
   home: "M10 19l-7-7 7-7M3 12h18",
+  games: "M6 11h4M8 9v4M15 12h.01M18 10h.01M7 6h10a5 5 0 0 1 5 5v2a4 4 0 0 1-7 2.6L14 15h-4l-1 .6A4 4 0 0 1 2 13v-2a5 5 0 0 1 5-5z",
 };
 
 export function AdminSidebar({ superAdmin, name, email }: { superAdmin: boolean; name: string; email: string }) {
@@ -25,6 +26,7 @@ export function AdminSidebar({ superAdmin, name, email }: { superAdmin: boolean;
     { href: "/admin/events", label: "Daftar Event", icon: "event" },
     { href: "/admin/karyawan", label: "Data Karyawan", icon: "users" },
     { href: "/admin/akun-peserta", label: "Akun Peserta", icon: "account" },
+    { href: "/admin/games", label: "Games", icon: "games" },
     { href: "/admin/audit", label: "Audit Log", icon: "audit" },
     ...(superAdmin
       ? [

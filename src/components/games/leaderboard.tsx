@@ -15,6 +15,7 @@ type Row = {
   flappy: number;
   dino: number;
   race: number;
+  moordle: number;
   total: number;
   rank: number;
 };
@@ -47,12 +48,13 @@ export function Leaderboard() {
         Leaderboard
       </h2>
       <div className="mt-4 overflow-x-auto rounded-xl border border-[#19e6ff]/30 bg-[#0f0730]/85">
-        <table className="w-full min-w-[720px] text-sm text-white">
+        <table className="w-full min-w-[800px] text-sm text-white">
           <thead>
             <tr className="font-hud text-left text-[11px] uppercase tracking-[0.14em] text-[#19e6ff]">
               <th className="px-3 py-2">#</th>
               <th className="px-3 py-2">Nama</th>
               <th className="px-3 py-2 text-right">TTS</th>
+              <th className="px-3 py-2 text-right">Moordle</th>
               <th className="px-3 py-2 text-right">Ular</th>
               <th className="px-3 py-2 text-right">Flappy</th>
               <th className="px-3 py-2 text-right">Dino</th>
@@ -63,14 +65,14 @@ export function Leaderboard() {
           <tbody>
             {rows === null && (
               <tr>
-                <td colSpan={8} className="px-3 py-4 text-center text-white/60">
+                <td colSpan={9} className="px-3 py-4 text-center text-white/60">
                   Memuat…
                 </td>
               </tr>
             )}
             {rows?.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-3 py-4 text-center text-white/60">
+                <td colSpan={9} className="px-3 py-4 text-center text-white/60">
                   Belum ada pemain. Jadilah yang pertama!
                 </td>
               </tr>
@@ -95,6 +97,7 @@ export function Leaderboard() {
                     <span className="text-white/40">–</span>
                   )}
                 </td>
+                <Pts v={r.moordle} />
                 <Pts v={r.snake} />
                 <Pts v={r.flappy} />
                 <Pts v={r.dino} />

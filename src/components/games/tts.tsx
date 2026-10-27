@@ -70,7 +70,7 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
         const r = await api<{ run: Run }>("/api/games/tts/heartbeat", { method: "POST", json: {} });
         setRun(r.run);
       } catch (e) {
-        if (e instanceof ClientApiError && e.data.code === "TTS_LOCKED") {
+        if (e instanceof ClientApiError && (e.data.code === "TTS_LOCKED" || e.data.code === "GAMES_LOCKED")) {
           const r = await api<{ run: Run | null }>("/api/games/tts");
           setRun(r.run);
         }
@@ -131,7 +131,7 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
           }
         }
       } catch (x) {
-        if (x instanceof ClientApiError && x.data.code === "TTS_LOCKED") {
+        if (x instanceof ClientApiError && (x.data.code === "TTS_LOCKED" || x.data.code === "GAMES_LOCKED")) {
           const r = await api<{ run: Run | null }>("/api/games/tts");
           setRun(r.run);
         } else setErr(x instanceof ClientApiError ? x.message : "Gagal mengecek jawaban. Periksa koneksi.");

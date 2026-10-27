@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePageUser } from "@/lib/auth";
 import { getEventBySlug } from "@/lib/events";
@@ -9,6 +10,8 @@ import { SnakeGame } from "@/components/games/snake";
 import { FlappyGame } from "@/components/games/flappy";
 import { DinoGame } from "@/components/games/dino";
 import { RaceGame } from "@/components/games/race";
+import { GamesLockNotice } from "@/components/games/lock-notice";
+import { gamesLockStatus } from "@/lib/games/lock";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +41,18 @@ export default async function ArcadePage({ params }: { params: Promise<{ game: s
   const { game } = await params;
   if (!isArcade(game)) notFound();
   const u = await requirePageUser();
+  const lock = await gamesLockStatus();
+  if (lock.locked) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 pb-16 pt-24 sm:pt-28">
+        <Link href="/games" className="text-sm font-semibold text-[#19e6ff] hover:underline">
+          ← Semua game
+        </Link>
+        <h1 className="mv-title mb-4 mt-1 text-2xl sm:text-3xl">{TITLES[game]}</h1>
+        <GamesLockNotice lock={lock} />
+      </div>
+    );
+  }
   const best = (await myScores(u.id)).arcade[game].latest;
   if (game === "snake") return <SnakeGame best={best} infos={await eventInfos()} />;
   if (game === "flappy") return <FlappyGame best={best} />;

@@ -4,7 +4,7 @@
 // game over, lalu tampilkan hasil + skor terbaik. Game-nya sendiri (canvas) cukup memanggil start/end.
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
-import { api } from "@/lib/client-api";
+import { api, ClientApiError } from "@/lib/client-api";
 
 export type ArcadeHooks = {
   /** Panggil saat ronde dimulai. */
@@ -39,7 +39,10 @@ export function ArcadeShell({
     setErr(null);
     runId.current = api<{ runId: string }>(`/api/games/arcade/${game}/start`, { method: "POST", json: {} })
       .then((r) => r.runId)
-      .catch(() => null);
+      .catch((e) => {
+        if (e instanceof ClientApiError && e.data.code === "GAMES_LOCKED") setErr(e.message);
+        return null;
+      });
   }, [game]);
 
   const onEnd = useCallback(
@@ -49,7 +52,7 @@ export function ArcadeShell({
       runId.current = null;
       if (!id) {
         setSaving(false);
-        setErr("Skor tidak tersimpan (koneksi bermasalah saat mulai). Main lagi untuk mencatat skor.");
+        setErr((x) => x ?? "Skor tidak tersimpan (koneksi bermasalah saat mulai). Main lagi untuk mencatat skor.");
         setResult({ score, latest: best, accepted: false });
         return;
       }
@@ -58,8 +61,8 @@ export function ArcadeShell({
         setBest(r.latest);
         setResult({ score, latest: r.latest, accepted: r.accepted });
         if (!r.accepted) setErr("Skor ini tidak wajar untuk durasi permainannya, jadi tidak dihitung.");
-      } catch {
-        setErr("Skor gagal dikirim. Periksa koneksi lalu main lagi.");
+      } catch (e) {
+        setErr(e instanceof ClientApiError && e.data.code === "GAMES_LOCKED" ? e.message : "Skor gagal dikirim. Periksa koneksi lalu main lagi.");
         setResult({ score, latest: best, accepted: false });
       } finally {
         setSaving(false);
