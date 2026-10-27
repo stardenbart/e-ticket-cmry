@@ -44,7 +44,7 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
   const zone = useRef<HTMLDivElement>(null);
   const now = useServerNow(1000);
   const active = run?.status === "ACTIVE";
-  useGameFocus(active, zone);
+  useGameFocus(active, zone, { lockScroll: false });
 
   const solved = useMemo(() => new Set(run?.solved ?? []), [run]);
   const entryCells = useMemo(() => Object.fromEntries(puzzle.entries.map((e) => [e.key, cellsOf(e)])), [puzzle]);

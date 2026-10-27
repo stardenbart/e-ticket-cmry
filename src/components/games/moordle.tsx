@@ -175,7 +175,7 @@ export function MoordleGame({ initial, initialStats, lock }: { initial: Today; i
 
       <p className="mb-1 mt-2 min-h-[26px] text-[13px] text-[#19e6ff] [text-shadow:0_0_8px_rgba(25,230,255,.7)]">{today.theme && !done ? `Petunjuk: tema hari ini adalah ${today.theme}` : ""}</p>
 
-      <div className="grid w-[min(330px,86vw)] gap-1.5" aria-label="Papan tebakan">
+      <div className="grid w-[min(330px,86vw,calc((100dvh-410px)*5/6))] min-w-[200px] gap-1.5" aria-label="Papan tebakan">
         {Array.from({ length: ROWS }, (_, r) => {
           const g = today.guesses[r];
           const isCur = r === today.guesses.length && active;
@@ -191,7 +191,7 @@ export function MoordleGame({ initial, initialStats, lock }: { initial: Today; i
                   <div
                     key={i}
                     style={flipping ? { animation: `mdFlip .5s ease ${i * 0.28}s both` } : undefined}
-                    className={`flex aspect-square items-center justify-center rounded-lg border-2 text-[clamp(24px,8vw,32px)] font-extrabold ${
+                    className={`flex aspect-square items-center justify-center rounded-lg border-2 text-[clamp(20px,min(8vw,4.5dvh),32px)] font-extrabold ${
                       shown ? TILE[m as Mark] : ch ? "border-[#19e6ff] bg-white/5 shadow-[0_0_8px_rgba(25,230,255,.5)]" : "border-[#9d4dff]/45 bg-white/5"
                     }`}
                   >
@@ -257,7 +257,7 @@ export function MoordleGame({ initial, initialStats, lock }: { initial: Today; i
                     key={k}
                     type="button"
                     onClick={() => press(k)}
-                    className={`h-[50px] flex-1 rounded-[7px] p-0 font-bold ${wide ? "max-w-[58px] text-xs" : "max-w-10 text-[15px]"} ${keys[k] ? KEY[keys[k]] : "bg-[#2a1d55] text-white"}`}
+                    className={`h-[min(50px,6.6dvh)] min-h-10 flex-1 rounded-[7px] p-0 font-bold ${wide ? "max-w-[58px] text-xs" : "max-w-10 text-[15px]"} ${keys[k] ? KEY[keys[k]] : "bg-[#2a1d55] text-white"}`}
                   >
                     {k === "ENTER" ? "Enter" : k === "DEL" ? "Hapus" : k}
                   </button>
