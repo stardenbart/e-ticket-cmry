@@ -28,7 +28,9 @@ export function Podium({ rows, final }: { rows: FarmRank[]; final: boolean }) {
           return (
             <div key={p.rank} className={`${p.order} flex w-1/3 flex-col items-center`}>
               <div className="mb-2 flex min-h-[230px] flex-col items-center justify-end text-center sm:min-h-[260px]">
-                {open && w ? (
+                {open && !w ? (
+                  <span className="text-sm text-white/50">Belum ada peternak</span>
+                ) : open && w ? (
                   <div style={{ animation: "pdIn .8s cubic-bezier(.2,1.4,.4,1) both" }} className="flex flex-col items-center">
                     <span className="text-4xl">{p.medal}</span>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -62,7 +64,6 @@ export function Podium({ rows, final }: { rows: FarmRank[]; final: boolean }) {
           <button
             type="button"
             onClick={() => setShown((s) => s + 1)}
-            disabled={!top(3 - shown)}
             className="font-hud rounded-full bg-[linear-gradient(100deg,#ff2e9f,#9d4dff_50%,#19e6ff)] px-8 py-3 text-lg font-bold uppercase tracking-[0.12em] shadow-[0_0_18px_rgba(255,46,159,0.5)] disabled:opacity-50"
           >
             {nextLabel}

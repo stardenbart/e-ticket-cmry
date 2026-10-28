@@ -29,6 +29,7 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
   const [fx, setFx] = useState<Fx>(null);
   const [guide, setGuide] = useState(false);
   const now = useServerNow(1000);
+  const stageRef = useRef<HTMLElement>(null);
   const frozen = ended || notStarted;
 
   const reload = useCallback(async () => {
@@ -60,6 +61,9 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
         method: "POST",
         json: body,
       });
+      // Pastikan sapi terlihat agar reaksinya (animasi) tidak terlewat.
+      const st = stageRef.current?.getBoundingClientRect();
+      if (st && (st.top < 70 || st.bottom > window.innerHeight)) stageRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       setFx({ kind: effect, id: Date.now(), emoji, label: r.result.milk ? `${r.result.milk.ml} ml · Grade ${r.result.milk.grade}` : undefined });
       setFarm(r.farm);
       const delta = r.result.earned ? ` (+${r.result.earned} koin)` : r.result.spent ? ` (−${r.result.spent} koin)` : "";
@@ -108,7 +112,7 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
       </div>
 
       {/* Panggung sapi */}
-      <section className="relative overflow-hidden rounded-[18px] border border-[#ff2e9f]/40 bg-[radial-gradient(ellipse_at_50%_0%,rgba(157,77,255,.35),transparent_60%),linear-gradient(#0b0428,#120840_60%,#0a2a2a)] shadow-[0_0_28px_rgba(255,46,159,.35)]">
+      <section ref={stageRef} className="relative scroll-mt-24 overflow-hidden rounded-[18px] border border-[#ff2e9f]/40 bg-[radial-gradient(ellipse_at_50%_0%,rgba(157,77,255,.35),transparent_60%),linear-gradient(#0b0428,#120840_60%,#0a2a2a)] shadow-[0_0_28px_rgba(255,46,159,.35)]">
         <div className="flex items-start justify-between p-4">
           <div>
             <h2 className="mv-title text-2xl">{farm.name}</h2>
