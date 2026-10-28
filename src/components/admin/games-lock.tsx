@@ -6,59 +6,53 @@ import { fmtDateTime, utcToZonedLocal, zonedLocalToUtc } from "@/lib/format";
 import { Alert, Badge, Button, Card, Field, Input, PageTitle, Spinner } from "@/components/ui";
 import { Td, Th, useToast } from "./kit";
 
-type Lock = { lockAt: string | null; locked: boolean };
+type Lock = { startAt: string | null; lockAt: string | null; locked: boolean; notStarted: boolean };
 type Row = {
-  user_id: string;
   rank: number;
+  user_id: string;
   name: string;
   dept: string | null;
-  tts_score: number;
-  tts_ms: number | null;
-  moordle: number;
-  moordle_days: number;
-  snake: number;
-  flappy: number;
-  dino: number;
-  race: number;
-  total: number;
+  cow: string;
+  hearts: number;
+  kg: number;
+  stage: string;
+  bestGrade: string | null;
+  milkTotal: number;
+  title: { name: string; emoji: string };
+  sick: boolean;
 };
 
 const TZ = "Asia/Jakarta";
-
-const fmtMs = (ms: number | null) => {
-  if (ms == null) return "–";
-  const s = Math.floor(ms / 1000);
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-};
+const toLocal = (iso: string | null) => (iso ? utcToZonedLocal(iso, TZ) : "");
+const toIso = (local: string) => (local ? zonedLocalToUtc(local, TZ).toISOString() : null);
 
 export function GamesLock() {
   const [lock, setLock] = useState<Lock | null>(null);
-  const [local, setLocal] = useState("");
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[] | null>(null);
   const { toast, toastNode } = useToast();
 
+  const apply = (l: Lock) => {
+    setLock(l);
+    setStart(toLocal(l.startAt));
+    setEnd(toLocal(l.lockAt));
+  };
   const load = () => {
-    api<Lock>("/api/admin/games-lock")
-      .then((l) => {
-        setLock(l);
-        setLocal(l.lockAt ? utcToZonedLocal(l.lockAt, TZ) : "");
-      })
-      .catch((e) => setErr(e.message));
+    api<Lock>("/api/admin/games-lock").then(apply).catch((e) => setErr(e.message));
     api<{ rows: Row[] }>("/api/games/leaderboard")
       .then((r) => setRows(r.rows))
       .catch(() => setRows([]));
   };
   useEffect(load, []);
 
-  async function save(lockAt: string | null, msg: string) {
+  async function save(startAt: string | null, lockAt: string | null, msg: string) {
     setBusy(true);
     setErr(null);
     try {
-      const l = await api<Lock>("/api/admin/games-lock", { method: "PUT", json: { lockAt } });
-      setLock(l);
-      setLocal(l.lockAt ? utcToZonedLocal(l.lockAt, TZ) : "");
+      apply(await api<Lock>("/api/admin/games-lock", { method: "PUT", json: { startAt, lockAt } }));
       toast({ tone: "ok", text: msg });
       load();
     } catch (x) {
@@ -70,14 +64,10 @@ export function GamesLock() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!local) return;
-    save(zonedLocalToUtc(local, TZ).toISOString(), "Tenggat games disimpan.");
+    save(toIso(start), toIso(end), "Periode games disimpan.");
   };
-  const lockNow = () => {
-    if (window.confirm("Tutup semua games sekarang? Peserta tidak bisa bermain lagi dan leaderboard dibekukan.")) save(new Date().toISOString(), "Games ditutup.");
-  };
-  const unlock = () => {
-    if (window.confirm("Buka kembali games tanpa tenggat?")) save(null, "Games dibuka kembali.");
+  const endNow = () => {
+    if (window.confirm("Akhiri periode games sekarang? Kondisi sapi dibekukan dan leaderboard disembunyikan dari peserta.")) save(toIso(start), new Date().toISOString(), "Periode games diakhiri.");
   };
 
   return (
@@ -85,7 +75,7 @@ export function GamesLock() {
       {toastNode}
       <PageTitle
         title="Games"
-        subtitle="Atur tenggat games. Setelah tenggat lewat, peserta tidak bisa bermain atau mengirim skor, dan leaderboard dibekukan untuk menetapkan pemenang."
+        subtitle="Atur periode Grow your Cow, Grow your Country. Di luar periode, games & kandang tertutup. Setelah berakhir, kondisi sapi dibekukan dan leaderboard/pemenang hanya bisa dilihat admin."
       />
       <Card className="p-5">
         {err && (
@@ -98,49 +88,47 @@ export function GamesLock() {
           {!lock ? (
             <Spinner />
           ) : lock.locked ? (
-            <Badge tone="red">Ditutup sejak {fmtDateTime(lock.lockAt!)}</Badge>
-          ) : lock.lockAt ? (
-            <Badge tone="amber">Dibuka — ditutup otomatis {fmtDateTime(lock.lockAt)}</Badge>
+            <Badge tone="red">Berakhir sejak {fmtDateTime(lock.lockAt!)}</Badge>
+          ) : lock.notStarted ? (
+            <Badge tone="amber">Belum dimulai — buka {fmtDateTime(lock.startAt!)}</Badge>
           ) : (
-            <Badge tone="green">Dibuka, tanpa tenggat</Badge>
+            <Badge tone="green">Berlangsung{lock.lockAt ? ` — berakhir ${fmtDateTime(lock.lockAt)}` : ", tanpa batas akhir"}</Badge>
           )}
         </div>
         <form onSubmit={submit} className="flex flex-wrap items-end gap-3">
-          <Field label="Tenggat (WIB)" htmlFor="g-lock" hint="Games otomatis ditutup pada waktu ini.">
-            <Input id="g-lock" type="datetime-local" required value={local} onChange={(x) => setLocal(x.target.value)} className="w-64" />
+          <Field label="Mulai (WIB)" htmlFor="g-start">
+            <Input id="g-start" type="datetime-local" value={start} onChange={(x) => setStart(x.target.value)} className="w-60" />
           </Field>
-          <Button type="submit" disabled={busy || !local}>
-            {busy && <Spinner />} Simpan tenggat
+          <Field label="Selesai (WIB)" htmlFor="g-end">
+            <Input id="g-end" type="datetime-local" value={end} onChange={(x) => setEnd(x.target.value)} className="w-60" />
+          </Field>
+          <Button type="submit" disabled={busy}>
+            {busy && <Spinner />} Simpan periode
           </Button>
-          <Button type="button" variant="danger" className="text-lg font-bold" onClick={lockNow} disabled={busy || !!lock?.locked}>
-            Tutup sekarang
-          </Button>
-          <Button type="button" variant="ghost" onClick={unlock} disabled={busy || !lock?.lockAt}>
-            Hapus tenggat / buka kembali
+          <Button type="button" variant="danger" className="text-lg font-bold" onClick={endNow} disabled={busy || !!lock?.locked}>
+            Akhiri sekarang
           </Button>
         </form>
       </Card>
 
       <Card className="p-5">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-bold">Leaderboard {lock?.locked ? "(final)" : "(sementara)"}</h2>
-          <a href="/games#leaderboard" target="_blank" className="text-sm font-semibold text-cimory-blue hover:underline">
-            Lihat di halaman peserta ↗
+          <h2 className="font-bold">Leaderboard peternak {lock?.locked ? "(final)" : "(sementara)"}</h2>
+          <a href="/games/pemenang" target="_blank" className="text-sm font-semibold text-cimory-blue hover:underline">
+            Buka halaman pemenang (podium) ↗
           </a>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[820px] text-sm">
+          <table className="w-full min-w-[760px] text-sm">
             <thead>
               <tr>
                 <Th>#</Th>
-                <Th>Nama</Th>
-                <Th className="text-right">TTS</Th>
-                <Th className="text-right">Moordle</Th>
-                <Th className="text-right">Ular</Th>
-                <Th className="text-right">Flappy</Th>
-                <Th className="text-right">Dino</Th>
-                <Th className="text-right">Balap</Th>
-                <Th className="text-right">Total</Th>
+                <Th>Peternak</Th>
+                <Th>Sapi</Th>
+                <Th className="text-center">Hati</Th>
+                <Th className="text-right">Berat</Th>
+                <Th className="text-center">Susu terbaik</Th>
+                <Th className="text-right">Total susu</Th>
               </tr>
             </thead>
             <tbody>
@@ -150,7 +138,7 @@ export function GamesLock() {
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <Td className="text-muted">Belum ada pemain.</Td>
+                  <Td className="text-muted">Belum ada peternak.</Td>
                 </tr>
               ) : (
                 rows.map((r) => (
@@ -158,19 +146,18 @@ export function GamesLock() {
                     <Td className="font-bold">{r.rank}</Td>
                     <Td>
                       <p className="font-semibold">{r.name}</p>
-                      {r.dept && <p className="text-xs text-muted">{r.dept}</p>}
+                      <p className="text-xs text-muted">
+                        {r.title.emoji} {r.title.name}
+                        {r.dept ? ` · ${r.dept}` : ""}
+                      </p>
                     </Td>
-                    <Td className="text-right tabular-nums">
-                      {r.tts_score} <span className="text-xs text-muted">({fmtMs(r.tts_ms)})</span>
+                    <Td>
+                      {r.cow} <span className="text-xs text-muted">({r.stage}{r.sick ? ", sakit" : ""})</span>
                     </Td>
-                    <Td className="text-right tabular-nums">
-                      {r.moordle} <span className="text-xs text-muted">({r.moordle_days} hari)</span>
-                    </Td>
-                    <Td className="text-right tabular-nums">{r.snake}</Td>
-                    <Td className="text-right tabular-nums">{r.flappy}</Td>
-                    <Td className="text-right tabular-nums">{r.dino}</Td>
-                    <Td className="text-right tabular-nums">{r.race}</Td>
-                    <Td className="text-right font-black tabular-nums">{r.total}</Td>
+                    <Td className="text-center text-cimory-red">{"♥".repeat(r.hearts)}</Td>
+                    <Td className="text-right tabular-nums">{r.kg.toLocaleString("id-ID")} kg</Td>
+                    <Td className="text-center">{r.bestGrade ?? "–"}</Td>
+                    <Td className="text-right tabular-nums">{(r.milkTotal / 1000).toLocaleString("id-ID", { maximumFractionDigits: 2 })} L</Td>
                   </tr>
                 ))
               )}

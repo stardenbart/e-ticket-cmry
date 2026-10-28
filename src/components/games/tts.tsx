@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } fro
 import { api, ClientApiError } from "@/lib/client-api";
 import { useServerNow } from "@/components/site/use-server-now";
 import { useGameFocus } from "./game-focus";
+import { ttsCoins } from "@/lib/ternak/earn";
 
 type Entry = { key: string; num: number; dir: "A" | "D"; row: number; col: number; length: number; clue: string };
 type Puzzle = { rows: number; cols: number; open: boolean[][]; numbers: Record<string, number>; entries: Entry[]; maxScore: number };
@@ -194,7 +195,9 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
         <div className="rounded-xl border border-[#19e6ff]/40 bg-[#0f0730]/90 p-5 text-white">
           <p className="font-hud text-sm font-bold uppercase tracking-[0.14em] text-[#19e6ff]">Aturan</p>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-[#dbe4ff]">
-            <li>{puzzle.entries.length} soal, masing-masing 10 poin (maks {puzzle.maxScore}). Pemenang: skor tertinggi, lalu waktu tercepat.</li>
+            <li>
+              {puzzle.entries.length} soal, masing-masing 10 poin (maks {puzzle.maxScore}). Skormu jadi <b>modal awal Moo-coins</b> untuk ternak sapi: 150 + 3 × skor, bonus +50 bila sempurna dalam &lt; 3 menit.
+            </li>
             <li>Jawaban benar langsung terkunci. Jawaban salah boleh diubah tanpa pengurangan poin.</li>
             <li>
               <b>Hanya satu kesempatan.</b> Waktu berjalan sejak tombol Mulai. Keluar dari halaman atau aplikasi = skor dan waktu otomatis dikunci.
@@ -242,8 +245,8 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
             Menyerah
           </button>
         ) : (
-          <Link href="/games#leaderboard" className="rounded-full border border-[#19e6ff]/60 px-4 py-1.5 text-sm font-semibold text-[#19e6ff]">
-            Leaderboard
+          <Link href="/games/ternak" className="rounded-full border border-[#19e6ff]/60 px-4 py-1.5 text-sm font-semibold text-[#19e6ff]">
+            Ke kandang
           </Link>
         )}
       </div>
@@ -252,7 +255,8 @@ export function TtsGame({ puzzle, initialRun }: { puzzle: Puzzle; initialRun: Ru
         <div className="rounded-xl border border-[#ff2e9f]/50 bg-[#0f0730]/90 p-4 text-white" role="status">
           <p className="font-bold">{STATUS[run.status] ?? "Selesai"}</p>
           <p className="mt-1 text-sm text-[#dbe4ff]">
-            Hasil akhir: <b>{run.score}</b> poin dalam <b>{fmtDuration(run.durationMs ?? 0)}</b>.
+            Hasil akhir: <b>{run.score}</b> poin dalam <b>{fmtDuration(run.durationMs ?? 0)}</b> → modal awal{" "}
+            <b className="text-[#ffd76a]">🪙 {ttsCoins(run.score, run.durationMs, run.status === "FINISHED")} Moo-coins</b>.
           </p>
         </div>
       )}

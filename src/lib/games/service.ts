@@ -1,8 +1,10 @@
-// Logika games di server: sesi TTS (satu kesempatan), skor arkade, dan leaderboard gabungan.
+// Logika games di server: sesi TTS (satu kesempatan) dan sesi arkade. Poin tiap game menjadi Moo-coins
+// untuk ternak sapi (lihat src/lib/ternak).
 import { sql } from "../db";
 import { ApiError } from "../http";
 import { ENTRIES, POINTS_PER_ENTRY, cellsOf, entryKey, findEntry, normalizeAnswer } from "./tts-puzzle";
 import { assertGamesOpen, gamesLockAt, isLockedAt } from "./lock";
+import { rewardArcade, rewardTts } from "../ternak/service";
 
 export const ARCADE_GAMES = ["snake", "flappy", "dino", "race"] as const;
 export type ArcadeGame = (typeof ARCADE_GAMES)[number];
@@ -43,6 +45,7 @@ async function lockIfStale(run: Run | undefined): Promise<Run | undefined> {
     UPDATE game_runs SET status = 'LOCKED', finished_at = ${end},
       duration_ms = GREATEST(0, (EXTRACT(EPOCH FROM (${end}::timestamptz - started_at)) * 1000)::int)
     WHERE id = ${run.id} AND status = 'ACTIVE' RETURNING *`;
+  if (r) await rewardTts(r.user_id, r);
   return r ?? run;
 }
 
@@ -124,6 +127,7 @@ export async function ttsAnswer(userId: string, key: string, raw: string) {
       UPDATE game_runs SET status = 'FINISHED', finished_at = now(),
         duration_ms = (EXTRACT(EPOCH FROM (now() - started_at)) * 1000)::int
       WHERE id = ${latest.id} AND status = 'ACTIVE' RETURNING *`;
+    if (latest) await rewardTts(userId, latest);
   }
   return { correct: true, view: ttsView(latest) };
 }
@@ -136,6 +140,7 @@ export async function ttsEnd(userId: string, how: "SURRENDERED" | "LOCKED") {
     UPDATE game_runs SET status = ${how}, finished_at = now(), last_seen_at = now(),
       duration_ms = (EXTRACT(EPOCH FROM (now() - started_at)) * 1000)::int
     WHERE id = ${run.id} AND status = 'ACTIVE' RETURNING *`;
+  if (r) await rewardTts(userId, r);
   return ttsView(r ?? run);
 }
 
@@ -178,110 +183,8 @@ export async function arcadeFinish(userId: string, game: ArcadeGame, runId: stri
       finished_at = now(), last_seen_at = now(), state = ${sql.json(meta)},
       duration_ms = (EXTRACT(EPOCH FROM (now() - started_at)) * 1000)::int
     WHERE id = ${run.id} AND status = 'ACTIVE' RETURNING *`;
-  return { accepted: plausible, score: r?.score ?? 0, latest: await latestScore(userId, game) };
-}
-
-/** Skor yang dihitung untuk game arkade = skor permainan sah TERAKHIR (bukan rekor tertinggi). */
-export async function latestScore(userId: string, game: ArcadeGame) {
-  const [l] = await sql<{ score: number }[]>`
-    SELECT score FROM game_runs WHERE user_id = ${userId} AND game = ${game} AND status = 'FINISHED'
-    ORDER BY finished_at DESC LIMIT 1`;
-  return l?.score ?? 0;
-}
-
-// ---------------------------------------------------------------------------
-// Leaderboard gabungan
-// ---------------------------------------------------------------------------
-
-export type LeaderRow = {
-  user_id: string;
-  name: string;
-  dept: string | null;
-  tts_score: number;
-  tts_ms: number | null;
-  tts_status: string | null;
-  snake: number;
-  flappy: number;
-  dino: number;
-  race: number;
-  moordle: number;
-  moordle_days: number;
-  moordle_ms: number;
-  total: number;
-  last_at: Date;
-  rank: number;
-};
-
-/**
- * Total = skor TTS (maks 100) + skor TERAKHIR yang sah di tiap game arkade (skor asli, tanpa batas)
- *       + jumlah poin Moordle harian (60 untuk benar di tebakan ke-1 … 10 di tebakan ke-6).
- * Main ulang dengan skor lebih rendah menurunkan total — yang dihitung selalu permainan terakhir.
- * Seri: total waktu TTS + Moordle lebih cepat, lalu siapa yang lebih dulu mencapai totalnya.
- * Setelah tenggat admin (game_settings.lock_at), permainan yang selesai sesudahnya tidak dihitung.
- */
-export async function leaderboard(opts: { limit?: number; userId?: string } = {}) {
-  const rows = await sql<LeaderRow[]>`
-    WITH lk AS (SELECT lock_at FROM game_settings WHERE id),
-    runs AS (
-      SELECT g.* FROM game_runs g, lk WHERE lk.lock_at IS NULL OR g.finished_at IS NULL OR g.finished_at <= lk.lock_at
-    ),
-    latest AS (
-      SELECT DISTINCT ON (user_id, game) user_id, game, score, finished_at
-      FROM runs WHERE game NOT IN ('tts', 'moordle') AND status = 'FINISHED'
-      ORDER BY user_id, game, finished_at DESC
-    ),
-    tts AS (
-      SELECT user_id, score, duration_ms, status, finished_at FROM runs WHERE game = 'tts' AND status <> 'ACTIVE'
-    ),
-    md AS (
-      SELECT user_id, sum(score)::int AS moordle, count(*)::int AS moordle_days,
-        sum(duration_ms)::int AS moordle_ms, max(finished_at) AS finished_at
-      FROM runs WHERE game = 'moordle' AND status = 'FINISHED' GROUP BY user_id
-    ),
-    players AS (SELECT user_id FROM latest UNION SELECT user_id FROM tts UNION SELECT user_id FROM md),
-    agg AS (
-      SELECT p.user_id,
-        COALESCE(t.score, 0) AS tts_score, t.duration_ms AS tts_ms, t.status AS tts_status,
-        COALESCE(max(l.score) FILTER (WHERE l.game = 'snake'), 0)::int AS snake,
-        COALESCE(max(l.score) FILTER (WHERE l.game = 'flappy'), 0)::int AS flappy,
-        COALESCE(max(l.score) FILTER (WHERE l.game = 'dino'), 0)::int AS dino,
-        COALESCE(max(l.score) FILTER (WHERE l.game = 'race'), 0)::int AS race,
-        COALESCE(m.moordle, 0) AS moordle, COALESCE(m.moordle_days, 0) AS moordle_days, COALESCE(m.moordle_ms, 0) AS moordle_ms,
-        GREATEST(COALESCE(t.finished_at, '-infinity'), COALESCE(max(l.finished_at), '-infinity'), COALESCE(m.finished_at, '-infinity')) AS last_at
-      FROM players p
-      LEFT JOIN tts t ON t.user_id = p.user_id
-      LEFT JOIN md m ON m.user_id = p.user_id
-      LEFT JOIN latest l ON l.user_id = p.user_id
-      GROUP BY p.user_id, t.score, t.duration_ms, t.status, t.finished_at, m.moordle, m.moordle_days, m.moordle_ms, m.finished_at
-    ),
-    ranked AS (
-      SELECT a.*, (a.tts_score + a.snake + a.flappy + a.dino + a.race + a.moordle)::int AS total,
-        (rank() OVER (ORDER BY (a.tts_score + a.snake + a.flappy + a.dino + a.race + a.moordle) DESC,
-          (COALESCE(a.tts_ms, 86400000)::bigint + a.moordle_ms) ASC, a.last_at ASC))::int AS rank
-      FROM agg a
-    )
-    SELECT r.*, u.full_name AS name, e.dept
-    FROM ranked r JOIN users u ON u.id = r.user_id LEFT JOIN employees e ON e.nik = u.nik
-    WHERE u.role = 'ATTENDEE' AND u.disabled_at IS NULL
-      ${opts.userId ? sql`AND (r.rank <= ${opts.limit ?? 50} OR r.user_id = ${opts.userId})` : sql`AND r.rank <= ${opts.limit ?? 50}`}
-    ORDER BY r.rank, r.last_at`;
-  return rows;
-}
-
-/** Ringkasan skor milik satu pemain untuk halaman Games (skor terakhir yang dihitung + jumlah main). */
-export async function myScores(userId: string) {
-  const [tts] = await sql<Run[]>`SELECT * FROM game_runs WHERE user_id = ${userId} AND game = 'tts'`;
-  const rows = await sql<{ game: ArcadeGame; latest: number; plays: number }[]>`
-    SELECT g.game,
-      COALESCE((SELECT score FROM game_runs x WHERE x.user_id = ${userId} AND x.game = g.game AND x.status = 'FINISHED'
-                ORDER BY x.finished_at DESC LIMIT 1), 0)::int AS latest,
-      count(*) FILTER (WHERE g.status <> 'ACTIVE')::int AS plays
-    FROM game_runs g WHERE g.user_id = ${userId} AND g.game NOT IN ('tts', 'moordle') GROUP BY g.game`;
-  const t = await lockIfStale(tts);
-  return {
-    tts: t ? { status: t.status, score: t.score, durationMs: t.duration_ms } : null,
-    arcade: Object.fromEntries(ARCADE_GAMES.map((g) => [g, rows.find((b) => b.game === g) ?? { game: g, latest: 0, plays: 0 }])),
-  };
+  const earned = r && plausible ? await rewardArcade(userId, game, r.id, r.score) : null;
+  return { accepted: plausible, score: r?.score ?? 0, coins: earned?.coins ?? 0, counted: earned?.counted ?? 0, capLeft: earned?.capLeft ?? null, wallet: earned?.wallet ?? null };
 }
 
 export const isArcade = (g: string): g is ArcadeGame => (ARCADE_GAMES as readonly string[]).includes(g);

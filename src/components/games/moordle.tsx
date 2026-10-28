@@ -8,6 +8,7 @@ import { api, ClientApiError } from "@/lib/client-api";
 import { useServerNow } from "@/components/site/use-server-now";
 import { fmtDuration } from "./tts";
 import { useGameFocus } from "./game-focus";
+import { moordleCoins } from "@/lib/ternak/earn";
 
 type Mark = "c" | "p" | "a";
 type Today = {
@@ -23,7 +24,7 @@ type Today = {
   answer: { word: string; desc: string } | null;
 };
 type Stats = { played: number; won: number; streak: number; best: number; dist: number[]; points: number };
-type Lock = { lockAt: string | null; locked: boolean };
+type Lock = { lockAt: string | null; locked: boolean; notStarted?: boolean };
 
 const LEN = 5;
 const ROWS = 6;
@@ -54,7 +55,7 @@ export function MoordleGame({ initial, initialStats, lock }: { initial: Today; i
   const zone = useRef<HTMLDivElement>(null);
   useGameFocus(active, zone);
   const done = !!today.status && !active;
-  const closed = lock.locked && !done;
+  const closed = (lock.locked || !!lock.notStarted) && !done;
 
   const say = useCallback((t: string, ms = 1500) => {
     setToast(t);
@@ -163,8 +164,8 @@ export function MoordleGame({ initial, initialStats, lock }: { initial: Today; i
       {today.status && (
         <div className="mt-3 flex w-full items-center justify-between rounded-xl border border-[#19e6ff]/40 bg-[#0f0730]/90 px-4 py-2">
           <div>
-            <p className="font-hud text-[11px] font-bold uppercase tracking-[0.16em] text-[#19e6ff]">Poin hari ini</p>
-            <p className="font-digits text-xl font-black tabular-nums">{done ? today.score : "–"}</p>
+            <p className="font-hud text-[11px] font-bold uppercase tracking-[0.16em] text-[#19e6ff]">Koin hari ini</p>
+            <p className="font-digits text-xl font-black tabular-nums">{done ? `🪙 ${moordleCoins(today.won, today.guesses.length, today.durationMs ?? 0)}` : "–"}</p>
           </div>
           <div className="text-right">
             <p className="font-hud text-[11px] font-bold uppercase tracking-[0.16em] text-[#19e6ff]">Waktu</p>
@@ -207,11 +208,11 @@ export function MoordleGame({ initial, initialStats, lock }: { initial: Today; i
       {!today.status && (
         <div className="mt-5 w-full rounded-xl border border-[#19e6ff]/40 bg-[#0f0730]/90 p-4 text-sm">
           {closed ? (
-            <p className="font-semibold text-amber-300">Games sudah ditutup — Moordle tidak bisa dimainkan lagi.</p>
+            <p className="font-semibold text-amber-300">Moordle hanya bisa dimainkan selama periode games.</p>
           ) : (
             <>
               <p className="text-[#dbe4ff]">
-                Satu kesempatan untuk Moordle #{today.no} hari ini. Waktu mulai berjalan saat tombol ditekan. Poin: tebakan ke-1 = 60, ke-2 = 50, … ke-6 = 10.
+                Satu kesempatan untuk Moordle #{today.no} hari ini. Waktu mulai berjalan saat tombol ditekan. Moo-coins: tertebak di percobaan ke-1 = 120, ke-2 = 100, … ke-6 = 30, plus bonus cepat (+20 bila &lt; 1 menit, +10 bila &lt; 3 menit).
               </p>
               <button
                 type="button"
@@ -229,7 +230,9 @@ export function MoordleGame({ initial, initialStats, lock }: { initial: Today; i
       {done && (
         <div className="mt-4 w-full rounded-xl border border-[#ff2e9f]/50 bg-[#0f0730]/90 p-4 text-sm" role="status">
           <p className="font-bold">
-            {today.won ? `Benar di tebakan ke-${today.guesses.length} — +${today.score} poin dalam ${fmtDuration(today.durationMs ?? 0)}.` : "Kata hari ini belum berhasil ditebak (0 poin)."}
+            {today.won
+              ? `Benar di tebakan ke-${today.guesses.length} dalam ${fmtDuration(today.durationMs ?? 0)} — +${moordleCoins(true, today.guesses.length, today.durationMs ?? 0)} Moo-coins.`
+              : "Kata hari ini belum berhasil ditebak (0 koin)."}
           </p>
           {today.answer && (
             <p className="mt-1 text-[#dbe4ff]">
@@ -239,8 +242,8 @@ export function MoordleGame({ initial, initialStats, lock }: { initial: Today; i
           <p className="mt-2 text-[#c9c0ee]">
             Kata berikutnya dalam <b className="font-digits tabular-nums text-white">{fmtDuration(untilNext)}</b>
           </p>
-          <Link href="/games#leaderboard" className="mt-2 inline-block font-semibold text-[#19e6ff] hover:underline">
-            Lihat leaderboard →
+          <Link href="/games/ternak" className="mt-2 inline-block font-semibold text-[#19e6ff] hover:underline">
+            Ke kandang →
           </Link>
         </div>
       )}
@@ -318,8 +321,8 @@ function Help() {
       <p>Abu-abu: huruf tidak ada di kata.</p>
       <p className="mt-2">Setelah tebakan ketiga, tema hari ini (konser atau susu) muncul sebagai petunjuk. Tebakan boleh berupa 5 huruf apa saja.</p>
       <p className="mt-2">
-        <b>Hanya satu kesempatan per hari.</b> Poin: benar di tebakan ke-1 = 60, ke-2 = 50, ke-3 = 40, ke-4 = 30, ke-5 = 20, ke-6 = 10; gagal = 0. Waktu dihitung sejak tombol Mulai — makin
-        cepat makin baik bila poin sama. Kata baru setiap pukul 00.00 WIB.
+        <b>Hanya satu kesempatan per hari.</b> Moo-coins: tertebak di percobaan ke-1 = 120, ke-2 = 100, ke-3 = 80, ke-4 = 60, ke-5 = 45, ke-6 = 30; gagal = 0. Bonus cepat
+        (dihitung sejak tombol Mulai): +20 bila &lt; 1 menit, +10 bila &lt; 3 menit. Kata baru setiap pukul 00.00 WIB.
       </p>
     </>
   );

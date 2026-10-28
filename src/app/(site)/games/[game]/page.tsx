@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { requirePageUser } from "@/lib/auth";
 import { getEventBySlug } from "@/lib/events";
 import { fmtDate, fmtTime } from "@/lib/format";
-import { isArcade, myScores } from "@/lib/games/service";
+import { isArcade } from "@/lib/games/service";
 import { FEATURED_SLUG } from "@/components/site/config";
 import { SnakeGame } from "@/components/games/snake";
 import { FlappyGame } from "@/components/games/flappy";
@@ -40,9 +40,9 @@ async function eventInfos() {
 export default async function ArcadePage({ params }: { params: Promise<{ game: string }> }) {
   const { game } = await params;
   if (!isArcade(game)) notFound();
-  const u = await requirePageUser();
+  await requirePageUser();
   const lock = await gamesLockStatus();
-  if (lock.locked) {
+  if (lock.locked || lock.notStarted) {
     return (
       <div className="mx-auto max-w-3xl px-4 pb-16 pt-24 sm:pt-28">
         <Link href="/games" className="text-sm font-semibold text-[#19e6ff] hover:underline">
@@ -53,7 +53,7 @@ export default async function ArcadePage({ params }: { params: Promise<{ game: s
       </div>
     );
   }
-  const best = (await myScores(u.id)).arcade[game].latest;
+  const best = 0;
   if (game === "snake") return <SnakeGame best={best} infos={await eventInfos()} />;
   if (game === "flappy") return <FlappyGame best={best} />;
   if (game === "race") return <RaceGame best={best} />;

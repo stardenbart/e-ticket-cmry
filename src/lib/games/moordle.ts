@@ -3,6 +3,7 @@
 import { sql } from "../db";
 import { ApiError } from "../http";
 import { assertGamesOpen } from "./lock";
+import { rewardMoordle } from "../ternak/service";
 import { MAX_GUESSES, WORD_LEN, evaluate, nextResetAt, normalizeGuess, pointsFor, puzzleNo, wibDay, wordOf, type Mark } from "./moordle-words";
 
 type MoordleRun = {
@@ -76,6 +77,7 @@ export async function moordleGuess(userId: string, raw: string) {
         UPDATE game_runs SET state = ${sql.json(state)}, last_seen_at = now()
         WHERE id = ${run.id} AND status = 'ACTIVE' AND jsonb_array_length(state->'guesses') = ${run.state.guesses.length}
         RETURNING id, status, score, started_at, finished_at, duration_ms, state`;
+  if (r && r.status === "FINISHED") await rewardMoordle(userId, day, !!r.state.won, r.state.guesses.length, r.duration_ms ?? 0);
   return moordleView(r ?? (await moordleRun(userId, day)), day);
 }
 
