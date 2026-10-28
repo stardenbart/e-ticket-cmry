@@ -6,6 +6,8 @@ import { ApiError } from "../http";
 import { gamesPeriod, isLockedAt, notStartedAt } from "../games/lock";
 import {
   FEEDS,
+  MAX_KG,
+  MAX_STOCK,
   MEDICINE,
   MILK,
   OUTFITS,
@@ -117,6 +119,7 @@ export function farmView(row: { cow_name: string | null }, f: FarmState, now: nu
     milkTotal: f.milkTotal,
     bestMilk: f.bestMilk,
     outfits: f.s.outfits ?? [],
+    inv: { asteroid: f.s.inv?.asteroid ?? 0, nebula: f.s.inv?.nebula ?? 0, supernova: f.s.inv?.supernova ?? 0 },
     wear: f.s.wear ?? null,
     log: (f.s.log ?? []).slice(0, 12).map((l) => ({ ...l, at: new Date(l.at).toISOString() })),
     window: win ? { ...win, end: new Date(win.end).toISOString() } : null,
@@ -128,7 +131,7 @@ export function farmView(row: { cow_name: string | null }, f: FarmState, now: nu
 }
 export type FarmView = ReturnType<typeof farmView>;
 
-export const CATALOG = { feeds: FEEDS, medicine: MEDICINE, outfits: OUTFITS, milk: MILK, schedule: SCHEDULE_TEXT };
+export const CATALOG = { feeds: FEEDS, medicine: MEDICINE, outfits: OUTFITS, milk: MILK, schedule: SCHEDULE_TEXT, maxKg: MAX_KG, maxStock: MAX_STOCK };
 
 export async function getFarm(userId: string) {
   const t = await simNow();

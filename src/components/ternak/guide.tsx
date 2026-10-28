@@ -7,6 +7,7 @@ type Catalog = {
   outfits: Record<string, { name: string; price: number; aff: number; emoji: string }>;
   milk: readonly { ml: number; grade: string; price: number }[];
   schedule: string[];
+  maxKg?: number;
 };
 
 export function GuideContent({ catalog }: { catalog: Catalog }) {
@@ -30,7 +31,10 @@ export function GuideContent({ catalog }: { catalog: Catalog }) {
         ))}
       </ul>
       <p className="mt-1 text-white/70">Lewat jadwal makan = sapi kelaparan: berat −2 kg dan afeksi turun.</p>
-      <H>Pakan</H>
+      <H>Pakan & lumbung</H>
+      <p className="mt-1">
+        Beli pakan kapan saja di <b>Lumbung Pakan</b> — stok dipakai otomatis saat memberi makan. Kalau stok habis, pakan dibeli langsung saat memberi makan. Berat maksimal sapi {catalog.maxKg ?? 400} kg, bisa dicapai kalau rajin memberi pakan terbaik.
+      </p>
       <ul className="mt-1 space-y-1">
         {Object.values(catalog.feeds).map((f) => (
           <li key={f.name}>

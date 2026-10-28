@@ -6,6 +6,7 @@ import { farmAction } from "@/lib/ternak/service";
 
 const schema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("feed"), feed: z.enum(["asteroid", "nebula", "supernova"]) }),
+  z.object({ type: z.literal("buyFeed"), feed: z.enum(["asteroid", "nebula", "supernova"]), qty: z.number().int().min(1).max(20) }),
   z.object({ type: z.literal("clean") }),
   z.object({ type: z.literal("pet") }),
   z.object({ type: z.literal("medicine") }),

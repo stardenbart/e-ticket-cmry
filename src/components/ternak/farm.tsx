@@ -19,6 +19,8 @@ type Catalog = {
   outfits: Record<string, { name: string; price: number; aff: number; emoji: string }>;
   milk: readonly { ml: number; grade: string; price: number }[];
   schedule: string[];
+  maxKg: number;
+  maxStock: number;
 };
 type Milk = { ml: number; grade: string; price: number };
 type Result = { note: string; spent: number; earned: number; milk?: Milk };
@@ -26,7 +28,7 @@ type Result = { note: string; spent: number; earned: number; milk?: Milk };
 const COIN = "🪙";
 const MILK_TAPS = 5;
 const OUTFIT_EMOJI: Record<string, string> = { bandana: "🎀", bomber: "🧥", jubah: "👑" };
-const NEXT_STAGE: Record<StageKey, { kg: number; label: string } | null> = { pedet: { kg: 150, label: "Remaja" }, remaja: { kg: 300, label: "Dewasa" }, dewasa: null };
+const NEXT_STAGE: Record<Exclude<StageKey, "dewasa">, { kg: number; label: string }> = { pedet: { kg: 150, label: "Remaja" }, remaja: { kg: 300, label: "Dewasa" } };
 const STAGE_FROM: Record<StageKey, number> = { pedet: 50, remaja: 150, dewasa: 300 };
 
 export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmView; catalog: Catalog; ended: boolean; notStarted: boolean }) {
@@ -110,13 +112,23 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
   async function feed(k: string) {
     const f = catalog.feeds[k];
     if (blockFeed) return say(blockFeed);
-    if (farm.coins < f.price) return say(`Moo-coins kurang — ${f.name} seharga ${f.price}.`);
+    const stock = farm.inv[k as keyof typeof farm.inv];
+    if (!stock && farm.coins < f.price) return say(`Stok ${f.name} habis dan Moo-coins kurang (${f.price}). Main games dulu!`);
     setFeedOpen(false);
+    const kg0 = farm.kg;
     const r = await run(`feed:${k}`, { type: "feed", feed: k });
     if (r) {
-      barn.current?.feed(f.emoji, `+${f.kg} kg`);
-      barn.current?.float(`−${f.price} ${COIN}`, "coin");
+      const gain = Math.round(Math.min(f.kg, catalog.maxKg - kg0) * 10) / 10;
+      barn.current?.feed(f.emoji, gain ? `+${gain} kg` : "Berat maksimal!");
+      if (r.spent) barn.current?.float(`−${r.spent} ${COIN}`, "coin");
     }
+  }
+  async function buyFeed(k: string, qty: number) {
+    const f = catalog.feeds[k];
+    if (frozen) return say(lockedMsg);
+    if (farm.coins < f.price * qty) return say(`Moo-coins kurang — ${qty}× ${f.name} = ${(f.price * qty).toLocaleString("id-ID")}.`);
+    const r = await run(`buy:${k}:${qty}`, { type: "buyFeed", feed: k, qty });
+    if (r) barn.current?.toast(`🛒 ${qty}× ${f.emoji} ${f.name} masuk lumbung`, "ok");
   }
   async function clean() {
     if (blockClean) return say(blockClean, blockClean.startsWith("Kandang") ? "ok" : "warn");
@@ -173,6 +185,7 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
   }
 
   // ---- status & pesan ----
+  const totalStock = farm.inv.asteroid + farm.inv.nebula + farm.inv.supernova;
   const badge = farm.sick
     ? { t: "Sakit", c: "bg-rose-100 text-rose-700 animate-pulse" }
     : farm.hungry
@@ -190,19 +203,22 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
       : farm.sick
         ? { tone: "bad", text: <>Sapi sakit 🤒 — tidak mau makan & tidak menghasilkan susu. Tekan <b>Beri Obat</b> ({COIN} {catalog.medicine.price}).{farm.coins < catalog.medicine.price && " Koinmu belum cukup, main games dulu ya!"}</> }
         : feeding && !farm.fedNow
-          ? { tone: "warn", text: <>Waktunya <b>{winLabel.toLowerCase()}</b>! Tekan <b>Beri Makan</b> lalu pilih pakan (sisa {left(win?.end)}).</> }
+          ? { tone: "warn", text: <>Waktunya <b>{winLabel.toLowerCase()}</b>! Tekan <b>Beri Makan</b> lalu pilih pakan{totalStock ? "" : " — lumbungmu kosong, pakan akan dibeli langsung"} (sisa {left(win?.end)}).</> }
           : harvesting && !farm.harvestedToday
             ? { tone: "warn", text: <>Waktunya <b>perah susu</b>! Tekan <b>Perah Susu</b>, lalu ketuk ember {MILK_TAPS}× (sisa {left(win?.end)}).</> }
             : farm.dirt > 0
               ? { tone: "warn", text: <>Ada {farm.dirt} pup 💩 di kandang — <b>ketuk pupnya</b> atau tekan <b>Bersihkan</b> sebelum sapi sakit.</> }
+              : !totalStock
+                ? { tone: "warn", text: <>Lumbung pakan kosong. <b>Beli pakan</b> di Lumbung Pakan di bawah supaya siap saat jadwal makan.</> }
               : !farm.petToday
                 ? { tone: "ok", text: <><b>Ketuk sapimu</b> untuk mengelus (+1 afeksi, sekali sehari).</> }
                 : { tone: "ok", text: <>Semua beres! 👍 Berikutnya: <b>{farm.next?.label}</b> dalam {left(farm.next?.start)}. Sambil menunggu, kumpulkan koin dari games.</> };
   const todoTone = { ok: "bg-emerald-50 text-emerald-800 ring-emerald-200", warn: "bg-[#fffbeb] text-[#78350f] ring-[#fde68a]", bad: "bg-rose-50 text-rose-800 ring-rose-200" }[todo.tone];
 
   const stageKey = farm.sprite.stage.key as StageKey;
-  const nx = NEXT_STAGE[stageKey];
-  const growth = nx ? Math.min(100, Math.max(0, ((farm.kg - STAGE_FROM[stageKey]) / (nx.kg - STAGE_FROM[stageKey])) * 100)) : 100;
+  const nx = stageKey === "dewasa" ? { kg: catalog.maxKg, label: "berat maksimal" } : NEXT_STAGE[stageKey];
+  const maxed = farm.kg >= catalog.maxKg;
+  const growth = Math.min(100, Math.max(0, ((farm.kg - STAGE_FROM[stageKey]) / (nx.kg - STAGE_FROM[stageKey])) * 100));
   const affColor = farm.hearts >= 4 ? "bg-rose-500" : farm.hearts >= 2 ? "bg-pink-400" : "bg-gray-400";
 
   return (
@@ -225,10 +241,10 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
 
       {/* ================= KANDANG ================= */}
       <section className="overflow-hidden rounded-3xl bg-[#fff] text-gray-800 shadow-xl ring-1 ring-black/5" aria-label="Kandang sapi">
-        <header className="flex items-center justify-between gap-3 bg-gradient-to-r from-emerald-600 to-lime-500 px-4 py-3 text-white sm:px-5 sm:py-4">
+        <header className="flex items-center justify-between gap-3 bg-[linear-gradient(100deg,#ff2e9f,#9d4dff_55%,#19e6ff)] px-4 py-3 text-white sm:px-5 sm:py-4">
           <div className="min-w-0">
-            <h2 className="truncate text-xl font-extrabold leading-tight sm:text-2xl">Kandang {farm.name}</h2>
-            <p className="text-xs text-emerald-50 sm:text-sm">Ketuk sapi untuk mengelus · ketuk pup untuk membersihkan</p>
+            <h2 className="mv-title truncate text-xl leading-tight sm:text-2xl">Kandang {farm.name}</h2>
+            <p className="text-xs text-white/90 sm:text-sm">Ketuk sapi untuk mengelus · ketuk pup untuk membersihkan</p>
           </div>
           <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold sm:text-sm ${badge.c}`} role="status">
             {badge.t}
@@ -279,7 +295,13 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
 
           <div className="grid gap-3 sm:grid-cols-2">
             <Bar label="Afeksi" right={`${farm.hearts} ♥`} pct={farm.affection} color={affColor} hint="Naik: makan tepat waktu, elus, bersih, main game." />
-            <Bar label={nx ? `Menuju ${nx.label}` : "Sapi Dewasa"} right={nx ? `${farm.kg.toLocaleString("id-ID")} / ${nx.kg} kg` : "Bisa susu Grade S"} pct={growth} color="bg-sky-500" hint={nx ? `Pakan lebih bagus = tumbuh lebih cepat.` : "5 ♥ + Konsentrat Supernova dua kali = peluang Grade S."} />
+            <Bar
+              label={maxed ? "Berat maksimal tercapai! 🏆" : `Menuju ${nx.label}`}
+              right={`${farm.kg.toLocaleString("id-ID")} / ${nx.kg} kg`}
+              pct={growth}
+              color={maxed ? "bg-amber-400" : "bg-sky-500"}
+              hint={stageKey === "dewasa" ? "Sapi Dewasa: 5 ♥ + Konsentrat Supernova 2× sehari = peluang susu Grade S." : `Pakan lebih bagus = tumbuh lebih cepat. Berat maksimal ${catalog.maxKg} kg.`}
+            />
           </div>
 
           {/* Pesan: yang perlu dilakukan sekarang */}
@@ -300,7 +322,8 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
               <p className="mb-2 text-sm font-bold text-emerald-900">Pilih pakan untuk {winLabel.toLowerCase()}:</p>
               <div className="grid gap-2 sm:grid-cols-3">
                 {Object.entries(catalog.feeds).map(([k, f]) => {
-                  const poor = farm.coins < f.price;
+                  const stock = farm.inv[k as keyof typeof farm.inv];
+                  const poor = !stock && farm.coins < f.price;
                   return (
                     <button
                       key={k}
@@ -314,9 +337,11 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
                         {f.emoji} {f.name}
                       </p>
                       <p className="text-xs font-semibold text-emerald-700">
-                        {f.grade} · +{f.kg} kg · {COIN} {f.price}
+                        {f.grade} · +{f.kg} kg
                       </p>
-                      <p className="mt-1 text-xs text-gray-500">{f.desc}</p>
+                      <p className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-bold ${stock ? "bg-emerald-600 text-[#fff]" : "bg-gray-200 text-gray-700"}`}>
+                        {stock ? `Pakai stok (${stock})` : `Beli & beri · ${COIN} ${f.price}`}
+                      </p>
                     </button>
                   );
                 })}
@@ -336,6 +361,47 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
             )}{" "}
             · Jadwal WIB: {catalog.schedule.join(" · ")}
           </p>
+        </div>
+      </section>
+
+      {/* Lumbung pakan */}
+      <section className="rounded-xl border border-[#19e6ff]/40 bg-[#0f0730]/85 p-4 text-white">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 className="font-hud text-sm font-bold uppercase tracking-[0.14em] text-[#19e6ff]">Lumbung Pakan</h3>
+          <p className="text-xs text-white/60">Beli kapan saja · maks {catalog.maxStock} per jenis</p>
+        </div>
+        <p className="mt-1 text-xs text-white/60">Stok dipakai otomatis saat kamu menekan Beri Makan di jadwal makan.</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          {Object.entries(catalog.feeds).map(([k, f]) => {
+            const stock = farm.inv[k as keyof typeof farm.inv];
+            return (
+              <div key={k} className="rounded-xl border border-white/15 bg-[#07031a] p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-bold">
+                    {f.emoji} {f.name}
+                  </p>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${stock ? "bg-[#19e6ff]/20 text-[#19e6ff]" : "bg-white/10 text-white/60"}`}>Stok {stock}</span>
+                </div>
+                <p className="text-xs text-[#19e6ff]">
+                  {f.grade} · +{f.kg} kg · {COIN} {f.price}/porsi
+                </p>
+                <p className="mt-1 text-xs text-white/60">{f.desc}</p>
+                <div className="mt-2 flex gap-2">
+                  {[1, 5].map((q) => (
+                    <button
+                      key={q}
+                      type="button"
+                      disabled={frozen || !!busy || stock + q > catalog.maxStock}
+                      onClick={() => buyFeed(k, q)}
+                      className={`flex-1 rounded-full border px-2 py-1.5 text-xs font-bold transition disabled:opacity-40 ${farm.coins < f.price * q ? "border-white/15 text-white/50" : "border-[#ff2e9f]/70 text-white enabled:hover:bg-[#ff2e9f]/20"}`}
+                    >
+                      {busy === `buy:${k}:${q}` ? "…" : `Beli ${q} · ${COIN} ${(f.price * q).toLocaleString("id-ID")}`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
 

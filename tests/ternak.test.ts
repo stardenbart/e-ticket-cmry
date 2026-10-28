@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FEEDS, MEDICINE, act, advance, hearts, moodOf, newFarm, slotWindow, stageOf, wibDayOf, type FarmState } from "@/lib/ternak/engine";
+import { FEEDS, MAX_KG, MAX_STOCK, MEDICINE, act, advance, hearts, moodOf, newFarm, slotWindow, stageOf, wibDayOf, type FarmState } from "@/lib/ternak/engine";
 import { ARCADE_RATE, arcadeCoins, moordleCoins, ttsCoins } from "@/lib/ternak/earn";
 
 const T = (s: string) => Date.parse(s);
@@ -33,6 +33,26 @@ describe("Moo-coins dari poin games", () => {
 });
 
 describe("Ternak sapi", () => {
+  it("lumbung: beli pakan kapan saja, makan memakai stok dulu (tanpa bayar lagi)", () => {
+    const f = farm();
+    act(f, { type: "buyFeed", feed: "supernova", qty: 3 }, T("2026-11-02T09:00:00+07:00"), noLuck);
+    expect(f.coins).toBe(1000 - 3 * FEEDS.supernova.price);
+    expect(f.s.inv?.supernova).toBe(3);
+    act(f, { type: "feed", feed: "supernova" }, T("2026-11-02T12:00:00+07:00"), noLuck);
+    expect(f.s.inv?.supernova).toBe(2);
+    expect(f.coins).toBe(1000 - 3 * FEEDS.supernova.price);
+    expect(() => act(f, { type: "buyFeed", feed: "supernova", qty: MAX_STOCK }, T("2026-11-02T13:00:00+07:00"), noLuck)).toThrow(/Lumbung penuh/);
+    expect(() => act(farm(50), { type: "buyFeed", feed: "nebula", qty: 2 }, T("2026-11-02T13:00:00+07:00"), noLuck)).toThrow(/kurang/);
+  });
+  it("berat tidak melewati batas maksimal", () => {
+    const f = farm();
+    f.kg = MAX_KG - 5;
+    const r = act(f, { type: "feed", feed: "supernova" }, T("2026-11-02T12:00:00+07:00"), noLuck);
+    expect(f.kg).toBe(MAX_KG);
+    expect(r.note).toMatch(/\+5 kg/);
+    act(f, { type: "feed", feed: "supernova" }, T("2026-11-02T17:00:00+07:00"), noLuck);
+    expect(f.kg).toBe(MAX_KG);
+  });
   it("makan hanya saat jadwal, sekali per jadwal; berat & kotoran bertambah", () => {
     const f = farm();
     expect(() => act(f, { type: "feed", feed: "nebula" }, T("2026-11-02T10:00:00+07:00"), noLuck)).toThrow(/Belum jadwal makan/);

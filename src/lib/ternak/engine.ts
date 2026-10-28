@@ -11,10 +11,12 @@
 export type FeedKey = "asteroid" | "nebula" | "supernova";
 export const FEEDS: Record<FeedKey, { name: string; grade: string; price: number; kg: number; aff: number; risk: number; emoji: string; desc: string }> = {
   asteroid: { name: "Rumput Asteroid", grade: "Low", price: 20, kg: 3, aff: 2, risk: 1.6, emoji: "🌾", desc: "Murah dan mengenyangkan, tapi sapi lebih mudah sakit." },
-  nebula: { name: "Silase Nebula", grade: "Medium", price: 45, kg: 6, aff: 2, risk: 1.0, emoji: "🥬", desc: "Pakan harian seimbang." },
-  supernova: { name: "Konsentrat Supernova", grade: "High", price: 90, kg: 10, aff: 3, risk: 0.5, emoji: "✨", desc: "Berat naik paling banyak, sapi paling jarang sakit. Syarat susu Grade S." },
+  nebula: { name: "Silase Nebula", grade: "Medium", price: 45, kg: 7, aff: 2, risk: 1.0, emoji: "🥬", desc: "Pakan harian seimbang." },
+  supernova: { name: "Konsentrat Supernova", grade: "High", price: 90, kg: 12, aff: 3, risk: 0.5, emoji: "✨", desc: "Berat naik paling banyak, sapi paling jarang sakit. Syarat susu Grade S." },
 };
 export const FEED_KEYS = Object.keys(FEEDS) as FeedKey[];
+/** Stok maksimal per jenis pakan di lumbung. */
+export const MAX_STOCK = 20;
 
 export const MEDICINE = { name: "Ramuan MooVita", price: 300, emoji: "🧪", desc: "Satu-satunya obat di Mooniverse. Langsung menyembuhkan sapi yang sakit." };
 
@@ -53,6 +55,8 @@ export const STAGES = [
 ] as const;
 export const START_KG = 50;
 export const MIN_KG = 50;
+/** Berat maksimal — bisa dicapai pemain yang rajin (Konsentrat Supernova 2× sehari ± 15 hari). */
+export const MAX_KG = 400;
 export const START_AFF = 30;
 
 /** Peluang sakit per jadwal makan menurut tumpukan kotoran (0–3), dikali faktor pakan. */
@@ -128,6 +132,7 @@ export type FarmState = {
   coins: number;
   s: {
     fed?: Record<string, FeedKey>; // "hari-slot" → pakan
+    inv?: Partial<Record<FeedKey, number>>; // stok pakan di lumbung
     pet?: number; // hari terakhir dielus
     play?: number; // hari terakhir main game (bonus afeksi)
     harvest?: number; // hari terakhir panen
@@ -154,7 +159,7 @@ function log(f: FarmState, at: number, text: string, tone: LogEntry["tone"] = "i
 
 function norm(f: FarmState) {
   f.affection = clamp(Math.round(f.affection), 0, 100);
-  f.kg = Math.max(MIN_KG, Math.round(f.kg * 10) / 10);
+  f.kg = Math.min(MAX_KG, Math.max(MIN_KG, Math.round(f.kg * 10) / 10));
   f.dirt = clamp(f.dirt, 0, MAX_DIRT);
 }
 
@@ -226,6 +231,7 @@ export class FarmError extends Error {
 
 export type Action =
   | { type: "feed"; feed: FeedKey }
+  | { type: "buyFeed"; feed: FeedKey; qty: number }
   | { type: "clean" }
   | { type: "pet" }
   | { type: "medicine" }
@@ -251,13 +257,30 @@ export function act(f: FarmState, a: Action, now: number, rand: Rand): ActionRes
       if (f.s.fed?.[key]) throw new FarmError("ALREADY_FED", "Sapi sudah makan di jadwal ini.");
       if (f.sick) throw new FarmError("COW_SICK", `Sapi sakit dan tidak mau makan. Beri ${MEDICINE.name} dulu.`);
       const feed = FEEDS[a.feed];
-      pay(feed.price);
+      // Pakai stok lumbung dulu; kalau habis, langsung dibeli saat itu juga.
+      const stock = f.s.inv?.[a.feed] ?? 0;
+      if (stock > 0) f.s.inv = { ...f.s.inv, [a.feed]: stock - 1 };
+      else pay(feed.price);
+      const spent = stock > 0 ? 0 : feed.price;
+      const gain = Math.round(Math.min(feed.kg, MAX_KG - f.kg) * 10) / 10;
       f.s.fed = { ...(f.s.fed ?? {}), [key]: a.feed };
-      f.kg += feed.kg;
+      f.kg += gain;
       f.affection += feed.aff;
       f.dirt = Math.min(MAX_DIRT, f.dirt + 1);
-      r = { spent: feed.price, earned: 0, note: `Makan ${feed.name} (+${feed.kg} kg)` };
-      log(f, now, `${feed.emoji} Sapi melahap ${feed.name} — berat +${feed.kg} kg.`, "good");
+      r = { spent, earned: 0, note: gain ? `Makan ${feed.name} (+${gain} kg)` : `Makan ${feed.name} (berat sudah maksimal)` };
+      log(f, now, gain ? `${feed.emoji} Sapi melahap ${feed.name} — berat +${gain} kg.` : `${feed.emoji} Sapi melahap ${feed.name} — berat sudah maksimal ${MAX_KG} kg, tetap kenyang & senang.`, "good");
+      break;
+    }
+    case "buyFeed": {
+      const feed = FEEDS[a.feed];
+      const qty = Math.floor(a.qty);
+      const stock = f.s.inv?.[a.feed] ?? 0;
+      if (!(qty >= 1)) throw new FarmError("BAD_QTY", "Jumlah pakan tidak valid.");
+      if (stock + qty > MAX_STOCK) throw new FarmError("STOCK_FULL", `Lumbung penuh — maksimal ${MAX_STOCK} ${feed.name} (stok ${stock}).`);
+      pay(feed.price * qty);
+      f.s.inv = { ...f.s.inv, [a.feed]: stock + qty };
+      r = { spent: feed.price * qty, earned: 0, note: `Beli ${qty}× ${feed.name}` };
+      log(f, now, `🛒 Beli ${qty}× ${feed.emoji} ${feed.name} untuk lumbung.`, "info");
       break;
     }
     case "clean": {
@@ -391,7 +414,7 @@ const SPRITE_MOOD: Record<Mood, string> = { senang: "sehat", sedih: "lapar", sak
 export function spriteOf(f: Pick<FarmState, "kg">, mood: Mood) {
   const st = stageOf(f.kg);
   const idx = STAGES.findIndex((s) => s.key === st.key);
-  const next = STAGES[idx + 1]?.minKg ?? st.minKg + 300;
+  const next = STAGES[idx + 1]?.minKg ?? MAX_KG;
   const within = clamp((f.kg - st.minKg) / (next - st.minKg), 0, 1);
   return { src: `/images/ternak/sapi-${st.key}-${SPRITE_MOOD[mood]}.webp`, scale: Math.round((0.82 + within * 0.18) * 100) / 100, stage: st };
 }
