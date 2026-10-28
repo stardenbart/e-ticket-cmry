@@ -20,11 +20,16 @@ export const MAX_STOCK = 20;
 
 export const MEDICINE = { name: "Ramuan MooVita", price: 300, emoji: "🧪", desc: "Satu-satunya obat di Mooniverse. Langsung menyembuhkan sapi yang sakit." };
 
-export type OutfitKey = "bandana" | "bomber" | "jubah";
-export const OUTFITS: Record<OutfitKey, { name: string; price: number; aff: number; emoji: string }> = {
-  bandana: { name: "Bandana Neon Rider", price: 500, aff: 5, emoji: "🎀" },
-  bomber: { name: "Jaket Bomber Galaksi", price: 1000, aff: 10, emoji: "🧥" },
-  jubah: { name: "Jubah Raja Mooniverse", price: 2000, aff: 15, emoji: "👑" },
+/** Hiasan kepala (kostum). `spot` = posisi di sapi: atas kepala atau di mata (kacamata). */
+export type OutfitKey = "topi" | "pita" | "bunga" | "headset" | "kacamata" | "pesulap" | "mahkota";
+export const OUTFITS: Record<OutfitKey, { name: string; price: number; aff: number; emoji: string; spot: "head" | "eyes" }> = {
+  topi: { name: "Topi Rancher Neon", price: 300, aff: 2, emoji: "🧢", spot: "head" },
+  pita: { name: "Pita Neon Rider", price: 500, aff: 3, emoji: "🎀", spot: "head" },
+  bunga: { name: "Mahkota Bunga Nebula", price: 600, aff: 4, emoji: "🌸", spot: "head" },
+  headset: { name: "Headset DJ Mooniverse", price: 800, aff: 5, emoji: "🎧", spot: "head" },
+  kacamata: { name: "Kacamata Rockstar Galaksi", price: 1000, aff: 6, emoji: "🕶️", spot: "eyes" },
+  pesulap: { name: "Topi Pesulap Komet", price: 1300, aff: 8, emoji: "🎩", spot: "head" },
+  mahkota: { name: "Mahkota Raja Mooniverse", price: 2000, aff: 12, emoji: "👑", spot: "head" },
 };
 export const OUTFIT_KEYS = Object.keys(OUTFITS) as OutfitKey[];
 
@@ -339,7 +344,7 @@ export function act(f: FarmState, a: Action, now: number, rand: Rand): ActionRes
     }
     case "buyOutfit": {
       const o = OUTFITS[a.outfit];
-      if (f.s.outfits?.includes(a.outfit)) throw new FarmError("ALREADY_OWNED", "Baju ini sudah dimiliki.");
+      if (f.s.outfits?.includes(a.outfit)) throw new FarmError("ALREADY_OWNED", "Hiasan ini sudah dimiliki.");
       pay(o.price);
       f.s.outfits = [...(f.s.outfits ?? []), a.outfit];
       f.s.wear = a.outfit;
@@ -349,9 +354,9 @@ export function act(f: FarmState, a: Action, now: number, rand: Rand): ActionRes
       break;
     }
     case "wear": {
-      if (a.outfit && !f.s.outfits?.includes(a.outfit)) throw new FarmError("NOT_OWNED", "Baju ini belum dimiliki.");
+      if (a.outfit && !f.s.outfits?.includes(a.outfit)) throw new FarmError("NOT_OWNED", "Hiasan ini belum dimiliki.");
       f.s.wear = a.outfit;
-      r = { spent: 0, earned: 0, note: "Ganti baju" };
+      r = { spent: 0, earned: 0, note: "Ganti hiasan kepala" };
       break;
     }
   }

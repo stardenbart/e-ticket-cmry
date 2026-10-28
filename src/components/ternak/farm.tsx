@@ -1,7 +1,7 @@
 "use client";
 
 // Kandang "Grow your Cow, Grow your Country". Layar kandang (Barn) menampilkan sapi yang bergerak sendiri
-// sesuai kondisinya; setiap interaksi (beri makan, elus, bersihkan pup, obat, perah susu, baju) memicu
+// sesuai kondisinya; setiap interaksi (beri makan, elus, bersihkan pup, obat, perah susu, hiasan kepala) memicu
 // reaksi sapi di kandang. Di bawahnya: statistik, pesan "yang perlu dilakukan", dan tombol aksi besar.
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -16,7 +16,7 @@ type Feed = { name: string; grade: string; price: number; kg: number; emoji: str
 type Catalog = {
   feeds: Record<string, Feed>;
   medicine: { name: string; price: number; emoji: string; desc: string };
-  outfits: Record<string, { name: string; price: number; aff: number; emoji: string }>;
+  outfits: Record<string, { name: string; price: number; aff: number; emoji: string; spot: "head" | "eyes" }>;
   milk: readonly { ml: number; grade: string; price: number }[];
   schedule: string[];
   maxKg: number;
@@ -27,7 +27,6 @@ type Result = { note: string; spent: number; earned: number; milk?: Milk };
 
 const COIN = "🪙";
 const MILK_TAPS = 5;
-const OUTFIT_EMOJI: Record<string, string> = { bandana: "🎀", bomber: "🧥", jubah: "👑" };
 const NEXT_STAGE: Record<Exclude<StageKey, "dewasa">, { kg: number; label: string }> = { pedet: { kg: 150, label: "Remaja" }, remaja: { kg: 300, label: "Dewasa" } };
 const STAGE_FROM: Record<StageKey, number> = { pedet: 50, remaja: 150, dewasa: 300 };
 
@@ -260,7 +259,7 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
               scale={farm.sprite.scale}
               mood={farm.mood}
               src={farm.sprite.src}
-              accessory={farm.wear ? { emoji: OUTFIT_EMOJI[farm.wear], spot: farm.wear === "bomber" ? "body" : "head" } : null}
+              accessory={farm.wear ? { emoji: catalog.outfits[farm.wear].emoji, spot: catalog.outfits[farm.wear].spot } : null}
               dirt={farm.dirt}
               scooped={scooped}
               milking={milking ? { ...milking, need: MILK_TAPS } : null}
@@ -405,11 +404,11 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
         </div>
       </section>
 
-      {/* Butik baju */}
+      {/* Butik hiasan kepala */}
       <section className="rounded-xl border border-[#9d4dff]/40 bg-[#0f0730]/85 p-4 text-white">
-        <h3 className="font-hud text-sm font-bold uppercase tracking-[0.14em] text-[#d9c2ff]">Butik Sapi</h3>
-        <p className="mt-1 text-xs text-white/60">Baju menambah afeksi sekali beli — tapi mahal. Pastikan masih ada koin untuk obat!</p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        <h3 className="font-hud text-sm font-bold uppercase tracking-[0.14em] text-[#d9c2ff]">Butik Hiasan Kepala</h3>
+        <p className="mt-1 text-xs text-white/60">Hiasan kepala menambah afeksi sekali beli — tapi mahal. Pakai satu, ganti kapan saja. Pastikan masih ada koin untuk obat!</p>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {Object.entries(catalog.outfits).map(([k, o]) => {
             const owned = farm.outfits.includes(k as never);
             const wearing = farm.wear === k;

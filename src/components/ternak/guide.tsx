@@ -4,7 +4,7 @@
 type Catalog = {
   feeds: Record<string, { name: string; grade: string; price: number; kg: number; emoji: string; desc: string }>;
   medicine: { name: string; price: number; emoji: string; desc: string };
-  outfits: Record<string, { name: string; price: number; aff: number; emoji: string }>;
+  outfits: Record<string, { name: string; price: number; aff: number; emoji: string; spot?: string }>;
   milk: readonly { ml: number; grade: string; price: number }[];
   schedule: string[];
   maxKg?: number;
@@ -52,7 +52,7 @@ export function GuideContent({ catalog }: { catalog: Catalog }) {
       </ul>
       <H>Afeksi (1–5 ♥)</H>
       <ul className="mt-1 list-disc space-y-1 pl-5">
-        <li>Naik: makan tepat waktu, kandang dibersihkan, dielus (ketuk sapinya) sekali sehari, main game hari itu, baju baru.</li>
+        <li>Naik: makan tepat waktu, kandang dibersihkan, dielus (ketuk sapinya) sekali sehari, main game hari itu, hiasan kepala baru.</li>
         <li>Turun: kelaparan, sakit, kandang penuh kotoran, dan rindu (−1 tiap hari).</li>
       </ul>
       <H>Susu</H>
@@ -69,12 +69,12 @@ export function GuideContent({ catalog }: { catalog: Catalog }) {
       <p className="mt-2 text-white/80">
         ✨ <b>Grade S (950 ml)</b> sangat langka: sapi Dewasa, 5 ♥, sehat, dan makan Konsentrat Supernova dua kali hari itu. Tetap adil — setelah 7 hari memenuhi syarat tanpa S, panen berikutnya pasti S.
       </p>
-      <H>Butik Sapi</H>
+      <H>Butik Hiasan Kepala</H>
       <p className="mt-1">
         {Object.values(catalog.outfits)
           .map((o) => `${o.emoji} ${o.name} (🪙 ${o.price.toLocaleString("id-ID")}, +${o.aff} afeksi)`)
           .join(" · ")}
-        . Mahal — jangan sampai tidak bisa beli obat!
+        . Dipakai satu per satu dan bisa diganti kapan saja. Mahal — jangan sampai tidak bisa beli obat!
       </p>
       <H>Juara</H>
       <p className="mt-1">Peringkat: jumlah hati → berat sapi → total susu → siapa yang lebih dulu mencapainya. Setelah periode games berakhir, kondisi sapi dibekukan dan 3 juara diumumkan di hari H acara.</p>

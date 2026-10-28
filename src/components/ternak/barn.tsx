@@ -115,7 +115,7 @@ export function Barn({
   scale: number;
   mood: CowMood;
   src: string;
-  accessory: { emoji: string; spot: "head" | "body" } | null;
+  accessory: { emoji: string; spot: "head" | "eyes" } | null;
   dirt: number;
   scooped: number[];
   milking: { taps: number; need: number; busy: boolean } | null;
@@ -477,12 +477,11 @@ export function Barn({
     toast,
   }));
 
-  // Aksesori kepala (bandana, mahkota) di atas kepala; jaket di badan sapi.
-  const accStyle = (spot: "head" | "body"): React.CSSProperties => {
-    if (spot === "head") return { left: `${meta.head[0]}%`, top: `${meta.head[1]}%`, fontSize: `${Math.max(4, widthPct * 0.2)}cqw` };
-    const x = stage === "pedet" ? 50 : meta.head[0] > 50 ? meta.head[0] - 32 : meta.head[0] + 32;
-    const y = mood === "sakit" ? 58 : stage === "pedet" ? 64 : stage === "remaja" ? 56 : 48;
-    return { left: `${x}%`, top: `${y}%`, fontSize: `${Math.max(5, widthPct * 0.3)}cqw`, transform: "translate(-50%,-50%)" };
+  // Hiasan kepala di atas kepala; kacamata turun ke mata.
+  const accStyle = (spot: "head" | "eyes"): React.CSSProperties => {
+    const size = `${Math.max(4, widthPct * 0.2)}cqw`;
+    if (spot === "head") return { left: `${meta.head[0]}%`, top: `${meta.head[1]}%`, fontSize: size };
+    return { left: `${meta.head[0]}%`, top: `${meta.head[1] + (mood === "sakit" ? 22 : stage === "dewasa" ? 18 : 22)}%`, fontSize: size, transform: "translate(-50%,-50%)" };
   };
   const sign = name.toUpperCase();
   const fill = milking ? Math.min(1, milking.taps / milking.need) : 0;

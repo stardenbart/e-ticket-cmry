@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FEEDS, MAX_KG, MAX_STOCK, MEDICINE, act, advance, hearts, moodOf, newFarm, slotWindow, stageOf, wibDayOf, type FarmState } from "@/lib/ternak/engine";
+import { FEEDS, MAX_KG, MAX_STOCK, MEDICINE, OUTFITS, OUTFIT_KEYS, act, advance, hearts, moodOf, newFarm, slotWindow, stageOf, wibDayOf, type FarmState } from "@/lib/ternak/engine";
 import { ARCADE_RATE, arcadeCoins, moordleCoins, ttsCoins } from "@/lib/ternak/earn";
 
 const T = (s: string) => Date.parse(s);
@@ -33,6 +33,23 @@ describe("Moo-coins dari poin games", () => {
 });
 
 describe("Ternak sapi", () => {
+  it("hiasan kepala: beli sekali (+afeksi), pakai salah satu, bisa diganti/dilepas", () => {
+    expect(OUTFIT_KEYS.length).toBeGreaterThanOrEqual(7);
+    const f = farm(5000);
+    const t = T("2026-11-02T09:00:00+07:00");
+    act(f, { type: "buyOutfit", outfit: "headset" }, t, noLuck);
+    expect(f.affection).toBe(30 + OUTFITS.headset.aff);
+    expect(f.s.wear).toBe("headset");
+    act(f, { type: "buyOutfit", outfit: "mahkota" }, t, noLuck);
+    expect(f.s.wear).toBe("mahkota");
+    expect(f.coins).toBe(5000 - OUTFITS.headset.price - OUTFITS.mahkota.price);
+    expect(() => act(f, { type: "buyOutfit", outfit: "headset" }, t, noLuck)).toThrow(/sudah dimiliki/);
+    act(f, { type: "wear", outfit: "headset" }, t, noLuck);
+    expect(f.s.wear).toBe("headset");
+    expect(() => act(f, { type: "wear", outfit: "topi" }, t, noLuck)).toThrow(/belum dimiliki/);
+    act(f, { type: "wear", outfit: null }, t, noLuck);
+    expect(f.s.wear).toBeNull();
+  });
   it("lumbung: beli pakan kapan saja, makan memakai stok dulu (tanpa bayar lagi)", () => {
     const f = farm();
     act(f, { type: "buyFeed", feed: "supernova", qty: 3 }, T("2026-11-02T09:00:00+07:00"), noLuck);

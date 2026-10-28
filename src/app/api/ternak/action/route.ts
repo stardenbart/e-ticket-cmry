@@ -3,6 +3,9 @@ import { body, json, route } from "@/lib/http";
 import { requireUser } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { farmAction } from "@/lib/ternak/service";
+import { OUTFIT_KEYS, type OutfitKey } from "@/lib/ternak/engine";
+
+const outfit = z.enum(OUTFIT_KEYS as [OutfitKey, ...OutfitKey[]]);
 
 const schema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("feed"), feed: z.enum(["asteroid", "nebula", "supernova"]) }),
@@ -11,11 +14,11 @@ const schema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("pet") }),
   z.object({ type: z.literal("medicine") }),
   z.object({ type: z.literal("harvest") }),
-  z.object({ type: z.literal("buyOutfit"), outfit: z.enum(["bandana", "bomber", "jubah"]) }),
-  z.object({ type: z.literal("wear"), outfit: z.enum(["bandana", "bomber", "jubah"]).nullable() }),
+  z.object({ type: z.literal("buyOutfit"), outfit }),
+  z.object({ type: z.literal("wear"), outfit: outfit.nullable() }),
 ]);
 
-/** POST /api/ternak/action — beri makan, bersihkan, elus, obat, panen, beli/pakai baju. */
+/** POST /api/ternak/action — beri makan, bersihkan, elus, obat, panen, beli/pakai hiasan kepala. */
 export const POST = route(async (req) => {
   const u = await requireUser();
   await rateLimit(`ternak:${u.id}`, 40, 60);

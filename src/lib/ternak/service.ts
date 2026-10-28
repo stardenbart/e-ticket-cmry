@@ -118,9 +118,9 @@ export function farmView(row: { cow_name: string | null }, f: FarmState, now: nu
     stage: stageOf(f.kg).name,
     milkTotal: f.milkTotal,
     bestMilk: f.bestMilk,
-    outfits: f.s.outfits ?? [],
+    outfits: (f.s.outfits ?? []).filter((k) => k in OUTFITS),
     inv: { asteroid: f.s.inv?.asteroid ?? 0, nebula: f.s.inv?.nebula ?? 0, supernova: f.s.inv?.supernova ?? 0 },
-    wear: f.s.wear ?? null,
+    wear: f.s.wear && f.s.wear in OUTFITS ? f.s.wear : null,
     log: (f.s.log ?? []).slice(0, 12).map((l) => ({ ...l, at: new Date(l.at).toISOString() })),
     window: win ? { ...win, end: new Date(win.end).toISOString() } : null,
     next: nx ? { label: nx.label, start: new Date(nx.start).toISOString() } : null,
@@ -302,7 +302,7 @@ export async function farmLeaderboard(opts: { limit?: number; userId?: string } 
       title: titleOf(f),
       sprite: spriteOf(f, mood).src,
       sick: f.sick,
-      wear: f.s.wear ? OUTFITS[f.s.wear].emoji : null,
+      wear: f.s.wear && f.s.wear in OUTFITS ? OUTFITS[f.s.wear].emoji : null,
       reached: r.reached_at.getTime(),
     };
   });
