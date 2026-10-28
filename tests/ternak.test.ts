@@ -109,3 +109,11 @@ describe("Ternak sapi", () => {
     expect(f.affection).toBe(30);
   });
 });
+
+describe("Sapi baru", () => {
+  it("jadwal makan sebelum sapi dipelihara tidak membuatnya lapar/sedih", () => {
+    const f = farm();
+    f.s.since = T("2026-11-02T08:00:00+07:00");
+    expect(moodOf(f, T("2026-11-02T09:00:00+07:00"))).toBe("senang");
+  });
+});

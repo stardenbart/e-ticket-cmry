@@ -143,7 +143,7 @@ export async function nameCow(userId: string, rawName: string) {
   await sql`INSERT INTO farms (user_id) VALUES (${userId}) ON CONFLICT DO NOTHING`;
   const r = await sql`
     UPDATE farms SET cow_name = ${name}, named_at = now(), tick_at = now(),
-      state = jsonb_set(state, '{log}', ${sql.json([{ at: Date.now(), text: `🐮 ${name} resmi bergabung di peternakanmu!`, tone: "good" }])})
+      state = jsonb_set(jsonb_set(state, '{log}', ${sql.json([{ at: Date.now(), text: `🐮 ${name} resmi bergabung di peternakanmu!`, tone: "good" }])}), '{since}', to_jsonb(${Date.now()}::bigint))
     WHERE user_id = ${userId} AND cow_name IS NULL`;
   if (!r.count) throw new ApiError(409, "ALREADY_NAMED", "Sapi sudah punya nama.");
   return getFarm(userId);

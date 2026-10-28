@@ -134,6 +134,7 @@ export type FarmState = {
     pity?: number;
     outfits?: OutfitKey[];
     wear?: OutfitKey | null;
+    since?: number; // waktu sapi mulai dipelihara (jadwal sebelum ini tidak dihitung lapar)
     log?: LogEntry[];
   };
 };
@@ -361,7 +362,7 @@ export function isHungry(f: FarmState, now: number) {
     { d: day, s: 1 },
     { d: day - 1, s: 2 },
   ].find(({ d, s }) => slotWindow(d, s as 1 | 2).end <= now);
-  return !!passed && !f.s.fed?.[slotKey(passed.d, passed.s)];
+  return !!passed && slotWindow(passed.d, passed.s as 1 | 2).end > (f.s.since ?? 0) && !f.s.fed?.[slotKey(passed.d, passed.s)];
 }
 
 export function moodOf(f: FarmState, now: number): Mood {
