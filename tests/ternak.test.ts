@@ -82,10 +82,10 @@ describe("Ternak sapi", () => {
   it("panen hanya malam, sekali sehari; Pedet maksimal 250 ml", () => {
     const f = farm();
     f.affection = 100;
-    expect(() => act(f, { type: "harvest" }, T("2026-11-02T18:00:00+07:00"), noLuck)).toThrow(/Panen susu hanya/);
+    expect(() => act(f, { type: "harvest" }, T("2026-11-02T18:00:00+07:00"), noLuck)).toThrow(/Perah susu hanya/);
     const r = act(f, { type: "harvest" }, T("2026-11-02T20:00:00+07:00"), () => 0.99);
     expect(r.milk!.ml).toBeLessThanOrEqual(250);
-    expect(() => act(f, { type: "harvest" }, T("2026-11-02T21:00:00+07:00"), noLuck)).toThrow(/sudah dipanen/);
+    expect(() => act(f, { type: "harvest" }, T("2026-11-02T21:00:00+07:00"), noLuck)).toThrow(/sudah diperah/);
   });
   it("Grade S: hanya sapi Dewasa 5♥ dengan 2× Konsentrat Supernova; dijamin setelah 7 hari", () => {
     const f = farm(10_000);

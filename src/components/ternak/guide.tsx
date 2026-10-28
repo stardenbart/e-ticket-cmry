@@ -21,7 +21,7 @@ export function GuideContent({ catalog }: { catalog: Catalog }) {
         <li>TTS (sekali): modal awal 150 + 3 × skor, bonus kalau sempurna & cepat.</li>
         <li>Moordle (harian): tertebak di percobaan ke-1 = 120 koin … ke-6 = 30 koin, plus bonus cepat.</li>
         <li>Flappy, Dino, Ular, Balap: setiap poin ditukar koin dengan kurs per game (Flappy paling tinggi, Balap paling rendah), dengan batas poin harian per game.</li>
-        <li>Panen susu tiap malam dijual otomatis jadi koin.</li>
+        <li>Perah susu tiap malam (tekan Perah Susu, ketuk ember 5×) — susu dijual otomatis jadi koin.</li>
       </ul>
       <H>Jadwal harian (WIB)</H>
       <ul className="mt-1 list-disc space-y-1 pl-5">
@@ -40,7 +40,7 @@ export function GuideContent({ catalog }: { catalog: Catalog }) {
       </ul>
       <H>Kebersihan & kesehatan</H>
       <ul className="mt-1 list-disc space-y-1 pl-5">
-        <li>Setiap makan, sapi pup 💩. Makin lama dibiarkan, makin mudah sakit — bersihkan gratis kapan saja.</li>
+        <li>Setiap makan, sapi pup 💩. Makin lama dibiarkan, makin mudah sakit — ketuk pupnya di kandang (atau tombol Bersihkan), gratis kapan saja.</li>
         <li>Sapi sakit 🤒 tidak mau makan, tidak menghasilkan susu, dan beratnya turun lebih cepat (−4 kg per jadwal).</li>
         <li>
           {catalog.medicine.emoji} <b>{catalog.medicine.name}</b> — 🪙 {catalog.medicine.price}. {catalog.medicine.desc}
@@ -48,7 +48,7 @@ export function GuideContent({ catalog }: { catalog: Catalog }) {
       </ul>
       <H>Afeksi (1–5 ♥)</H>
       <ul className="mt-1 list-disc space-y-1 pl-5">
-        <li>Naik: makan tepat waktu, kandang dibersihkan, dielus sekali sehari, main game hari itu, baju baru.</li>
+        <li>Naik: makan tepat waktu, kandang dibersihkan, dielus (ketuk sapinya) sekali sehari, main game hari itu, baju baru.</li>
         <li>Turun: kelaparan, sakit, kandang penuh kotoran, dan rindu (−1 tiap hari).</li>
       </ul>
       <H>Susu</H>

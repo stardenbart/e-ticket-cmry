@@ -35,7 +35,7 @@ export function FarmApp({ initial, catalog, ended, notStarted }: { initial: Farm
     <div data-ff className="space-y-4 text-white">
       <section className="relative overflow-hidden rounded-[18px] border border-[#ff2e9f]/40 bg-[radial-gradient(ellipse_at_50%_0%,rgba(157,77,255,.35),transparent_60%),#0b0428] p-5 text-center shadow-[0_0_28px_rgba(255,46,159,.35)]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/ternak/sapi-pedet-senang.webp" alt="Pedet baru" className="mx-auto h-40 w-auto" style={{ animation: "ffHop 1.2s ease-in-out infinite" }} />
+        <img src="/images/ternak/sapi-pedet-sehat.webp" alt="Pedet baru" className="mx-auto h-40 w-auto" style={{ animation: "ffHop 1.2s ease-in-out infinite" }} />
         <h2 className="mv-title mt-2 text-2xl">Pedet barumu sudah datang!</h2>
         <p className="mt-1 text-sm text-[#dbe4ff]">Beri nama dulu, lalu rawat dia dengan Moo-coins dari games.</p>
         {ended ? (

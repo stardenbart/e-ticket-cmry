@@ -14,7 +14,8 @@ const YP = 470; // posisi sapi
 const LW = 110; // lebar jalur
 const ZP = 4; // kedalaman sapi
 const ZFAR = 70;
-const MILK = "#fffdf7";
+const MILK = "#ffd84a"; // botol susu kuning
+const MILK_EDGE = "#f59e0b";
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 
 export function RaceGame({ best }: { best: number }) {
@@ -173,13 +174,13 @@ function RaceCanvas({ hooks, best }: { hooks: ArcadeHooks; best: number }) {
       const bh = 24 * p.s;
       const y = p.y - 30 * p.s + bob;
       ctx.fillStyle = MILK;
-      ctx.strokeStyle = CYAN;
+      ctx.strokeStyle = MILK_EDGE;
       ctx.lineWidth = Math.max(1, 2 * p.s);
-      glow(ctx, CYAN, 12);
+      glow(ctx, MILK, 12);
       roundRect(ctx, p.x - bw / 2, y - bh / 2, bw, bh, 3 * p.s);
       ctx.fill();
       ctx.stroke();
-      ctx.fillStyle = CYAN;
+      ctx.fillStyle = MILK_EDGE;
       ctx.fillRect(p.x - bw * 0.35, y - bh / 2 - 4 * p.s, bw * 0.7, 4 * p.s);
       ctx.shadowBlur = 0;
     };

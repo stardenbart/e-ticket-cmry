@@ -54,11 +54,11 @@ export default async function GamesPage() {
         className="group mb-6 flex items-center gap-4 rounded-2xl border border-[#ff2e9f]/60 bg-[radial-gradient(ellipse_at_20%_0%,rgba(255,46,159,.3),transparent_60%),#0f0730] p-5 text-white shadow-[0_0_24px_rgba(255,46,159,0.25)] transition hover:-translate-y-0.5"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/ternak/sapi-remaja-senang.webp" alt="" className="h-24 w-auto shrink-0 drop-shadow-[0_6px_10px_rgba(0,0,0,.5)]" />
+        <img src="/images/ternak/sapi-remaja-sehat.webp" alt="" className="h-24 w-auto shrink-0 drop-shadow-[0_6px_10px_rgba(0,0,0,.5)]" />
         <div className="min-w-0 flex-1">
           <h2 className="mv-title text-xl sm:text-2xl">Ternak Sapi</h2>
           <p className="text-sm text-[#dbe4ff]">
-            {earn?.cowName ? `Kandang ${earn.cowName} menunggumu.` : "Beri nama pedetmu, beri makan siang & sore, panen susu tiap malam."}
+            {earn?.cowName ? `Kandang ${earn.cowName} menunggumu.` : "Beri nama pedetmu, beri makan siang & sore, perah susu tiap malam."}
           </p>
           {earn && <p className="mt-1 font-digits text-lg font-black">🪙 {earn.coins.toLocaleString("id-ID")} Moo-coins</p>}
           <p className="font-hud mt-1 text-sm font-bold uppercase tracking-[0.14em] text-[#ff2e9f] group-hover:underline">Ke kandang →</p>

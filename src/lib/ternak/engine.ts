@@ -76,7 +76,7 @@ export const SLOTS = [
   { slot: 1, label: "Makan siang", start: [11, 30], end: [13, 30] },
   { slot: 2, label: "Makan sore", start: [16, 0], end: [18, 30] },
 ] as const;
-export const HARVEST = { label: "Panen susu", start: [19, 0], end: [24, 0] } as const;
+export const HARVEST = { label: "Perah susu", start: [19, 0], end: [24, 0] } as const;
 
 export const slotWindow = (day: number, slot: 1 | 2) => {
   const s = SLOTS[slot - 1];
@@ -286,8 +286,8 @@ export function act(f: FarmState, a: Action, now: number, rand: Rand): ActionRes
     }
     case "harvest": {
       const w = currentWindow(now);
-      if (!w || w.kind !== "harvest") throw new FarmError("NOT_HARVEST_TIME", `Panen susu hanya ${SCHEDULE_TEXT[2]}.`);
-      if (f.s.harvest === day) throw new FarmError("ALREADY_HARVESTED", "Susu hari ini sudah dipanen.");
+      if (!w || w.kind !== "harvest") throw new FarmError("NOT_HARVEST_TIME", `Perah susu hanya ${SCHEDULE_TEXT[2]}.`);
+      if (f.s.harvest === day) throw new FarmError("ALREADY_HARVESTED", "Susu hari ini sudah diperah.");
       if (f.sick) throw new FarmError("COW_SICK", "Sapi sakit tidak menghasilkan susu. Obati dulu.");
       f.s.harvest = day;
       const h = hearts(f.affection);
@@ -310,8 +310,8 @@ export function act(f: FarmState, a: Action, now: number, rand: Rand): ActionRes
       f.milkTotal += milk.ml;
       f.bestMilk = Math.max(f.bestMilk, milk.ml);
       f.coins += milk.price;
-      r = { spent: 0, earned: milk.price, note: `Panen susu ${milk.ml} ml (Grade ${milk.grade})`, milk };
-      log(f, now, `🥛 Panen ${milk.ml} ml — Grade ${milk.grade}${milk.grade === "S" ? " ✨ LANGKA!" : ""} (+${milk.price} koin).`, "good");
+      r = { spent: 0, earned: milk.price, note: `Perah susu ${milk.ml} ml (Grade ${milk.grade})`, milk };
+      log(f, now, `🥛 Perah ${milk.ml} ml — Grade ${milk.grade}${milk.grade === "S" ? " ✨ LANGKA!" : ""} (+${milk.price} koin).`, "good");
       break;
     }
     case "buyOutfit": {
@@ -384,11 +384,14 @@ export function titleOf(f: Pick<FarmState, "kg" | "affection" | "bestMilk">) {
   return { name: "Gembala Rebahan", emoji: "🛌" };
 }
 
+/** Berkas gambar per kondisi: senang = sehat, sedih = lapar/lesu, sakit = berbaring lemas. */
+const SPRITE_MOOD: Record<Mood, string> = { senang: "sehat", sedih: "lapar", sakit: "sakit" };
+
 /** Gambar sapi sesuai tahap & kondisi + skala halus dalam satu tahap (tiap kenaikan berat terlihat). */
 export function spriteOf(f: Pick<FarmState, "kg">, mood: Mood) {
   const st = stageOf(f.kg);
   const idx = STAGES.findIndex((s) => s.key === st.key);
   const next = STAGES[idx + 1]?.minKg ?? st.minKg + 300;
   const within = clamp((f.kg - st.minKg) / (next - st.minKg), 0, 1);
-  return { src: `/images/ternak/sapi-${st.key}-${mood}.webp`, scale: Math.round((0.82 + within * 0.18) * 100) / 100, stage: st };
+  return { src: `/images/ternak/sapi-${st.key}-${SPRITE_MOOD[mood]}.webp`, scale: Math.round((0.82 + within * 0.18) * 100) / 100, stage: st };
 }
