@@ -11,3 +11,8 @@ next-env.d.ts
 /public/backsound/
 /public/animation/
 /public/images/bg_landing_page.gif
+
+# Sumber PNG sapi (versi web: public/images/ternak/*.webp)
+/public/images/Anakan *.png
+/public/images/Remaja *.png
+/public/images/Dewasa *.png
