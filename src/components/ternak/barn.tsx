@@ -483,7 +483,7 @@ export function Barn({
   return (
     <div
       ref={stageEl}
-      className="ts-stage relative aspect-[16/10] w-full select-none overflow-hidden rounded-2xl ring-1 ring-black/10"
+      className="ts-stage relative isolate aspect-[16/10] w-full select-none overflow-hidden rounded-2xl ring-1 ring-black/10"
       style={{ background: "#a8452f", containerType: "inline-size" }}
     >
       <svg className="absolute inset-0 h-full w-full" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
@@ -670,11 +670,11 @@ export function Barn({
       </div>
 
       <div ref={floats} className="pointer-events-none absolute inset-0" aria-hidden="true" />
-      <div className="pointer-events-none absolute inset-x-0 top-3 flex justify-center px-3">
+      <div className="pointer-events-none absolute inset-x-0 top-3 z-20 flex justify-center px-3">
         <div ref={toastEl} className="hidden" role="status" />
       </div>
       {milking && (
-        <div className="pointer-events-none absolute inset-x-0 bottom-2 flex justify-center px-3">
+        <div className="pointer-events-none absolute inset-x-0 top-[22%] z-10 flex justify-center px-3">
           <span className="rounded-full bg-sky-600/95 px-3 py-1 text-xs font-extrabold text-white shadow-lg sm:text-sm">
             {milking.busy ? "Menuang susu…" : `Ketuk ember / sapi untuk memerah · ${milking.taps}/${milking.need}`}
           </span>

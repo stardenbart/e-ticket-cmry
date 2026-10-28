@@ -176,12 +176,12 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
   const badge = farm.sick
     ? { t: "Sakit", c: "bg-rose-100 text-rose-700 animate-pulse" }
     : farm.hungry
-      ? { t: "Lapar", c: "bg-amber-100 text-amber-800" }
+      ? { t: "Lapar", c: "bg-[#fef3c7] text-amber-800" }
       : farm.dirt >= 2
-        ? { t: "Kandang kotor", c: "bg-amber-100 text-amber-800" }
+        ? { t: "Kandang kotor", c: "bg-[#fef3c7] text-amber-800" }
         : farm.mood === "sedih"
-          ? { t: "Lesu", c: "bg-amber-100 text-amber-800" }
-          : { t: "Sehat", c: "bg-white/90 text-emerald-700" };
+          ? { t: "Lesu", c: "bg-[#fef3c7] text-amber-800" }
+          : { t: "Sehat", c: "bg-[#ffffffe6] text-emerald-700" };
 
   const todo: { tone: "ok" | "warn" | "bad"; text: React.ReactNode } = ended
     ? { tone: "warn", text: "Periode games sudah berakhir — kondisi sapi dibekukan untuk penentuan pemenang. Pemenang diumumkan di hari H acara!" }
@@ -198,7 +198,7 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
               : !farm.petToday
                 ? { tone: "ok", text: <><b>Ketuk sapimu</b> untuk mengelus (+1 afeksi, sekali sehari).</> }
                 : { tone: "ok", text: <>Semua beres! 👍 Berikutnya: <b>{farm.next?.label}</b> dalam {left(farm.next?.start)}. Sambil menunggu, kumpulkan koin dari games.</> };
-  const todoTone = { ok: "bg-emerald-50 text-emerald-800 ring-emerald-200", warn: "bg-amber-50 text-amber-900 ring-amber-200", bad: "bg-rose-50 text-rose-800 ring-rose-200" }[todo.tone];
+  const todoTone = { ok: "bg-emerald-50 text-emerald-800 ring-emerald-200", warn: "bg-[#fffbeb] text-[#78350f] ring-[#fde68a]", bad: "bg-rose-50 text-rose-800 ring-rose-200" }[todo.tone];
 
   const stageKey = farm.sprite.stage.key as StageKey;
   const nx = NEXT_STAGE[stageKey];
@@ -224,7 +224,7 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
       </div>
 
       {/* ================= KANDANG ================= */}
-      <section className="overflow-hidden rounded-3xl bg-white text-gray-800 shadow-xl ring-1 ring-black/5" aria-label="Kandang sapi">
+      <section className="overflow-hidden rounded-3xl bg-[#fff] text-gray-800 shadow-xl ring-1 ring-black/5" aria-label="Kandang sapi">
         <header className="flex items-center justify-between gap-3 bg-gradient-to-r from-emerald-600 to-lime-500 px-4 py-3 text-white sm:px-5 sm:py-4">
           <div className="min-w-0">
             <h2 className="truncate text-xl font-extrabold leading-tight sm:text-2xl">Kandang {farm.name}</h2>
@@ -308,7 +308,7 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
                       onClick={() => feed(k)}
                       disabled={!!busy}
                       aria-disabled={poor}
-                      className={`rounded-xl bg-white p-3 text-left shadow-sm ring-1 ring-emerald-200 transition hover:ring-emerald-500 active:translate-y-px ${poor ? "opacity-50" : ""}`}
+                      className={`rounded-xl bg-[#fff] p-3 text-left shadow-sm ring-1 ring-emerald-200 transition hover:ring-emerald-500 active:translate-y-px ${poor ? "opacity-50" : ""}`}
                     >
                       <p className="font-extrabold text-gray-900">
                         {f.emoji} {f.name}
@@ -401,7 +401,7 @@ const TILE = {
   emerald: "bg-emerald-50 ring-emerald-100 [&>p:first-child]:text-emerald-700 text-emerald-900",
   sky: "bg-sky-50 ring-sky-100 [&>p:first-child]:text-sky-700 text-sky-900",
   rose: "bg-rose-50 ring-rose-100 [&>p:first-child]:text-rose-700 text-rose-900",
-  amber: "bg-amber-50 ring-amber-100 [&>p:first-child]:text-amber-700 text-amber-900",
+  amber: "bg-[#fffbeb] ring-[#fef3c7] [&>p:first-child]:text-amber-700 text-[#78350f]",
 };
 function Tile({ label, tone, children }: { label: string; tone: keyof typeof TILE; children: React.ReactNode }) {
   return (
@@ -430,7 +430,7 @@ function Bar({ label, right, pct, color, hint }: { label: string; right: string;
 const BTN = {
   emerald: "bg-emerald-600 hover:bg-emerald-700 focus-visible:outline-emerald-600 [&>span]:text-emerald-100",
   sky: "bg-sky-600 hover:bg-sky-700 focus-visible:outline-sky-600 [&>span]:text-sky-100",
-  amber: "bg-amber-500 hover:bg-amber-600 focus-visible:outline-amber-500 [&>span]:text-amber-50",
+  amber: "bg-amber-500 hover:bg-amber-600 focus-visible:outline-amber-500 [&>span]:text-[#fffbeb]",
   rose: "bg-rose-600 hover:bg-rose-700 focus-visible:outline-rose-600 [&>span]:text-rose-100",
 };
 function BigBtn({ color, title, hint, off, active, busy, pulse, onClick }: { color: keyof typeof BTN; title: string; hint: string; off: boolean; active?: boolean; busy?: boolean; pulse?: boolean; onClick: () => void }) {
@@ -452,8 +452,8 @@ function BigBtn({ color, title, hint, off, active, busy, pulse, onClick }: { col
 function MilkReveal({ milk, onClose }: { milk: Milk; onClose: () => void }) {
   const s = milk.grade === "S";
   return (
-    <button type="button" onClick={onClose} className="absolute inset-0 grid place-items-center rounded-2xl bg-black/35" aria-label="Tutup hasil perah">
-      <div className={`mx-4 rounded-2xl px-6 py-4 text-center shadow-2xl ${s ? "bg-gradient-to-b from-amber-100 to-yellow-300 ring-4 ring-amber-400" : "bg-white"}`} style={{ animation: "ffMilk 4.2s ease-out both" }}>
+    <button type="button" onClick={onClose} className="absolute inset-0 z-10 grid place-items-center rounded-2xl bg-black/35" aria-label="Tutup hasil perah">
+      <div className={`mx-4 rounded-2xl px-6 py-4 text-center shadow-2xl ${s ? "bg-gradient-to-b from-amber-100 to-yellow-300 ring-4 ring-amber-400" : "bg-[#fff]"}`} style={{ animation: "ffMilk 4.2s ease-out both" }}>
         <p className="text-5xl">🥛</p>
         <p className="mt-1 text-2xl font-black text-gray-900">Grade {milk.grade}</p>
         <p className="text-sm font-bold text-gray-700">
