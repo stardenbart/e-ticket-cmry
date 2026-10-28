@@ -260,7 +260,7 @@ export function Farm({ initial, catalog, ended, notStarted }: { initial: FarmVie
               scale={farm.sprite.scale}
               mood={farm.mood}
               src={farm.sprite.src}
-              accessory={farm.wear ? OUTFIT_EMOJI[farm.wear] : null}
+              accessory={farm.wear ? { emoji: OUTFIT_EMOJI[farm.wear], spot: farm.wear === "bomber" ? "body" : "head" } : null}
               dirt={farm.dirt}
               scooped={scooped}
               milking={milking ? { ...milking, need: MILK_TAPS } : null}
